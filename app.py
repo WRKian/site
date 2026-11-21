@@ -45,9 +45,17 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # 没有配置时自动降级为本地 SQLite（方便你在自己电脑上双击运行、调试）。
 _db_url = os.environ.get("DATABASE_URL") or os.environ.get("SITE_BUILDER_DATABASE_URL")
 if _db_url:
+    # 去掉从网页复制时混入的首尾空格/换行，否则库名会变成 "postgres\n" 导致连不上
+    _db_url = _db_url.strip()
     # SQLAlchemy 2.x 不认 postgres:// 这个老前缀（Heroku/部分平台会给出），统一改成 postgresql://
     if _db_url.startswith("postgres://"):
         _db_url = "postgresql://" + _db_url[len("postgres://"):]
+    # Vercel/Render 等平台：SQLAlchemy 2.x 对 postgresql:// 默认加载 psycopg(v3)，
+    # 但本项目依赖装的是 psycopg2-binary（模块名 psycopg2），
+    # 因此显式指定 +psycopg2，避免 ModuleNotFoundError: No module named 'psycopg'。
+    # 已经是 postgresql+psycopg2:// 的不会被重复处理。
+    if _db_url.startswith("postgresql://"):
+        _db_url = "postgresql+psycopg2://" + _db_url[len("postgresql://"):]
     app.config["SQLALCHEMY_DATABASE_URI"] = _db_url
     # Supabase 会在连接空闲一段时间后主动断开，开启预检 + 回收避免"连接已失效"报错
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
