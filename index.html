@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>建站工坊 · 拖拽即所得的网页制作工具</title>
+  <meta name="description" content="无需写代码，拖拽素材、套用模板、实时编辑，几分钟做出属于自己的网站。支持一键导出独立 HTML。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body class="pt-body" data-pt-page="home">
+
+  <!-- ============ 顶部导航 ============ -->
+  <header class="pt-nav">
+    <div class="pt-nav-in">
+      <a class="pt-logo" href="#top">
+        <span class="pt-logo-mark">W</span>
+        <span>建站工坊<small>WEBFORGE STUDIO</small></span>
+      </a>
+      <nav class="pt-nav-links">
+        <a href="#features">功能</a>
+        <a href="#templates">模板库</a>
+        <a href="#projects">我的项目</a>
+        <a href="editor.html">编辑器</a>
+      </nav>
+      <div class="pt-nav-spacer"></div>
+      <div class="pt-user-guest" id="ptGuest">
+        <button class="pt-btn pt-btn-ghost pt-btn-sm" data-openauth="login">登录</button>
+        <button class="pt-btn pt-btn-primary pt-btn-sm" data-openauth="register">免费注册</button>
+      </div>
+      <div class="pt-user-auth pt-hide" id="ptAuth">
+        <div class="pt-user-menu-wrap">
+          <button class="pt-user-chip" id="ptUserChip">
+            <span class="pt-avatar" id="ptAvatar">用</span>
+            <span class="pt-user-name" id="ptUserName">用户</span>
+          </button>
+          <div class="pt-dropdown" id="ptDropdown">
+            <button data-useract="projects">▤ 我的项目</button>
+            <button data-useract="templates">✦ 模板库</button>
+            <hr>
+            <button data-useract="logout">退出登录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ Hero ============ -->
+  <section class="pt-hero" id="top">
+    <div class="pt-wrap pt-hero-in">
+      <div class="pt-hero-copy">
+        <span class="pt-pill"><i></i> 零代码 · 拖拽建站</span>
+        <h1>把想法，<br>做成<span class="pt-grad">看得见的网站</span></h1>
+        <p class="pt-lead">无需写代码。挑一个模板，拖拽素材、改改文字，所见即所得。做完一键导出独立 HTML，直接上线。</p>
+        <div class="pt-hero-actions">
+          <a class="pt-btn pt-btn-primary pt-btn-lg" href="editor.html">✦ 开始免费创作</a>
+          <a class="pt-btn pt-btn-ghost pt-btn-lg" href="#templates">浏览模板库</a>
+        </div>
+        <div class="pt-hero-note">
+          <span><b>✓</b> 无需安装软件</span>
+          <span><b>✓</b> 86 个组件</span>
+          <span><b>✓</b> 一键导出 HTML</span>
+          <span><b>✓</b> 注册即可保存</span>
+        </div>
+      </div>
+      <div class="pt-preview" aria-hidden="true">
+        <div class="pt-preview-bar"><i></i><i></i><i></i></div>
+        <div class="pt-screen">
+          <div class="pt-screen-nav"><b>◆ 我的网站</b><div class="pt-dots"><i></i><i></i><i></i></div></div>
+          <div class="pt-screen-body">
+            <div class="pt-k">WELCOME</div>
+            <div class="pt-t">让技术，成为你<br>增长的底气</div>
+            <div class="pt-d">我们为成长型企业提供稳定、可扩展的数字化解决方案。</div>
+            <span class="pt-b">了解更多 →</span>
+          </div>
+          <div class="pt-screen-cards"><div></div><div></div><div></div></div>
+        </div>
+        <div class="pt-float a"><i>✦</i> 拖拽即可编辑</div>
+        <div class="pt-float b"><i>↧</i> 一键导出</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 功能特性 ============ -->
+  <section class="pt-section" id="features">
+    <div class="pt-wrap">
+      <div class="pt-section-head">
+        <span class="pt-eyebrow">为什么选择我们</span>
+        <h2>做网站，本该这么简单</h2>
+        <p>从空白页到完整网站，把复杂的技术留在幕后，把创作的乐趣交给你。</p>
+      </div>
+      <div class="pt-features">
+        <div class="pt-feature">
+          <div class="pt-feature-ico" style="background:#eaf1ff;color:#2563eb">🧩</div>
+          <h3>86 个现成组件</h3>
+          <p>导航、主视觉、价格、表单、画廊、视频、动效……常用的网页元素应有尽有，拖进来就能用。</p>
+        </div>
+        <div class="pt-feature">
+          <div class="pt-feature-ico" style="background:#f3eaff;color:#7c3aed">🎨</div>
+          <h3>每个细节都能改</h3>
+          <p>颜色、字体、间距、边框、动画、链接、独立配色……每个组件都有丰富属性，做独一无二的页面。</p>
+        </div>
+        <div class="pt-feature">
+          <div class="pt-feature-ico" style="background:#e7f8f0;color:#059669">⚡</div>
+          <h3>所见即所得</h3>
+          <p>左侧拖素材，中间看效果，右侧调属性。桌面 / 平板 / 手机三种视图随时切换预览。</p>
+        </div>
+        <div class="pt-feature">
+          <div class="pt-feature-ico" style="background:#fff1e7;color:#ea580c">📐</div>
+          <h3>一键套用模板</h3>
+          <p>企业官网、作品集、产品页、电商、活动、博客等多套精美模板，选一个改改就是你的。</p>
+        </div>
+        <div class="pt-feature">
+          <div class="pt-feature-ico" style="background:#eef4ff;color:#1d4ed8">💾</div>
+          <h3>账号保存项目</h3>
+          <p>注册后把项目存到账号里，随时回来继续编辑，还能把自己满意的页面存成专属模板。</p>
+        </div>
+        <div class="pt-feature">
+          <div class="pt-feature-ico" style="background:#fdf2f8;color:#e11d48">↧</div>
+          <h3>导出独立 HTML</h3>
+          <p>一键导出干净的单文件 HTML，样式脚本全内联，传到任意静态托管就能上线。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 模板库 ============ -->
+  <section class="pt-section pt-tpl-section" id="templates">
+    <div class="pt-wrap">
+      <div class="pt-section-head">
+        <span class="pt-eyebrow">模板库</span>
+        <h2>选个模板，几分钟出稿</h2>
+        <p>精选多套常见场景的模板，点「使用此模板」即可载入编辑器，所有内容都能自由修改。</p>
+      </div>
+      <div class="pt-tabs" id="ptTplTabs"></div>
+      <div class="pt-tpl-grid" id="ptTplGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ 我的项目 ============ -->
+  <section class="pt-section pt-hide" id="projects"
+    style="background:linear-gradient(180deg,#f7f9fc,#eef4ff)">
+    <div class="pt-wrap">
+      <div class="pt-section-head">
+        <span class="pt-eyebrow">我的工作台</span>
+        <h2>继续你的创作</h2>
+        <p>这里是你保存到账号的项目，点「继续编辑」接着上次的工作。</p>
+      </div>
+      <div class="pt-projects" id="ptMyProjects"></div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="pt-cta">
+    <div class="pt-wrap">
+      <h2>现在就开始，把想法变成网站</h2>
+      <p>免费使用，无需信用卡，打开浏览器就能创作。</p>
+      <a class="pt-btn pt-btn-lg" href="editor.html">✦ 打开编辑器</a>
+    </div>
+  </section>
+
+  <!-- ============ 页脚 ============ -->
+  <footer class="pt-footer">
+    <div class="pt-wrap">
+      <div class="pt-footer-in">
+        <a class="pt-logo" href="#top">
+          <span class="pt-logo-mark">W</span>
+          <span>建站工坊<small>WEBFORGE STUDIO</small></span>
+        </a>
+        <div class="pt-footer-links">
+          <a href="#features">功能</a>
+          <a href="#templates">模板库</a>
+          <a href="editor.html">编辑器</a>
+          <a href="#" data-openauth="register">注册</a>
+        </div>
+      </div>
+      <div class="pt-copy" id="ptFooterCopy">© 2026 建站工坊 · 本地演示版，数据仅保存在你的浏览器中</div>
+    </div>
+  </footer>
+
+  <!-- ============ 登录 / 注册弹窗 ============ -->
+  <div class="pt-mask" id="ptAuthMask">
+    <div class="pt-modal" id="ptAuthModal" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <script src="templates.js"></script>
+  <script src="portal.js"></script>
+</body>
+</html>
