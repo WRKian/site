@@ -222,3 +222,14 @@ body.pt-body{
   .pt-footer-links{margin-left:0;flex-wrap:wrap}
   .pt-user-name{display:none}
 }
+
+/* ---------- 邮箱验证码 ---------- */
+.pt-code-row{display:flex;gap:8px;align-items:stretch}
+.pt-code-row input{flex:1;min-width:0}
+.pt-code-btn{flex:0 0 auto;border:1px solid var(--pt-brand);background:#eff6ff;color:var(--pt-brand);
+  font-weight:700;font-size:12.5px;border-radius:10px;padding:0 14px;cursor:pointer;white-space:nowrap;
+  transition:.18s;font-family:inherit}
+.pt-code-btn:hover:not(:disabled){background:#dbeafe}
+.pt-code-btn:disabled{background:#f1f5f9;border-color:#e2e8f0;color:#94a3b8;cursor:not-allowed}
+.pt-code-tip{font-size:12px;color:#0f766e;margin-top:6px;min-height:15px;line-height:1.5;word-break:break-all}
+.pt-code-tip.dev{color:#b45309}

@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>数据库管理 · 建站工坊</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="portal.css">
+  <style>
+    /* ============ 数据库管理后台（.dba- 作用域） ============ */
+    body.dba-body{background:#f4f7fb;min-height:100vh}
+    .dba-body [hidden]{display:none!important}
+    .dba-body button{font-family:inherit}
+    .dba-top{position:sticky;top:0;z-index:40;height:58px;display:flex;align-items:center;gap:14px;
+      padding:0 20px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);border-bottom:1px solid #e3eaf3}
+    .dba-brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;color:#0f172a}
+    .dba-brand i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-style:normal;
+      background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-size:13px;
+      box-shadow:0 5px 12px rgba(37,99,235,.3)}
+    .dba-brand small{display:block;font-size:9.5px;font-weight:700;color:#8a99ad;letter-spacing:.08em}
+    .dba-tag{font-size:11.5px;font-weight:700;color:#2563eb;background:#eaf1ff;border-radius:999px;padding:4px 10px}
+    .dba-top nav{display:flex;gap:4px;margin-left:6px}
+    .dba-top nav a{font-size:13px;font-weight:600;color:#5b6b82;padding:6px 10px;border-radius:8px}
+    .dba-top nav a:hover{background:#f1f5fb;color:#2563eb}
+    .dba-top .sp{flex:1}
+    .dba-who{display:flex;align-items:center;gap:8px;font-size:13px;color:#334155}
+    .dba-who b{font-weight:700}
+    .dba-dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.16)}
+
+    .dba-shell{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 58px)}
+
+    /* ---------- 左侧表列表 ---------- */
+    .dba-side{background:#fff;border-right:1px solid #e3eaf3;display:flex;flex-direction:column;
+      position:sticky;top:58px;height:calc(100vh - 58px)}
+    .dba-side-head{padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between}
+    .dba-side-head b{font-size:12px;font-weight:800;color:#7b8aa0;letter-spacing:.06em;text-transform:uppercase}
+    .dba-search{margin:0 12px 10px;position:relative}
+    .dba-search input{width:100%;height:32px;border:1px solid #e3eaf3;border-radius:9px;background:#f8fafd;
+      padding:0 10px 0 28px;font-size:12.5px;color:#0f172a;outline:none}
+    .dba-search input:focus{border-color:#bfd3f8;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    .dba-search span{position:absolute;left:9px;top:6px;color:#9aa8bb;font-size:12px}
+    .dba-tlist{flex:1;overflow:auto;padding:2px 8px 10px}
+    .dba-titem{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;
+      padding:8px 10px;border-radius:9px;text-align:left;color:#334155;font-size:13px}
+    .dba-titem:hover{background:#f5f8fd}
+    .dba-titem.on{background:#eaf1ff;color:#1d4ed8;font-weight:700}
+    .dba-titem i{font-style:normal;font-size:11px;color:#94a3b8}
+    .dba-titem.on i{color:#2563eb}
+    .dba-titem .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px}
+    .dba-titem .cnt{font-size:10.5px;font-weight:700;color:#8494a8;background:#f1f5fb;border-radius:999px;padding:2px 7px;min-width:24px;text-align:center}
+    .dba-titem.on .cnt{background:#fff;color:#2563eb}
+    .dba-side-foot{margin-top:auto;padding:12px 14px;border-top:1px solid #eef2f8;font-size:11.5px;color:#8494a8;line-height:1.7}
+    .dba-side-foot b{color:#334155;font-weight:700}
+    .dba-side-foot .k{display:flex;justify-content:space-between;gap:8px}
+
+    /* ---------- 主区 ---------- */
+    .dba-main{padding:16px 22px 44px;min-width:0}
+    .dba-head{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+    .dba-crumb{font-size:21px;font-weight:800;letter-spacing:-.02em;color:#0f172a;display:flex;align-items:center;gap:8px}
+    .dba-crumb .ico{font-size:16px;color:#2563eb}
+    .dba-crumb small{font-size:11.5px;font-weight:600;color:#8494a8;letter-spacing:0}
+    .dba-head .sp{flex:1}
+    .dba-head-act{display:flex;gap:8px;align-items:center}
+
+    .dba-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;
+      border:1px solid #e3eaf3;border-radius:9px;background:#fff;color:#334155;font-size:12.5px;font-weight:700;
+      white-space:nowrap;transition:all .15s}
+    .dba-btn:hover{border-color:#c9d8ee;background:#f8fafd;color:#1d4ed8}
+    .dba-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:0 6px 14px rgba(37,99,235,.22)}
+    .dba-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+    .dba-btn.danger{color:#dc2626;border-color:#f3c9c9;background:#fff7f7}
+    .dba-btn.danger:hover{background:#feecec;border-color:#efb4b4;color:#b91c1c}
+    .dba-btn.sm{height:26px;padding:0 9px;font-size:11.5px;border-radius:7px}
+    .dba-btn[disabled]{opacity:.5;cursor:not-allowed}
+    .dba-btn.busy{opacity:.7;pointer-events:none}
+    .dba-select{height:32px;border:1px solid #e3eaf3;border-radius:9px;background:#fff;color:#334155;
+      font-size:12.5px;font-weight:600;padding:0 8px;outline:none}
+
+    .dba-tabs{display:flex;gap:2px;margin:14px 0 16px;border-bottom:1px solid #e3eaf3}
+    .dba-tabs button{border:0;background:transparent;padding:9px 14px;font-size:13px;font-weight:700;
+      color:#7b8aa0;border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:8px 8px 0 0}
+    .dba-tabs button:hover{color:#2563eb;background:#f7faff}
+    .dba-tabs button.on{color:#2563eb;border-bottom-color:#2563eb}
+    .dba-tabs button[disabled]{opacity:.42;cursor:not-allowed}
+    .dba-tabs .sp{flex:1}
+    .dba-tabs .hint{font-size:11.5px;color:#9aa8bb;padding:12px 0 0}
+
+    .dba-pane{display:none;animation:dbaIn .18s ease}
+    .dba-pane.on{display:block}
+    @keyframes dbaIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+    /* ---------- 概览 ---------- */
+    .dba-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .dba-stat{background:#fff;border:1px solid #e3eaf3;border-radius:14px;padding:14px 16px;
+      display:flex;gap:12px;align-items:flex-start;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+    .dba-stat .tile{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:15px;flex:0 0 auto}
+    .dba-stat .lab{font-size:11.5px;color:#8494a8;font-weight:700;letter-spacing:.04em}
+    .dba-stat .val{font-size:19px;font-weight:800;color:#0f172a;letter-spacing:-.02em;line-height:1.3;word-break:break-all}
+    .dba-stat .sub{font-size:11px;color:#9aa8bb;font-family:ui-monospace,Consolas,monospace}
+
+    .dba-card{background:#fff;border:1px solid #e3eaf3;border-radius:14px;padding:16px 18px;margin-top:14px}
+    .dba-card h3{margin:0 0 12px;font-size:13px;font-weight:800;color:#334155;display:flex;align-items:center;gap:8px}
+    .dba-card h3 .h{font-weight:600;font-size:11.5px;color:#9aa8bb}
+    .dba-trow{display:grid;grid-template-columns:150px 74px minmax(0,1fr) 80px;gap:12px;align-items:center;
+      padding:8px 6px;border-radius:8px;font-size:12.5px}
+    .dba-trow:hover{background:#f8fafd}
+    .dba-trow .n{font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#1d4ed8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .dba-trow .m{color:#8494a8;font-size:11.5px}
+    .dba-bar{height:7px;border-radius:99px;background:#eef3fb;overflow:hidden}
+    .dba-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#60a5fa,#2563eb)}
+    .dba-trow .c{text-align:right;font-weight:700;color:#334155;font-size:12px}
+    .dba-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .dba-note{margin-top:14px;background:#f8fbff;border:1px solid #dbe8fb;border-radius:12px;padding:12px 14px;
+      font-size:12.5px;color:#4a5c75;line-height:1.8}
+    .dba-note b{color:#1d4ed8}
+    .dba-note code{background:#eaf1ff;color:#1d4ed8;border-radius:5px;padding:1px 5px;font-size:11.5px}
+
+    /* ---------- 数据表 ---------- */
+    .dba-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .dba-toolbar .grow{flex:1}
+    .dba-q{position:relative;min-width:220px;max-width:340px;flex:1}
+    .dba-q input{width:100%;height:32px;border:1px solid #e3eaf3;border-radius:9px;padding:0 30px 0 30px;
+      font-size:12.5px;background:#fff;outline:none}
+    .dba-q input:focus{border-color:#bfd3f8;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    .dba-q .i{position:absolute;left:10px;top:7px;color:#9aa8bb;font-size:12px}
+    .dba-q .x{position:absolute;right:4px;top:4px;border:0;background:transparent;color:#9aa8bb;
+      width:24px;height:24px;border-radius:6px;font-size:14px;line-height:1;display:none}
+    .dba-q.has .x{display:block}
+    .dba-q .x:hover{background:#f1f5fb;color:#dc2626}
+    .dba-warn{display:flex;align-items:center;gap:8px;background:#fffbeb;border:1px solid #fde68a;
+      color:#92400e;border-radius:10px;padding:9px 12px;font-size:12.5px;margin-bottom:10px}
+
+    .dba-tablewrap{background:#fff;border:1px solid #e3eaf3;border-radius:13px;overflow:auto;
+      max-height:calc(100vh - 286px);box-shadow:0 1px 2px rgba(15,23,42,.03)}
+    .dba-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+    .dba-grid th{position:sticky;top:0;z-index:2;background:#f8fafd;border-bottom:1px solid #e3eaf3;
+      text-align:left;padding:9px 10px;white-space:nowrap;font-weight:800;color:#475569;cursor:pointer}
+    .dba-grid th:hover{background:#eff5fd;color:#1d4ed8}
+    .dba-grid th .ty{display:block;font-size:10px;font-weight:600;color:#9aa8bb;font-family:ui-monospace,Consolas,monospace;
+      margin-top:1px;text-transform:lowercase}
+    .dba-grid th .pk{color:#d97706}
+    .dba-grid th .sh{color:#2563eb;font-size:10px;margin-left:3px}
+    .dba-grid td{border-bottom:1px solid #f1f5fb;padding:7px 10px;vertical-align:top;
+      max-width:290px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1e293b;
+      font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
+    .dba-grid tr:hover td{background:#fbfdff}
+    .dba-grid td.ix{color:#9aa8bb;font-size:11px;text-align:right;width:44px;background:#fcfdff;position:sticky;left:0}
+    .dba-grid td.act{position:sticky;right:0;background:#fff;border-left:1px solid #eef2f8;white-space:nowrap;width:78px;text-align:right}
+    .dba-grid tr:hover td.act{background:#fbfdff}
+    .dba-grid .dba-null{color:#b6c2d2;font-style:italic;font-size:11.5px}
+    .dba-grid .dba-empty{color:#b6c2d2;font-size:11.5px}
+    .dba-grid .dba-num{color:#0f766e}
+    .dba-grid .dba-cut{color:#b45309;cursor:pointer;border-bottom:1px dashed #f0c98a}
+    .dba-grid .dba-cut i{font-style:normal;color:#c98a3a;font-size:10.5px;margin-left:4px}
+    .dba-grid td .mini{border:1px solid #e3eaf3;background:#fff;border-radius:6px;width:25px;height:24px;
+      font-size:12px;line-height:1;color:#475569;margin-left:3px}
+    .dba-grid td .mini:hover{border-color:#bfd3f8;color:#2563eb;background:#f7faff}
+    .dba-grid td .mini.del:hover{border-color:#efb4b4;color:#dc2626;background:#fff7f7}
+    .dba-empty-row td{text-align:center;color:#9aa8bb;padding:44px 10px!important;font-family:inherit;font-size:13px}
+
+    .dba-pager{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:#64748b}
+    .dba-pager .sp{flex:1}
+    .dba-pager .pinfo b{color:#334155}
+    .dba-pager input{width:52px;height:28px;border:1px solid #e3eaf3;border-radius:7px;text-align:center;
+      font-size:12px;outline:none;font-family:inherit}
+    .dba-pager input:focus{border-color:#bfd3f8}
+    .dba-loading{display:flex;align-items:center;gap:8px;color:#8494a8;font-size:12.5px;padding:30px;justify-content:center}
+    .dba-spin{width:14px;height:14px;border:2px solid #dbe6f5;border-top-color:#2563eb;border-radius:50%;
+      animation:dbaSpin .7s linear infinite;display:inline-block}
+    @keyframes dbaSpin{to{transform:rotate(360deg)}}
+
+    /* ---------- 结构 ---------- */
+    .dba-cols{width:100%;border-collapse:collapse;font-size:12.5px}
+    .dba-cols th{text-align:left;padding:8px 10px;color:#7b8aa0;font-size:11px;text-transform:uppercase;
+      letter-spacing:.05em;border-bottom:1px solid #e3eaf3;background:#fbfdff}
+    .dba-cols td{padding:9px 10px;border-bottom:1px solid #f1f5fb;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+    .dba-cols td.k{font-weight:700;color:#1d4ed8}
+    .dba-cols tr:hover td{background:#fbfdff}
+    .dba-pill{display:inline-block;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 7px;
+      background:#f1f5fb;color:#64748b;font-family:inherit}
+    .dba-pill.pk{background:#fff7e8;color:#b45309}
+    .dba-pill.uq{background:#e8f0ff;color:#1d4ed8}
+    .dba-pill.no{background:#f4f6fa;color:#8a99ad}
+    .dba-pill.yes{background:#e8faf2;color:#047857}
+    .dba-code{margin:0;background:#0f172a;color:#dbe7ff;border-radius:11px;padding:14px 16px;font-size:12px;
+      line-height:1.65;overflow:auto;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+
+    /* ---------- SQL ---------- */
+    .dba-sql-editor{width:100%;min-height:170px;border:1px solid #e3eaf3;border-radius:12px;background:#fff;
+      padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;
+      line-height:1.7;color:#0f172a;outline:none;resize:vertical}
+    .dba-sql-editor:focus{border-color:#bfd3f8;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    .dba-sql-foot{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+    .dba-sql-foot .hint{font-size:11.5px;color:#9aa8bb}
+    .dba-sql-foot .sp{flex:1}
+    .dba-sql-res{margin-top:12px}
+    .dba-sql-msg{background:#f8fafd;border:1px solid #e3eaf3;border-radius:10px;padding:10px 12px;
+      font-size:12.5px;color:#475569}
+    .dba-sql-msg.ok{background:#effcf6;border-color:#bbf0d8;color:#047857}
+    .dba-sql-msg.err{background:#fff5f5;border-color:#f7cccc;color:#b91c1c;font-family:ui-monospace,Consolas,monospace;
+      font-size:11.5px;white-space:pre-wrap;word-break:break-word}
+    .dba-hist{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+    .dba-hist button{max-width:100%;border:1px solid #e3eaf3;background:#fff;color:#64748b;border-radius:99px;
+      padding:4px 10px;font-size:11px;font-family:ui-monospace,Consolas,monospace;overflow:hidden;
+      text-overflow:ellipsis;white-space:nowrap;max-width:240px}
+    .dba-hist button:hover{border-color:#bfd3f8;color:#1d4ed8;background:#f8fbff}
+
+    /* ---------- 弹窗 / 提示 ---------- */
+    .dba-mask{position:fixed;inset:0;z-index:90;background:rgba(15,23,42,.45);display:flex;align-items:center;
+      justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+    .dba-mask[hidden]{display:none}
+    .dba-modal{background:#fff;border-radius:16px;box-shadow:0 26px 80px rgba(15,23,42,.3);
+      width:min(700px,100%);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+    .dba-modal.narrow{width:min(460px,100%)}
+    .dba-mhead{padding:16px 20px;border-bottom:1px solid #eef2f8;display:flex;align-items:center;gap:10px}
+    .dba-mhead h2{margin:0;font-size:15px;font-weight:800;color:#0f172a}
+    .dba-mhead .sub{font-size:11.5px;color:#9aa8bb;font-family:ui-monospace,Consolas,monospace}
+    .dba-mhead .sp{flex:1}
+    .dba-mx{border:0;background:transparent;font-size:20px;line-height:1;color:#94a3b8;width:30px;height:30px;border-radius:8px}
+    .dba-mx:hover{background:#f1f5fb;color:#0f172a}
+    .dba-mbody{padding:16px 20px;overflow:auto}
+    .dba-mfoot{padding:12px 20px;border-top:1px solid #eef2f8;display:flex;gap:9px;align-items:center;background:#fcfdff}
+    .dba-mfoot .sp{flex:1}
+    .dba-field{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;align-items:start;
+      padding:9px 0;border-bottom:1px dashed #f0f4fa}
+    .dba-field:last-child{border-bottom:0}
+    .dba-field label{font-size:12px;font-weight:700;color:#334155;line-height:1.9;
+      font-family:ui-monospace,Consolas,monospace;word-break:break-all}
+    .dba-field label .ty{display:block;font-size:10px;color:#9aa8bb;font-weight:600;font-family:ui-monospace,Consolas,monospace}
+    .dba-field input[type=text],.dba-field input[type=number],.dba-field textarea,.dba-field input[type=password]{
+      width:100%;border:1px solid #e3eaf3;border-radius:9px;padding:8px 10px;font-size:12.5px;color:#0f172a;
+      outline:none;font-family:ui-monospace,Consolas,monospace;background:#fff}
+    .dba-field input:focus,.dba-field textarea:focus{border-color:#bfd3f8;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    .dba-field input:disabled{background:#f6f8fc;color:#8494a8}
+    .dba-field textarea{min-height:92px;line-height:1.65;resize:vertical}
+    .dba-field .tip{font-size:11px;color:#9aa8bb;margin-top:4px;line-height:1.6}
+    .dba-field .ro{font-size:12px;color:#8494a8;font-family:ui-monospace,Consolas,monospace;padding:8px 0}
+    .dba-toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,14px);z-index:120;background:#0f172a;
+      color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:11px;box-shadow:0 16px 40px rgba(15,23,42,.3);
+      opacity:0;pointer-events:none;transition:all .22s;max-width:88vw;text-align:center}
+    .dba-toast.show{opacity:1;transform:translate(-50%,0)}
+    .dba-toast.err{background:#b91c1c}
+    .dba-toast.ok{background:#047857}
+
+    /* ---------- 锁屏 ---------- */
+    .dba-lock{position:fixed;inset:0;z-index:100;background:radial-gradient(1200px 500px at 50% -10%,#e8f0ff,#f4f7fb 60%);
+      display:flex;align-items:center;justify-content:center;padding:20px}
+    .dba-lock[hidden]{display:none}
+    .dba-lock-card{background:#fff;border:1px solid #e3eaf3;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.12);
+      padding:34px 34px 28px;max-width:480px;text-align:center}
+    .dba-lock-ico{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;display:grid;place-items:center;
+      background:#eaf1ff;color:#2563eb;font-size:24px}
+    .dba-lock h1{margin:0 0 8px;font-size:19px;font-weight:800;color:#0f172a}
+    .dba-lock p{margin:0 0 8px;font-size:13px;color:#64748b;line-height:1.8}
+    .dba-lock .hint{font-size:11.5px;color:#94a3b8;background:#f8fafd;border-radius:10px;padding:10px 12px;
+      text-align:left;line-height:1.8;margin-top:14px}
+    .dba-lock .hint code{background:#eef3fb;color:#1d4ed8;border-radius:5px;padding:1px 5px;font-size:11px}
+    .dba-lock .row{display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+
+    .dba-mobile-only{display:none}
+    .dba-boot{position:fixed;inset:0;z-index:110;display:flex;align-items:center;justify-content:center;
+      gap:10px;background:#f4f7fb;color:#8494a8;font-size:13px}
+    .dba-boot[hidden]{display:none}
+
+    @media (max-width:1080px){
+      .dba-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:900px){
+      .dba-shell{grid-template-columns:1fr}
+      .dba-side{display:none}
+      .dba-main{padding:14px 14px 40px;min-width:0}
+      .dba-mobile-only{display:inline-flex}
+      .dba-top{padding:0 14px;gap:10px;min-width:0}
+      .dba-top nav{display:none}
+      .dba-who{min-width:0;overflow:hidden;white-space:nowrap}
+      .dba-trow{grid-template-columns:110px 60px minmax(0,1fr) 64px}
+      .dba-field{grid-template-columns:1fr}
+      .dba-grid td{max-width:200px}
+      .dba-head-act{justify-content:flex-end}
+    }
+    @media (max-width:600px){
+      .dba-top{gap:8px;padding:0 12px}
+      .dba-brand small{display:none}
+      .dba-tag{display:none}
+      .dba-who-lab{display:none}
+      .dba-who b{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .dba-top .dba-btn{height:28px;padding:0 9px;font-size:11.5px}
+      .dba-head-act{width:100%}
+      .dba-head-act .dba-select{flex:1;min-width:0}
+      .dba-toolbar{gap:6px}
+      .dba-q{flex:1 1 100%;max-width:none;min-width:0}
+      .dba-toolbar .grow{display:none}
+      .dba-toolbar #sizeSel{flex:1;min-width:0}
+      .dba-tablewrap{max-height:calc(100vh - 330px)}
+      .dba-pager{gap:6px}
+      .dba-pager .sp{flex:0 0 0}
+      .dba-crumb{font-size:18px}
+      .dba-lock-card{padding:26px 20px 22px}
+    }
+  </style>
+</head>
+<body class="pt-body dba-body">
+
+  <header class="dba-top">
+    <a class="dba-brand" href="index.html">
+      <i>W</i>
+      <span>建站工坊<small>WEBFORGE STUDIO</small></span>
+    </a>
+    <span class="dba-tag">数据库管理</span>
+    <nav>
+      <a href="index.html">首页</a>
+      <a href="editor.html">编辑器</a>
+    </nav>
+    <div class="sp"></div>
+    <div class="dba-who"><span class="dba-dot"></span><span class="dba-who-lab">站长</span> <b id="whoName">—</b></div>
+    <button class="dba-btn" id="logoutBtn">退出</button>
+  </header>
+
+  <div class="dba-boot" id="boot"><span class="dba-spin"></span>正在验证站长权限…</div>
+
+  <div class="dba-shell" id="shell" hidden>
+    <aside class="dba-side">
+      <div class="dba-side-head">
+        <b>数据表</b>
+        <button class="dba-btn sm" id="sideRefresh" title="刷新表结构">↻</button>
+      </div>
+      <div class="dba-search" id="tSearchWrap">
+        <span>⌕</span>
+        <input id="tSearch" type="search" placeholder="筛选表名…" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="dba-tlist" id="tList"></div>
+      <div class="dba-side-foot">
+        <div class="k"><span>引擎</span><b id="sideEngine">—</b></div>
+        <div class="k"><span>体积</span><b id="sideSize">—</b></div>
+        <div class="k"><span>总行数</span><b id="sideRows">—</b></div>
+        <div style="margin-top:6px"><b id="sideAdmin"></b></div>
+      </div>
+    </aside>
+
+    <main class="dba-main">
+      <div class="dba-head">
+        <div class="dba-crumb" id="crumb"><span class="ico">▦</span>数据库概览</div>
+        <div class="sp"></div>
+        <div class="dba-head-act">
+          <select class="dba-select dba-mobile-only" id="tableSelect" aria-label="选择数据表"></select>
+          <button class="dba-btn" id="refreshBtn">↻ 刷新</button>
+        </div>
+      </div>
+
+      <div class="dba-tabs" id="tabs">
+        <button data-tab="overview" class="on">概览</button>
+        <button data-tab="data" disabled>数据</button>
+        <button data-tab="structure" disabled>结构</button>
+        <button data-tab="sql">SQL 控制台</button>
+        <div class="sp"></div>
+        <div class="hint" id="tabHint">选中左侧数据表开始</div>
+      </div>
+
+      <section class="dba-pane on" id="paneOverview">
+        <div class="dba-stats" id="statCards"></div>
+        <div class="dba-card">
+          <h3>数据表 <span class="h">按行数排序 · 点击进入</span></h3>
+          <div id="overviewTables"><div class="dba-loading"><span class="dba-spin"></span>正在读取数据库…</div></div>
+        </div>
+        <div class="dba-card">
+          <h3>维护与备份</h3>
+          <div class="dba-actions">
+            <button class="dba-btn primary" id="btnBackup">⤓ 下载数据库备份</button>
+            <button class="dba-btn" data-export="sql">⤓ 导出全库 SQL</button>
+            <button class="dba-btn" data-export="json">⤓ 导出全库 JSON</button>
+            <button class="dba-btn" data-maint="vacuum">整理文件（VACUUM）</button>
+            <button class="dba-btn" data-maint="analyze">更新统计（ANALYZE）</button>
+            <button class="dba-btn" data-maint="integrity">完整性检查</button>
+          </div>
+          <div class="dba-note">
+            <b>备份说明</b>：SQLite 直接下载 <code>.db</code> 文件，复制回去即可还原；PostgreSQL 请用「导出 SQL」。
+            导出文件包含全部用户数据，请勿外传。
+          </div>
+        </div>
+        <div class="dba-note">
+          <b>权限</b>：只有站长账号能打开本页面。站长默认是<b>最早注册的账号</b>，可用环境变量
+          <code>SITE_BUILDER_ADMIN_EMAILS</code> 指定（多个用逗号分隔）。密码字段已隐藏，只提供「重置密码」操作。
+        </div>
+      </section>
+
+      <section class="dba-pane" id="paneData">
+        <div class="dba-warn" id="readonlyWarn" hidden>⚠ 该表没有主键，只能浏览和新增，无法编辑或删除单行。</div>
+        <div class="dba-toolbar">
+          <div class="dba-q" id="qWrap">
+            <span class="i">⌕</span>
+            <input id="qInput" type="search" placeholder="搜索这张表（回车）…" autocomplete="off" spellcheck="false">
+            <button class="x" id="qClear" title="清除">×</button>
+          </div>
+          <div class="grow"></div>
+          <select class="dba-select" id="sizeSel" aria-label="每页行数">
+            <option value="20">20 行/页</option>
+            <option value="50" selected>50 行/页</option>
+            <option value="100">100 行/页</option>
+            <option value="200">200 行/页</option>
+          </select>
+          <button class="dba-btn" id="btnExportCsv">⤓ CSV</button>
+          <button class="dba-btn primary" id="btnInsert">＋ 新增行</button>
+        </div>
+        <div class="dba-tablewrap" id="gridWrap">
+          <div class="dba-loading"><span class="dba-spin"></span>加载中…</div>
+        </div>
+        <div class="dba-pager" id="pager"></div>
+      </section>
+
+      <section class="dba-pane" id="paneStructure">
+        <div class="dba-card" style="margin-top:0">
+          <h3>字段 <span class="h" id="structHint"></span></h3>
+          <div id="structCols"></div>
+        </div>
+        <div class="dba-card">
+          <h3>索引</h3>
+          <div id="structIdx"></div>
+        </div>
+        <div class="dba-card">
+          <h3>建表语句 <button class="dba-btn sm" id="copyDdl" style="margin-left:auto">⧉ 复制</button></h3>
+          <pre class="dba-code" id="structDdl">—</pre>
+        </div>
+      </section>
+
+      <section class="dba-pane" id="paneSql">
+        <textarea class="dba-sql-editor" id="sqlInput" spellcheck="false"
+          placeholder="输入一条 SQL，例如：&#10;SELECT * FROM user;&#10;&#10;只允许单条语句；DROP / TRUNCATE / 无 WHERE 的 DELETE 会二次确认。"></textarea>
+        <div class="dba-sql-foot">
+          <span class="hint">Ctrl + Enter 运行 · 仅支持单条 SQL 语句</span>
+          <div class="sp"></div>
+          <button class="dba-btn" id="sqlClear">清空</button>
+          <button class="dba-btn primary" id="sqlRun">▶ 运行 SQL</button>
+        </div>
+        <div class="dba-sql-res" id="sqlResult"></div>
+        <div class="dba-hist" id="sqlHist"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="dba-lock" id="lock" hidden>
+    <div class="dba-lock-card">
+      <div class="dba-lock-ico">🔒</div>
+      <h1 id="lockTitle">需要站长权限</h1>
+      <p id="lockMsg">请先登录站长账号。</p>
+      <div class="row">
+        <a class="dba-btn primary" href="index.html">去首页登录</a>
+        <a class="dba-btn" href="editor.html">返回编辑器</a>
+      </div>
+      <div class="hint" id="lockHint">
+        站长判定规则：环境变量 <code>SITE_BUILDER_ADMIN_EMAILS</code> 指定的邮箱；
+        未指定时，<b>最早注册的账号</b>即站长。
+      </div>
+    </div>
+  </div>
+
+  <div class="dba-mask" id="mask" hidden><div class="dba-modal" id="modalBox"></div></div>
+  <div class="dba-toast" id="toast"></div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var $ = function (sel, root) { return (root || document).querySelector(sel); };
+    var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+
+    var S = {
+      me: null, token: '', tables: [], overview: null,
+      table: null, tab: 'overview',
+      page: 1, size: 50, q: '', sort: '', dir: 'asc',
+      columns: [], pk: [], rows: [], total: 0, readonly: false,
+      sqlHistory: []
+    };
+
+    /* ---------------- 基础工具 ---------------- */
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function fmtNum(n) {
+      if (n === null || n === undefined || n < 0) return '—';
+      return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    function fmtSize(n) {
+      if (!n || n < 0) return '—';
+      if (n < 1024) return n + ' B';
+      if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+      return (n / 1048576).toFixed(2) + ' MB';
+    }
+    var toastTimer;
+    function toast(msg, kind) {
+      var el = $('#toast');
+      el.textContent = msg;
+      el.className = 'dba-toast show' + (kind ? ' ' + kind : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el.className = 'dba-toast'; }, 2800);
+    }
+    function api(path, opt) {
+      opt = opt || {};
+      var init = { method: opt.method || 'GET', credentials: 'same-origin', headers: {} };
+      if (opt.body !== undefined) {
+        init.headers['Content-Type'] = 'application/json';
+        init.body = JSON.stringify(opt.body);
+      }
+      if (init.method !== 'GET') init.headers['X-DB-Token'] = S.token;
+      return fetch(path, init).then(function (r) {
+        if (r.status === 401) { lock('请先登录站长账号', '登录状态已失效，请回到首页重新登录。'); throw new Error('unauthorized'); }
+        if (r.status === 403) { lock('当前账号不是站长', '数据库管理仅对站长开放，请换用站长账号登录。'); throw new Error('forbidden'); }
+        return r.json().catch(function () {
+          return { ok: false, msg: '服务器返回异常（HTTP ' + r.status + '）' };
+        });
+      }, function () {
+        return { ok: false, msg: '无法连接服务器，请确认 Flask 已启动' };
+      });
+    }
+    function enc(s) { return encodeURIComponent(s); }
+
+    /* ---------------- 锁屏 ---------------- */
+    function lock(title, msg, hint) {
+      $('#boot').hidden = true;
+      $('#lock').hidden = false;
+      $('#shell').hidden = true;
+      $('#lockTitle').textContent = title;
+      $('#lockMsg').textContent = msg;
+      if (hint) $('#lockHint').innerHTML = hint;
+    }
+
+    /* ---------------- 启动 ---------------- */
+    function boot() {
+      if (location.protocol === 'file:') {
+        lock('需要通过 Flask 打开', '数据库管理依赖后端接口，直接双击 HTML 文件无法使用。',
+          '请在项目目录运行 <code>python app.py</code>，然后访问 <code>http://127.0.0.1:5000/admin/db</code>。');
+        return;
+      }
+      api('/api/me').then(function (d) {
+        if (!d.ok || !d.user) { lock('请先登录站长账号', '还没有登录，登录后即可管理数据库。'); return; }
+        if (!d.user.isAdmin) {
+          lock('当前账号不是站长', '数据库管理只对站长开放。站长默认是最早注册的账号。',
+            '如需更换站长，设置环境变量 <code>SITE_BUILDER_ADMIN_EMAILS=你的邮箱</code> 后重启服务。');
+          return;
+        }
+        S.me = d.user;
+        $('#whoName').textContent = d.user.name || d.user.email;
+        $('#boot').hidden = true;
+        $('#lock').hidden = true;
+        $('#shell').hidden = false;
+        loadHistory();
+        loadOverview().then(function () {
+          var params = new URLSearchParams(location.search);
+          var t = params.get('table');
+          var tab = params.get('tab');
+          if (t && S.tables.some(function (x) { return x.name === t; })) openTable(t, tab || 'data');
+          else if (tab) setTab(tab === 'data' || tab === 'structure' ? 'overview' : tab);
+        });
+      });
+    }
+
+    /* ---------------- 概览 ---------------- */
+    function loadOverview(silent) {
+      return api('/api/admin/db/overview').then(function (d) {
+        if (!d.ok) { toast(d.msg, 'err'); return; }
+        S.token = d.token;
+        S.overview = d;
+        S.tables = d.tables || [];
+        renderStats();
+        renderTableList();
+        renderTableSelect();
+        renderSidebarFoot();
+        if (!silent) renderOverviewTables();
+      });
+    }
+
+    function renderStats() {
+      var d = S.overview;
+      var cards = [
+        { lab: '数据库引擎', val: d.engineLabel, sub: d.version || '', tile: '🗄', bg: '#eaf1ff', fg: '#2563eb' },
+        { lab: '数据表', val: fmtNum(d.tables.length) + ' 张', sub: '全部数据表', tile: '▦', bg: '#f3eaff', fg: '#7c3aed' },
+        { lab: '总行数', val: fmtNum(d.totalRows), sub: '所有表合计', tile: '≡', bg: '#e7f8f0', fg: '#059669' },
+        { lab: '数据库体积', val: d.size === null ? '云端托管' : fmtSize(d.size), sub: d.engine === 'sqlite' ? '本地文件' : 'PostgreSQL', tile: '◫', bg: '#fff1e7', fg: '#ea580c' }
+      ];
+      $('#statCards').innerHTML = cards.map(function (c) {
+        return '<div class="dba-stat"><div class="tile" style="background:' + c.bg + ';color:' + c.fg + '">' + c.tile + '</div>' +
+          '<div><div class="lab">' + esc(c.lab) + '</div><div class="val">' + esc(c.val) + '</div>' +
+          '<div class="sub">' + esc(c.sub) + '</div></div></div>';
+      }).join('');
+    }
+
+    function renderOverviewTables() {
+      var list = S.tables.slice().sort(function (a, b) { return (b.rows || 0) - (a.rows || 0); });
+      var max = Math.max.apply(null, list.map(function (t) { return t.rows > 0 ? t.rows : 0; }).concat([1]));
+      if (!list.length) {
+        $('#overviewTables').innerHTML = '<div class="dba-loading">数据库里还没有表</div>';
+        return;
+      }
+      $('#overviewTables').innerHTML = list.map(function (t) {
+        var pct = Math.max(2, Math.round((t.rows > 0 ? t.rows : 0) / max * 100));
+        return '<div class="dba-trow" data-open="' + esc(t.name) + '" style="cursor:pointer">' +
+          '<div class="n">' + esc(t.name) + '</div>' +
+          '<div class="m">' + t.columns + ' 列</div>' +
+          '<div class="dba-bar"><i style="width:' + pct + '%"></i></div>' +
+          '<div class="c">' + (t.rows < 0 ? '—' : fmtNum(t.rows)) + ' 行</div>' +
+          '</div>';
+      }).join('');
+      $$('#overviewTables .dba-trow').forEach(function (row) {
+        row.addEventListener('click', function () { openTable(row.getAttribute('data-open')); });
+      });
+    }
+
+    function renderSidebarFoot() {
+      var d = S.overview;
+      $('#sideEngine').textContent = d.engineLabel;
+      $('#sideSize').textContent = d.size === null ? '—' : fmtSize(d.size);
+      $('#sideRows').textContent = fmtNum(d.totalRows);
+      $('#sideAdmin').textContent = '站长：' + (d.admin || '');
+    }
+
+    function renderTableList() {
+      var kw = ($('#tSearch').value || '').trim().toLowerCase();
+      var list = S.tables.filter(function (t) { return !kw || t.name.toLowerCase().indexOf(kw) >= 0; });
+      if (!list.length) {
+        $('#tList').innerHTML = '<div style="padding:14px 10px;color:#9aa8bb;font-size:12px">没有匹配的表</div>';
+        return;
+      }
+      $('#tList').innerHTML = list.map(function (t) {
+        return '<button class="dba-titem' + (t.name === S.table ? ' on' : '') + '" data-t="' + esc(t.name) + '">' +
+          '<i>▦</i><span class="nm">' + esc(t.name) + '</span>' +
+          '<span class="cnt">' + (t.rows < 0 ? '?' : fmtNum(t.rows)) + '</span></button>';
+      }).join('');
+      $$('#tList .dba-titem').forEach(function (btn) {
+        btn.addEventListener('click', function () { openTable(btn.getAttribute('data-t')); });
+      });
+    }
+
+    function renderTableSelect() {
+      var sel = $('#tableSelect');
+      sel.innerHTML = '<option value="">选择数据表…</option>' + S.tables.map(function (t) {
+        return '<option value="' + esc(t.name) + '"' + (t.name === S.table ? ' selected' : '') + '>' + esc(t.name) + '</option>';
+      }).join('');
+    }
+
+    /* ---------------- 标签页 ---------------- */
+    function setTab(tab) {
+      S.tab = tab;
+      $$('#tabs button[data-tab]').forEach(function (b) {
+        b.classList.toggle('on', b.getAttribute('data-tab') === tab);
+      });
+      $$('.dba-pane').forEach(function (p) { p.classList.remove('on'); });
+      var map = { overview: '#paneOverview', data: '#paneData', structure: '#paneStructure', sql: '#paneSql' };
+      $(map[tab]).classList.add('on');
+      var needsTable = tab === 'data' || tab === 'structure';
+      $('#tabs button[data-tab=data]').disabled = !S.table;
+      $('#tabs button[data-tab=structure]').disabled = !S.table;
+      $('#tabHint').textContent = needsTable && !S.table ? '选中左侧数据表开始' : (S.table ? '' : '选中左侧数据表开始');
+      $('#tableSelect').value = S.table || '';
+    }
+
+    function openTable(name, tab) {
+      if (!name) return;
+      S.table = name;
+      S.page = 1;
+      S.q = '';
+      S.sort = '';
+      S.dir = 'asc';
+      $('#qInput').value = '';
+      $('#qWrap').classList.remove('has');
+      renderTableList();
+      renderTableSelect();
+      renderCrumb();
+      setTab(tab || 'data');
+      if ((tab || 'data') === 'structure') loadStructure(); else loadRows();
+    }
+
+    function renderCrumb() {
+      if (!S.table) {
+        $('#crumb').innerHTML = '<span class="ico">▦</span>数据库概览';
+        return;
+      }
+      var meta = S.tables.filter(function (t) { return t.name === S.table; })[0] || { rows: 0, columns: 0 };
+      var total = S.total || meta.rows || 0;
+      var colCount = S.columns.length || meta.columns || 0;
+      $('#crumb').innerHTML = '<span class="ico">▦</span>' + esc(S.table) +
+        ' <small>' + (total ? fmtNum(total) + ' 行 · ' : '') + colCount + ' 列</small>';
+    }
+
+    /* ---------------- 数据 ---------------- */
+    function loadRows() {
+      if (!S.table) return;
+      $('#gridWrap').innerHTML = '<div class="dba-loading"><span class="dba-spin"></span>加载中…</div>';
+      var qs = '/api/admin/db/table/' + enc(S.table) + '?page=' + S.page + '&size=' + S.size +
+        (S.q ? '&q=' + enc(S.q) : '') + (S.sort ? '&sort=' + enc(S.sort) + '&dir=' + S.dir : '');
+      api(qs).then(function (d) {
+        if (!d.ok) {
+          $('#gridWrap').innerHTML = '<div class="dba-loading" style="color:#b91c1c">' + esc(d.msg || '读取失败') + '</div>';
+          return;
+        }
+        S.columns = d.columns || [];
+        S.pk = d.pk || [];
+        S.rows = d.rows || [];
+        S.total = d.total || 0;
+        S.page = d.page || 1;
+        S.readonly = !!d.readonly;
+        S.sort = d.sort || '';
+        S.dir = d.dir || 'asc';
+        renderCrumb();
+        renderData();
+      });
+    }
+
+    function cellHtml(v) {
+      if (v === null || v === undefined) return '<span class="dba-null">NULL</span>';
+      if (typeof v === 'object' && v.__cut) {
+        return '<span class="dba-cut" data-cut="1">' + esc(String(v.text).slice(0, 140)) + '…<i>共 ' + fmtNum(v.len) + ' 字符</i></span>';
+      }
+      if (typeof v === 'number') return '<span class="dba-num">' + v + '</span>';
+      if (typeof v === 'boolean') return v ? 'true' : 'false';
+      var s = String(v);
+      if (!s) return '<span class="dba-empty">（空）</span>';
+      return esc(s.length > 170 ? s.slice(0, 170) + '…' : s);
+    }
+
+    function renderData() {
+      $('#readonlyWarn').hidden = !S.readonly;
+      if (!S.columns.length) {
+        $('#gridWrap').innerHTML = '<div class="dba-loading">没有可显示的列</div>';
+        return;
+      }
+      var head = '<tr><th class="ix" style="cursor:default">#</th>' + S.columns.map(function (c) {
+        var arrow = S.sort === c.name ? (S.dir === 'desc' ? ' ▼' : ' ▲') : '';
+        return '<th data-sort="' + esc(c.name) + '">' + esc(c.name) +
+          '<span class="ty">' + esc(c.type) + (c.pk ? ' · <b class="pk">PK</b>' : '') + '</span>' +
+          (arrow ? '<span class="sh">' + arrow.trim() + '</span>' : '') + '</th>';
+      }).join('') + '<th style="cursor:default;text-align:right">操作</th></tr>';
+
+      var body;
+      if (!S.rows.length) {
+        body = '<tr class="dba-empty-row"><td colspan="' + (S.columns.length + 2) + '">' +
+          (S.q ? '没有匹配「' + esc(S.q) + '」的记录' : '这张表还没有数据') + '</td></tr>';
+      } else {
+        body = S.rows.map(function (row, i) {
+          var idx = (S.page - 1) * S.size + i + 1;
+          var tds = S.columns.map(function (c) {
+            return '<td title="' + esc(c.name) + '">' + cellHtml(row[c.name]) + '</td>';
+          }).join('');
+          var acts = '';
+          if (!S.readonly) {
+            acts = '<button class="mini" data-edit="' + i + '" title="编辑">✎</button>' +
+              '<button class="mini del" data-del="' + i + '" title="删除">⌫</button>';
+            if (S.table === 'user') acts += '<button class="mini" data-pwd="' + i + '" title="重置密码">🔑</button>';
+          }
+          return '<tr><td class="ix">' + idx + '</td>' + tds + '<td class="act">' + acts + '</td></tr>';
+        }).join('');
+      }
+      $('#gridWrap').innerHTML = '<table class="dba-grid"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
+
+      $$('#gridWrap th[data-sort]').forEach(function (th) {
+        th.addEventListener('click', function () {
+          var col = th.getAttribute('data-sort');
+          if (S.sort === col) S.dir = S.dir === 'asc' ? 'desc' : 'asc';
+          else { S.sort = col; S.dir = 'asc'; }
+          S.page = 1;
+          loadRows();
+        });
+      });
+      $$('#gridWrap [data-edit]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openRowEditor(S.rows[+btn.getAttribute('data-edit')], false); });
+      });
+      $$('#gridWrap [data-del]').forEach(function (btn) {
+        btn.addEventListener('click', function () { askDelete(S.rows[+btn.getAttribute('data-del')]); });
+      });
+      $$('#gridWrap [data-pwd]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openPassword(S.rows[+btn.getAttribute('data-pwd')]); });
+      });
+      $$('#gridWrap [data-cut]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var td = el.closest('td');
+          var tr = el.closest('tr');
+          var idx = $$('#gridWrap tbody tr').indexOf(tr);
+          var colIdx = $$(tr.children).indexOf(td) - 1;
+          openRowEditor(S.rows[idx], false, S.columns[colIdx].name);
+        });
+      });
+      renderPager();
+    }
+
+    function renderPager() {
+      var pages = Math.max(1, Math.ceil(S.total / S.size));
+      var from = S.total ? (S.page - 1) * S.size + 1 : 0;
+      var to = Math.min(S.total, S.page * S.size);
+      $('#pager').innerHTML =
+        '<span class="pinfo">共 <b>' + fmtNum(S.total) + '</b> 行' + (S.q ? '（搜索：' + esc(S.q) + '）' : '') +
+        ' · 当前 ' + from + '–' + to + '</span>' +
+        '<div class="sp"></div>' +
+        '<button class="dba-btn sm" data-page="prev"' + (S.page <= 1 ? ' disabled' : '') + '>‹ 上一页</button>' +
+        '<span>第 <b>' + S.page + '</b> / ' + pages + ' 页</span>' +
+        '<button class="dba-btn sm" data-page="next"' + (S.page >= pages ? ' disabled' : '') + '>下一页 ›</button>' +
+        '<span>跳到</span><input id="jumpPage" type="number" min="1" max="' + pages + '" value="' + S.page + '">';
+      var prev = $('[data-page=prev]'), next = $('[data-page=next]');
+      if (prev) prev.addEventListener('click', function () { if (S.page > 1) { S.page--; loadRows(); } });
+      if (next) next.addEventListener('click', function () { if (S.page < pages) { S.page++; loadRows(); } });
+      var jump = $('#jumpPage');
+      if (jump) jump.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var v = Math.min(pages, Math.max(1, parseInt(jump.value, 10) || 1));
+        S.page = v;
+        loadRows();
+      });
+    }
+
+    /* ---------------- 行编辑 ---------------- */
+    function pkOf(row) {
+      var key = {};
+      S.pk.forEach(function (c) { key[c] = row[c]; });
+      return key;
+    }
+
+    function openRowEditor(row, isNew, focusCol) {
+      var proceed = isNew ? Promise.resolve({ ok: true, row: {}, info: { columns: S.columns } })
+        : api('/api/admin/db/table/' + enc(S.table) + '/row?key=' + enc(JSON.stringify(pkOf(row))));
+      proceed.then(function (d) {
+        if (!d.ok) { toast(d.msg || '读取记录失败', 'err'); return; }
+        showRowModal(d.row || {}, isNew, focusCol);
+      });
+    }
+
+    function showRowModal(row, isNew, focusCol) {
+      var cols = S.columns;
+      var fields = cols.map(function (c) {
+        var v = row[c.name];
+        if (c.name === 'pass_hash') {
+          if (isNew && S.table === 'user') {
+            return '<div class="dba-field"><label>初始密码<span class="ty">用于登录</span></label>' +
+              '<div><input type="password" id="initPass" placeholder="至少 6 位" autocomplete="new-password">' +
+              '<div class="tip">以加盐哈希保存，明文不会写进数据库</div></div></div>';
+          }
+          return '<div class="dba-field"><label>pass_hash<span class="ty">已隐藏</span></label>' +
+            '<div class="ro">密码哈希不在这里显示或编辑；需要改密码请用行尾的 🔑 按钮。</div></div>';
+        }
+        var isPk = c.pk;
+        var val = v === null || v === undefined ? '' : (typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v));
+        var longText = /TEXT|CLOB|JSON/i.test(c.type) || val.length > 120;
+        var numeric = /INT|REAL|FLOAT|DOUBLE|NUMERIC|DECIMAL/i.test(c.type) && !/CHAR|TEXT/i.test(c.type);
+        var input;
+        if (longText) {
+          input = '<textarea data-col="' + esc(c.name) + '" spellcheck="false">' + esc(val) + '</textarea>';
+        } else if (numeric) {
+          input = '<input type="number" step="any" data-col="' + esc(c.name) + '" value="' + esc(val) + '">';
+        } else {
+          input = '<input type="text" data-col="' + esc(c.name) + '" value="' + esc(val) + '" spellcheck="false">';
+        }
+        if (isPk && !isNew) input = '<div class="ro">' + esc(val) + '</div>';
+        var tip = [];
+        if (isPk) tip.push(isNew ? '主键，留空会自动生成' : '主键，不可修改');
+        if (!c.nullable && !isPk) tip.push('必填');
+        if (c.default) tip.push('默认 ' + c.default);
+        if (isNew && !isPk && /^(created_at|updated_at)$/.test(c.name)) tip.push('留空自动生成');
+        return '<div class="dba-field"><label>' + esc(c.name) +
+          '<span class="ty">' + esc(c.type) + (isPk ? ' · PK' : '') + '</span></label>' +
+          '<div>' + input + (tip.length ? '<div class="tip">' + esc(tip.join(' · ')) + '</div>' : '') + '</div></div>';
+      }).join('');
+
+      var title = isNew ? ('新增行 · ' + S.table) : ('编辑行 · ' + S.table);
+      var key = isNew ? {} : pkOf(row);
+      openModal(
+        '<div class="dba-mhead"><h2>' + esc(title) + '</h2><div class="sp"></div><button class="dba-mx" data-close>×</button></div>' +
+        '<div class="dba-mbody" id="rowForm">' + fields + '</div>' +
+        '<div class="dba-mfoot"><span style="font-size:11.5px;color:#9aa8bb">留空：可空字段存为 NULL，其余字段用默认值</span>' +
+        '<div class="sp"></div><button class="dba-btn" data-close>取消</button>' +
+        '<button class="dba-btn primary" id="rowSave">' + (isNew ? '创建' : '保存修改') + '</button></div>', true);
+
+      $('#rowSave').addEventListener('click', function () {
+        var values = {};
+        $$('#rowForm [data-col]').forEach(function (el) {
+          var name = el.getAttribute('data-col');
+          var col = cols.filter(function (c) { return c.name === name; })[0] || {};
+          var raw = el.value;
+          var numeric = el.type === 'number';
+          if (raw === '') {
+            if (isNew) return;                        // 新增时空值交给默认值
+            values[name] = col.nullable ? null : '';
+            return;
+          }
+          values[name] = numeric ? Number(raw) : raw;
+        });
+        var btn = $('#rowSave');
+        var initPass = $('#initPass');
+        if (initPass && initPass.value.length < 6) {
+          toast('初始密码至少 6 位', 'err');
+          initPass.focus();
+          return;
+        }
+        var payload = { action: isNew ? 'insert' : 'update', key: key, values: values };
+        if (initPass) payload.password = initPass.value;
+        btn.disabled = true;
+        api('/api/admin/db/table/' + enc(S.table) + '/row', {
+          method: 'POST', body: payload
+        }).then(function (res) {
+          btn.disabled = false;
+          if (!res.ok) { toast(res.msg || '保存失败', 'err'); return; }
+          closeModal();
+          toast(isNew ? '✓ 已新增 1 行' : '✓ 已保存', 'ok');
+          loadRows();
+          loadOverview(true);
+        }, function () { btn.disabled = false; });
+      });
+
+      if (focusCol) {
+        var target = $('#rowForm [data-col="' + focusCol + '"]');
+        if (target) { target.focus(); target.scrollIntoView({ block: 'center' }); }
+      }
+    }
+
+    function askDelete(row) {
+      var key = pkOf(row);
+      var label = S.pk.map(function (c) { return c + ' = ' + row[c]; }).join('，');
+      openModal(
+        '<div class="dba-mhead"><h2>删除这一行？</h2><div class="sp"></div><button class="dba-mx" data-close>×</button></div>' +
+        '<div class="dba-mbody"><p style="margin:0 0 12px;font-size:13px;color:#475569">删除后无法恢复，请确认：</p>' +
+        '<div class="dba-code" style="background:#fff7f7;color:#b91c1c;border:1px solid #f7cccc">' + esc(label) + '</div></div>' +
+        '<div class="dba-mfoot"><div class="sp"></div><button class="dba-btn" data-close>取消</button>' +
+        '<button class="dba-btn danger" id="doDel">确认删除</button></div>', false, 'narrow');
+      $('#doDel').addEventListener('click', function () {
+        this.disabled = true;
+        api('/api/admin/db/table/' + enc(S.table) + '/row', {
+          method: 'POST', body: { action: 'delete', key: key }
+        }).then(function (res) {
+          if (!res.ok) { toast(res.msg || '删除失败', 'err'); return; }
+          closeModal();
+          toast('✓ 已删除', 'ok');
+          if (S.rows.length === 1 && S.page > 1) S.page--;
+          loadRows();
+          loadOverview(true);
+        });
+      });
+    }
+
+    function openPassword(row) {
+      openModal(
+        '<div class="dba-mhead"><h2>重置密码</h2><div class="sp"></div><button class="dba-mx" data-close>×</button></div>' +
+        '<div class="dba-mbody"><p style="margin:0 0 12px;font-size:13px;color:#475569">为 <b>' + esc(row.email || row.name || row.id) +
+        '</b> 设置新密码（至少 6 位）：</p>' +
+        '<div class="dba-field" style="grid-template-columns:1fr;border:0;padding:0"><div>' +
+        '<input type="password" id="newPass" placeholder="新密码" autocomplete="new-password">' +
+        '<div class="tip">保存后立即生效，旧密码失效。</div></div></div></div>' +
+        '<div class="dba-mfoot"><div class="sp"></div><button class="dba-btn" data-close>取消</button>' +
+        '<button class="dba-btn primary" id="doPwd">保存</button></div>', false, 'narrow');
+      var input = $('#newPass');
+      input.focus();
+      $('#doPwd').addEventListener('click', function () {
+        var pwd = input.value;
+        if (pwd.length < 6) { toast('密码至少 6 位', 'err'); return; }
+        this.disabled = true;
+        api('/api/admin/db/user/' + enc(row.id) + '/password', { method: 'POST', body: { password: pwd } })
+          .then(function (res) {
+            if (!res.ok) { toast(res.msg || '重置失败', 'err'); return; }
+            closeModal();
+            toast('✓ 密码已重置', 'ok');
+          });
+      });
+    }
+
+    /* ---------------- 结构 ---------------- */
+    function loadStructure() {
+      if (!S.table) return;
+      $('#structCols').innerHTML = '<div class="dba-loading"><span class="dba-spin"></span>读取结构…</div>';
+      $('#structIdx').innerHTML = '—';
+      $('#structDdl').textContent = '—';
+      api('/api/admin/db/table/' + enc(S.table) + '/structure').then(function (d) {
+        if (!d.ok) { toast(d.msg || '读取结构失败', 'err'); return; }
+        var cols = d.info.columns || [];
+        $('#structHint').textContent = cols.length + ' 列' + (d.info.pk.length ? ' · 主键 ' + d.info.pk.join(', ') : ' · 无主键');
+        $('#structCols').innerHTML = '<table class="dba-cols"><thead><tr>' +
+          '<th>字段</th><th>类型</th><th>可空</th><th>默认值</th><th>键</th></tr></thead><tbody>' +
+          cols.map(function (c) {
+            return '<tr><td class="k">' + esc(c.name) + '</td><td>' + esc(c.type) + '</td>' +
+              '<td><span class="dba-pill ' + (c.nullable ? 'yes' : 'no') + '">' + (c.nullable ? 'YES' : 'NO') + '</span></td>' +
+              '<td>' + (c.default ? esc(c.default) : '<span style="color:#b6c2d2">—</span>') + '</td>' +
+              '<td>' + (c.pk ? '<span class="dba-pill pk">PK</span>' : '') + '</td></tr>';
+          }).join('') + '</tbody></table>';
+        var idx = d.indexes || [], uq = d.uniques || [];
+        var idxHtml = idx.map(function (ix) {
+          return '<div style="display:flex;gap:10px;align-items:center;padding:6px 0;font-size:12.5px">' +
+            '<b style="font-family:ui-monospace,Consolas,monospace;color:#1d4ed8">' + esc(ix.name) + '</b>' +
+            '<span style="color:#64748b">(' + esc(ix.columns.join(', ')) + ')</span>' +
+            (ix.unique ? '<span class="dba-pill pk">UNIQUE</span>' : '') + '</div>';
+        }).concat(uq.map(function (u) {
+          return '<div style="display:flex;gap:10px;align-items:center;padding:6px 0;font-size:12.5px">' +
+            '<b style="font-family:ui-monospace,Consolas,monospace;color:#1d4ed8">' + esc(u.name || '唯一约束') + '</b>' +
+            '<span style="color:#64748b">(' + esc(u.columns.join(', ')) + ')</span>' +
+            '<span class="dba-pill uq">UNIQUE</span></div>';
+        }));
+        $('#structIdx').innerHTML = idxHtml.length
+          ? idxHtml.join('')
+          : '<div style="color:#9aa8bb;font-size:12.5px">没有额外索引或唯一约束</div>';
+        $('#structDdl').textContent = d.ddl || '—';
+      });
+    }
+
+    /* ---------------- SQL 控制台 ---------------- */
+    function loadHistory() {
+      try { S.sqlHistory = JSON.parse(localStorage.getItem('dba_sql_history_v1') || '[]'); } catch (e) { S.sqlHistory = []; }
+      renderHistory();
+    }
+    function pushHistory(sql) {
+      S.sqlHistory = [sql].concat(S.sqlHistory.filter(function (s) { return s !== sql; })).slice(0, 12);
+      try { localStorage.setItem('dba_sql_history_v1', JSON.stringify(S.sqlHistory)); } catch (e) {}
+      renderHistory();
+    }
+    function renderHistory() {
+      if (!S.sqlHistory.length) { $('#sqlHist').innerHTML = ''; return; }
+      $('#sqlHist').innerHTML = S.sqlHistory.map(function (s, i) {
+        return '<button data-h="' + i + '" title="点击填入">' + esc(s.replace(/\s+/g, ' ').slice(0, 90)) + '</button>';
+      }).join('');
+      $$('#sqlHist [data-h]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          $('#sqlInput').value = S.sqlHistory[+b.getAttribute('data-h')];
+          $('#sqlInput').focus();
+        });
+      });
+    }
+    function runSql(sql, confirmed) {
+      if (!sql.trim()) { toast('请输入 SQL', 'err'); return; }
+      var btn = $('#sqlRun');
+      btn.disabled = true;
+      $('#sqlResult').innerHTML = '<div class="dba-sql-msg">执行中…</div>';
+      api('/api/admin/db/query', { method: 'POST', body: { sql: sql, confirm: !!confirmed } }).then(function (d) {
+        btn.disabled = false;
+        if (d.ok && d.needConfirm) {
+          $('#sqlResult').innerHTML = '<div class="dba-sql-msg" style="color:#92400e;background:#fffbeb;border-color:#fde68a">' +
+            '这条语句会' + esc(d.needConfirm) + '，需要确认。</div>';
+          askConfirm('执行危险语句？', '这条 SQL 会' + d.needConfirm + '，可能影响大量数据且无法撤销。',
+            '确认执行', function () { runSql(sql, true); });
+          return;
+        }
+        if (!d.ok) {
+          $('#sqlResult').innerHTML = '<div class="dba-sql-msg err">' + esc(d.msg || '执行失败') + '</div>';
+          return;
+        }
+        pushHistory(sql);
+        if (d.kind === 'exec') {
+          $('#sqlResult').innerHTML = '<div class="dba-sql-msg ok">✓ 执行成功，影响 ' + fmtNum(d.rowcount) + ' 行</div>';
+          loadOverview(true);
+          if (S.table) loadRows();
+          return;
+        }
+        var head = '<tr><th class="ix" style="cursor:default">#</th>' + d.columns.map(function (c) {
+          return '<th style="cursor:default">' + esc(c) + '</th>';
+        }).join('') + '</tr>';
+        var body = d.rows.length ? d.rows.map(function (row, i) {
+          return '<tr><td class="ix">' + (i + 1) + '</td>' + row.map(function (v) {
+            return '<td>' + cellHtml(v) + '</td>';
+          }).join('') + '</tr>';
+        }).join('') : '<tr class="dba-empty-row"><td colspan="' + (d.columns.length + 1) + '">查询结果为空</td></tr>';
+        $('#sqlResult').innerHTML =
+          '<div class="dba-sql-msg ok" style="margin-bottom:8px">✓ 返回 ' + fmtNum(d.rows.length) + ' 行' +
+          (d.truncated ? '（仅显示前 500 行）' : '') + '</div>' +
+          '<div class="dba-tablewrap" style="max-height:420px"><table class="dba-grid"><thead>' + head +
+          '</thead><tbody>' + body + '</tbody></table></div>';
+      }, function () { btn.disabled = false; });
+    }
+
+    /* ---------------- 弹窗 ---------------- */
+    var modalOnClose = null;
+    function openModal(html, wide, narrow) {
+      var box = $('#modalBox');
+      box.className = 'dba-modal' + (narrow ? ' narrow' : '');
+      box.innerHTML = html;
+      $('#mask').hidden = false;
+      $$('#modalBox [data-close]').forEach(function (b) {
+        b.addEventListener('click', closeModal);
+      });
+    }
+    function closeModal() {
+      $('#mask').hidden = true;
+      $('#modalBox').innerHTML = '';
+      if (modalOnClose) { var fn = modalOnClose; modalOnClose = null; fn(); }
+    }
+    function askConfirm(title, msg, okText, onOk) {
+      openModal(
+        '<div class="dba-mhead"><h2>' + esc(title) + '</h2><div class="sp"></div><button class="dba-mx" data-close>×</button></div>' +
+        '<div class="dba-mbody"><p style="margin:0;font-size:13px;color:#475569;line-height:1.8">' + esc(msg) + '</p></div>' +
+        '<div class="dba-mfoot"><div class="sp"></div><button class="dba-btn" data-close>取消</button>' +
+        '<button class="dba-btn danger" id="confirmOk">' + esc(okText) + '</button></div>', false, 'narrow');
+      $('#confirmOk').addEventListener('click', function () {
+        closeModal();
+        onOk();
+      });
+    }
+
+    /* ---------------- 事件绑定 ---------------- */
+    function bind() {
+      $$('#tabs button[data-tab]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (b.disabled) return;
+          var tab = b.getAttribute('data-tab');
+          setTab(tab);
+          if (tab === 'structure' && S.table) loadStructure();
+        });
+      });
+      $('#tSearch').addEventListener('input', renderTableList);
+      $('#tableSelect').addEventListener('change', function () {
+        if (this.value) openTable(this.value);
+      });
+      $('#sideRefresh').addEventListener('click', function () {
+        loadOverview();
+        toast('已刷新');
+      });
+      $('#refreshBtn').addEventListener('click', function () {
+        loadOverview(true);
+        if (S.tab === 'data' || S.tab === 'overview') { if (S.table) loadRows(); }
+        if (S.tab === 'structure' && S.table) loadStructure();
+      });
+      $('#logoutBtn').addEventListener('click', function () {
+        api('/api/logout', { method: 'POST' }).then(function () { location.href = 'index.html'; });
+      });
+
+      var qTimer;
+      $('#qInput').addEventListener('input', function () {
+        var el = this;
+        $('#qWrap').classList.toggle('has', !!el.value);
+        clearTimeout(qTimer);
+        qTimer = setTimeout(function () {
+          if (S.q === el.value.trim()) return;
+          S.q = el.value.trim();
+          S.page = 1;
+          loadRows();
+        }, 380);
+      });
+      $('#qInput').addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        S.q = this.value.trim();
+        S.page = 1;
+        loadRows();
+      });
+      $('#qClear').addEventListener('click', function () {
+        $('#qInput').value = '';
+        $('#qWrap').classList.remove('has');
+        S.q = '';
+        S.page = 1;
+        loadRows();
+      });
+      $('#sizeSel').addEventListener('change', function () {
+        S.size = parseInt(this.value, 10) || 50;
+        S.page = 1;
+        loadRows();
+      });
+      $('#btnInsert').addEventListener('click', function () {
+        if (!S.table) return;
+        openRowEditor({}, true);
+      });
+      $('#btnExportCsv').addEventListener('click', function () {
+        if (!S.table) return;
+        location.href = '/api/admin/db/export?format=csv&table=' + enc(S.table);
+      });
+      $('#btnBackup').addEventListener('click', function () {
+        location.href = '/api/admin/db/backup';
+      });
+      $$('[data-export]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          location.href = '/api/admin/db/export?format=' + b.getAttribute('data-export');
+        });
+      });
+      $$('[data-maint]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var act = b.getAttribute('data-maint');
+          var names = { vacuum: '整理数据库文件', analyze: '更新查询统计', integrity: '完整性检查' };
+          b.classList.add('busy');
+          api('/api/admin/db/maintenance', { method: 'POST', body: { action: act } }).then(function (d) {
+            b.classList.remove('busy');
+            toast(d.ok ? (d.msg || '完成') : (d.msg || '操作失败'), d.ok ? 'ok' : 'err');
+            if (d.ok) loadOverview(true);
+          }, function () { b.classList.remove('busy'); });
+        });
+      });
+
+      var sqlTimer;
+      $('#sqlInput').addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          runSql(this.value, false);
+        }
+      });
+      $('#sqlRun').addEventListener('click', function () { runSql($('#sqlInput').value, false); });
+      $('#sqlClear').addEventListener('click', function () {
+        $('#sqlInput').value = '';
+        $('#sqlResult').innerHTML = '';
+        $('#sqlInput').focus();
+      });
+      $('#copyDdl').addEventListener('click', function () {
+        copyText($('#structDdl').textContent, '建表语句已复制');
+      });
+      $('#mask').addEventListener('click', function (e) {
+        if (e.target === $('#mask')) closeModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !$('#mask').hidden) closeModal();
+      });
+    }
+
+    function copyText(text, okMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { toast(okMsg, 'ok'); },
+          function () { fallbackCopy(text, okMsg); });
+      } else fallbackCopy(text, okMsg);
+    }
+    function fallbackCopy(text, okMsg) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); toast(okMsg, 'ok'); }
+      catch (e) { toast('复制失败，请手动选择', 'err'); }
+      document.body.removeChild(ta);
+    }
+
+    /* 首次进入：概览渲染完再绑定？直接绑定即可，元素都在静态 HTML 里 */
+    bind();
+    boot();
+  })();
+  </script>
+</body>
+</html>

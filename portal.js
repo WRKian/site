@@ -161,7 +161,7 @@
   /* ============================================================
      账号操作（返回 Promise）
      ============================================================ */
-  function register(name, email, pass) {
+  function register(name, email, pass, code) {
     email = String(email || '').trim().toLowerCase();
     name = String(name || '').trim();
     if (!name) return Promise.resolve({ ok: false, msg: '请填写昵称' });
@@ -169,7 +169,8 @@
     if (String(pass || '').length < 6) return Promise.resolve({ ok: false, msg: '密码至少 6 位' });
     if (MODE === 'flask') {
       return api('/api/register', {
-        method: 'POST', body: { name: name, email: email, password: pass }
+        method: 'POST',
+        body: { name: name, email: email, password: pass, code: String(code || '').trim() }
       }).then(function (res) {
         if (!res.ok) return res;
         return refresh().then(function () { return res; });
@@ -347,6 +348,10 @@
       var av = document.getElementById('ptAvatar');
       if (nm) nm.textContent = u.name;
       if (av) av.textContent = (u.name || u.email || '用').slice(0, 1).toUpperCase();
+      var dbItem = document.querySelector('[data-useract="dbadmin"]');
+      if (dbItem) dbItem.style.display = u.isAdmin ? '' : 'none';
+      var dbLinks = document.querySelectorAll('[data-admin-only]');
+      for (var di = 0; di < dbLinks.length; di++) dbLinks[di].hidden = !u.isAdmin;
     } else {
       guest.classList.remove('pt-hide');
       auth.classList.add('pt-hide');
@@ -444,55 +449,177 @@
     var mask = document.getElementById('ptAuthMask');
     if (mask) mask.classList.remove('open');
   }
-  function renderAuthModal(mode) {
-    var box = document.getElementById('ptAuthModal');
-    var isReg = mode === 'register';
-    box.innerHTML =
-      '<button class="pt-modal-close" data-closeauth aria-label="关闭">✕</button>' +
-      '<h2>' + (isReg ? '创建账号' : '欢迎回来') + '</h2>' +
-      '<p class="pt-sub">' + (isReg ? '注册后即可保存项目与模板，随时继续编辑。' : '登录以继续管理你的项目和模板。') + '</p>' +
-      '<form id="ptAuthForm" novalidate>' +
-      (isReg ? '<div class="pt-field"><label>昵称</label><input id="ptFName" autocomplete="nickname" placeholder="怎么称呼你"></div>' : '') +
-      '<div class="pt-field"><label>邮箱</label><input id="ptFEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>' +
-      '<div class="pt-field"><label>密码</label><input id="ptFPass" type="password" autocomplete="' + (isReg ? 'new-password' : 'current-password') + '" placeholder="至少 6 位"></div>' +
-      '<div class="pt-err" id="ptErr"></div>' +
-      '<button class="pt-btn pt-btn-primary pt-btn-block pt-btn-lg" type="submit">' + (isReg ? '注册并登录' : '登录') + '</button>' +
-      '</form>' +
-      '<div class="pt-auth-switch">' + (isReg ? '已有账号？<a data-authmode="login">立即登录</a>' : '还没有账号？<a data-authmode="register">免费注册</a>') + '</div>' +
-      '<div class="pt-auth-note">' + authNote() + '</div>';
+  /* ---------- 邮箱验证码 ---------- */
+  function sendCode(email, purpose) {
+    email = String(email || '').trim().toLowerCase();
+    if (!validEmail(email)) return Promise.resolve({ ok: false, msg: '邮箱格式不正确' });
+    if (MODE !== 'flask') return Promise.resolve({ ok: false, msg: '本地演示版无需验证码' });
+    return api('/api/auth/send-code', {
+      method: 'POST', body: { email: email, purpose: purpose || 'register' }
+    }).catch(function () { return { ok: false, msg: '连接服务器失败，请稍后重试' }; });
+  }
 
-    box.querySelector('[data-closeauth]').addEventListener('click', closeAuth);
+  function resetPassword(email, code, pass) {
+    email = String(email || '').trim().toLowerCase();
+    if (MODE !== 'flask') return Promise.resolve({ ok: false, msg: '本地演示版不支持找回密码' });
+    return api('/api/auth/reset-password', {
+      method: 'POST',
+      body: { email: email, code: String(code || '').trim(), password: pass }
+    }).catch(function () { return { ok: false, msg: '连接服务器失败，请稍后重试' }; });
+  }
+
+  function bindAuthShell(box) {
+    var close = box.querySelector('[data-closeauth]');
+    if (close) close.addEventListener('click', closeAuth);
     var sw = box.querySelector('[data-authmode]');
     if (sw) sw.addEventListener('click', function () { renderAuthModal(sw.getAttribute('data-authmode')); });
+  }
+
+  function bindCodeRow(box, purpose) {
+    var btn = box.querySelector('#ptSendCode');
+    if (!btn) return;
+    var emailInput = box.querySelector('#ptFEmail');
+    var codeInput = box.querySelector('#ptFCode');
+    var tip = box.querySelector('#ptCodeTip');
+    var err = box.querySelector('#ptErr');
+
+    btn.addEventListener('click', function () {
+      var email = emailInput.value;
+      err.textContent = '';
+      if (!validEmail(String(email).trim())) {
+        err.textContent = '请先填写正确的邮箱';
+        emailInput.focus();
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = '发送中…';
+      sendCode(email, purpose).then(function (res) {
+        if (!res.ok) {
+          btn.disabled = false;
+          btn.textContent = '获取验证码';
+          err.textContent = res.msg || '发送失败';
+          return;
+        }
+        tip.className = 'pt-code-tip' + (res.dev ? ' dev' : '');
+        tip.textContent = (res.msg || '验证码已发送') + (res.dev && res.devCode ? '：' + res.devCode : '');
+        if (res.dev && res.devCode) codeInput.value = res.devCode;
+        codeInput.focus();
+        var left = res.cooldown || 60;
+        btn.textContent = left + ' 秒后重发';
+        var timer = setInterval(function () {
+          left -= 1;
+          if (left <= 0) {
+            clearInterval(timer);
+            btn.disabled = false;
+            btn.textContent = '重新获取';
+            return;
+          }
+          btn.textContent = left + ' 秒后重发';
+        }, 1000);
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = '获取验证码';
+        err.textContent = '发送失败，请稍后重试';
+      });
+    });
+  }
+
+  function bindAuthSubmit(box, opt) {
     box.querySelector('#ptAuthForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var err = box.querySelector('#ptErr');
       var submit = box.querySelector('button[type="submit"]');
-      var label = isReg ? '注册并登录' : '登录';
       err.textContent = '';
       submit.disabled = true;
       submit.textContent = '请稍候…';
+
       var email = box.querySelector('#ptFEmail').value;
       var pass = box.querySelector('#ptFPass').value;
-      var p = isReg
-        ? register(box.querySelector('#ptFName').value, email, pass)
-        : login(email, pass);
+      var codeEl = box.querySelector('#ptFCode');
+      var code = codeEl ? codeEl.value : '';
+      var p;
+      if (opt.isReset) p = resetPassword(email, code, pass);
+      else if (opt.isReg) p = register(box.querySelector('#ptFName').value, email, pass, code);
+      else p = login(email, pass);
+
       Promise.resolve(p).then(function (res) {
         submit.disabled = false;
-        submit.textContent = label;
+        submit.textContent = opt.label;
         if (!res.ok) { err.textContent = res.msg; return; }
+        if (opt.isReset) {
+          toast('密码已重置，请用新密码登录');
+          renderAuthModal('login');
+          return;
+        }
         closeAuth();
-        toast(isReg ? '注册成功，欢迎！' : '登录成功');
+        toast(opt.isReg ? '注册成功，欢迎！' : '登录成功');
         renderAuthArea();
         renderTemplates();
         renderMyProjects();
         if (typeof onLogin === 'function') { var fn = onLogin; onLogin = null; fn(res.user); }
       }).catch(function () {
         submit.disabled = false;
-        submit.textContent = label;
+        submit.textContent = opt.label;
         err.textContent = '操作失败，请稍后重试';
       });
     });
+  }
+
+  function renderAuthModal(mode) {
+    var box = document.getElementById('ptAuthModal');
+    var isReg = mode === 'register';
+    var isReset = mode === 'reset';
+    var label = isReset ? '重置密码' : (isReg ? '注册并登录' : '登录');
+
+    // 本地演示版没有服务端，找回密码无从谈起
+    if (isReset && MODE !== 'flask') {
+      box.innerHTML =
+        '<button class="pt-modal-close" data-closeauth aria-label="关闭">✕</button>' +
+        '<h2>找回密码</h2>' +
+        '<p class="pt-sub">本地演示版没有服务器，账号只保存在这台设备的浏览器里。</p>' +
+        '<div class="pt-auth-note">忘记密码时可以清理浏览器数据后重新注册（本地项目会一并清除），或直接用另一个邮箱注册。</div>' +
+        '<div class="pt-auth-switch"><a data-authmode="login">返回登录</a></div>';
+      bindAuthShell(box);
+      return;
+    }
+
+    var needCode = MODE === 'flask' && (isReg || isReset);
+
+    box.innerHTML =
+      '<button class="pt-modal-close" data-closeauth aria-label="关闭">✕</button>' +
+      '<h2>' + (isReset ? '找回密码' : (isReg ? '创建账号' : '欢迎回来')) + '</h2>' +
+      '<p class="pt-sub">' + (isReset
+        ? '验证邮箱后设置新密码，验证码 10 分钟内有效。'
+        : (isReg ? '注册后即可保存项目与模板，随时继续编辑。' : '登录以继续管理你的项目和模板。')) + '</p>' +
+      '<form id="ptAuthForm" novalidate>' +
+      (isReg ? '<div class="pt-field"><label>昵称</label><input id="ptFName" autocomplete="nickname" placeholder="怎么称呼你"></div>' : '') +
+      '<div class="pt-field"><label>邮箱</label><input id="ptFEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>' +
+      (needCode
+        ? '<div class="pt-field"><label>邮箱验证码</label>' +
+          '<div class="pt-code-row">' +
+          '<input id="ptFCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 位数字">' +
+          '<button type="button" class="pt-code-btn" id="ptSendCode">获取验证码</button>' +
+          '</div><div class="pt-code-tip" id="ptCodeTip"></div></div>'
+        : '') +
+      '<div class="pt-field"><label>' + (isReset ? '新密码' : '密码') + '</label>' +
+      '<input id="ptFPass" type="password" autocomplete="' + (isReset || isReg ? 'new-password' : 'current-password') + '" placeholder="至少 6 位"></div>' +
+      '<div class="pt-err" id="ptErr"></div>' +
+      '<button class="pt-btn pt-btn-primary pt-btn-block pt-btn-lg" type="submit">' + label + '</button>' +
+      '</form>' +
+      '<div class="pt-auth-switch">' + (isReset
+        ? '<a data-authmode="login">返回登录</a>'
+        : (isReg
+          ? '已有账号？<a data-authmode="login">立即登录</a>'
+          : '还没有账号？<a data-authmode="register">免费注册</a> · <a data-authmode="reset">忘记密码</a>')) +
+      '</div>' +
+      '<div class="pt-auth-note">' + (isReset
+        ? '📮 验证码会发送到你的邮箱，10 分钟内有效，请勿泄露给他人。'
+        : (isReg && MODE === 'flask' ? '📮 注册需要邮箱验证码，用于确认邮箱真实可用。' : authNote())) +
+      '</div>';
+
+    bindAuthShell(box);
+    bindCodeRow(box, isReset ? 'reset' : 'register');
+    bindAuthSubmit(box, { isReg: isReg, isReset: isReset, label: label });
   }
 
   // 供页面覆盖：登录成功后的额外动作
@@ -512,7 +639,8 @@
       if (!act) return;
       e.stopPropagation();
       dd.classList.remove('open');
-      if (act === 'projects') { window.location.href = 'index.html#projects'; }
+      if (act === 'dbadmin') { window.location.href = 'dbadmin.html'; }
+      else if (act === 'projects') { window.location.href = 'index.html#projects'; }
       else if (act === 'templates') { window.location.href = 'index.html#templates'; }
       else if (act === 'logout') {
         Promise.resolve(logout()).then(function () {
@@ -609,7 +737,9 @@
       slot.innerHTML =
         '<div class="pt-user-menu-wrap">' +
         '<button class="pt-user-chip" id="ptEdChip"><span class="pt-avatar">' + esc((u.name || u.email).slice(0, 1).toUpperCase()) + '</span><span class="pt-user-name">' + esc(u.name) + '</span></button>' +
-        '<div class="pt-dropdown" id="ptEdDrop"><button data-ed="home">⌂ 返回首页</button><button data-ed="projects">▤ 我的项目</button><button data-ed="templates">✦ 模板库</button><hr><button data-ed="logout">退出登录</button></div>' +
+        '<div class="pt-dropdown" id="ptEdDrop"><button data-ed="home">⌂ 返回首页</button><button data-ed="projects">▤ 我的项目</button><button data-ed="templates">✦ 模板库</button>' +
+        (u.isAdmin ? '<button data-ed="dbadmin">⚙ 数据库管理</button>' : '') +
+        '<hr><button data-ed="logout">退出登录</button></div>' +
         '</div>';
       var chip = slot.querySelector('#ptEdChip'), dd = slot.querySelector('#ptEdDrop');
       chip.addEventListener('click', function (e) { e.stopPropagation(); dd.classList.toggle('open'); });
@@ -619,6 +749,7 @@
         if (a === 'home') window.location.href = 'index.html';
         else if (a === 'projects') window.location.href = 'index.html#projects';
         else if (a === 'templates') window.location.href = 'index.html#templates';
+        else if (a === 'dbadmin') window.location.href = 'dbadmin.html';
         else if (a === 'logout') {
           Promise.resolve(logout()).then(function () { renderEditorUser(slot); });
         }
@@ -655,6 +786,9 @@
   function bootstrap() {
     booted = true;
     bindHome();
+    // 支持 ?auth=register|login|reset 直接打开对应弹窗（方便分享链接与本地调试）
+    var authParam = (location.search.match(/[?&]auth=(login|register|reset)(?:&|$)/) || [])[1];
+    if (authParam) setTimeout(function () { openAuth(authParam); }, 200);
     var page = document.body.getAttribute('data-pt-page');
     if (page === 'home') {
       renderAuthArea(); renderTemplates(); renderMyProjects(); bindUserMenu();
