@@ -12,6 +12,7 @@ from flask_login import (
     login_user, logout_user,
 )
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text as sa_text
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # 云平台可通过环境变量注入配置，这里主动加载 .env（本地双击运行时没有也无妨）。
@@ -90,7 +91,7 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(24), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     pass_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.Integer, default=now_ms)
+    created_at = db.Column(db.BigInteger, default=now_ms)
 
 
 class Project(db.Model):
@@ -98,8 +99,8 @@ class Project(db.Model):
     owner_id = db.Column(db.String(64), db.ForeignKey("user.id"), nullable=False, index=True)
     name = db.Column(db.String(80), nullable=False)
     data = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.Integer, default=now_ms)
-    updated_at = db.Column(db.Integer, default=now_ms)
+    created_at = db.Column(db.BigInteger, default=now_ms)
+    updated_at = db.Column(db.BigInteger, default=now_ms)
 
 
 class Template(db.Model):
@@ -112,7 +113,7 @@ class Template(db.Model):
     color = db.Column(db.String(20), nullable=False, default="#64748b")
     emoji = db.Column(db.String(16), nullable=False, default="⭐")
     data = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.Integer, default=now_ms)
+    created_at = db.Column(db.BigInteger, default=now_ms)
 
 
 class Module(db.Model):
@@ -121,11 +122,31 @@ class Module(db.Model):
     name = db.Column(db.String(40), nullable=False)
     ico = db.Column(db.String(16), nullable=False, default="◧")
     data = db.Column(db.Text, nullable=False)
-    updated_at = db.Column(db.Integer, default=now_ms)
+    updated_at = db.Column(db.BigInteger, default=now_ms)
 
 
 with app.app_context():
     db.create_all()
+
+    # 迁移：旧版把毫秒时间戳定义成 Integer，PostgreSQL 的 int4 上限 2147483647，
+    # 装不下毫秒时间戳（约 1.7e12）会报 NumericValueOutOfRange。
+    # 已建好的表 create_all() 不会改列类型，这里主动把 5 列升级为 BIGINT（幂等，可重复执行）。
+    # 仅对 PostgreSQL 生效；SQLite 的 INTEGER 本身就是 8 字节，无需处理。
+    if str(db.engine.url).startswith("postgresql"):
+        _migrations = [
+            ("user", "created_at"),
+            ("project", "created_at"), ("project", "updated_at"),
+            ("template", "created_at"),
+            ("module", "updated_at"),
+        ]
+        for _table, _column in _migrations:
+            try:
+                db.session.execute(sa_text(
+                    'ALTER TABLE "%s" ALTER COLUMN "%s" TYPE BIGINT' % (_table, _column)
+                ))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()  # 列已是 BIGINT 或表不存在时忽略，不影响启动
 
 
 @login_manager.user_loader
