@@ -71,7 +71,7 @@
     alt: { k: 'alt', label: '图片说明', type: 'text' },
     caption: { k: 'caption', label: '图片下方文字', type: 'text' },
     width: { k: 'width', label: '图片宽度', type: 'range', min: 20, max: 100, unit: '%' },
-    items: { k: 'items', label: '条目（每行：图标或图片 | 标题 | 说明）', type: 'textarea', mediaRows: true, hint: '第一格可填 emoji、图片网址或上传的图片' },
+    items: { k: 'items', label: '条目', type: 'rows', cols: ['图标', '标题', '说明'], long: 2, mediaRows: true, hint: '第一格可填 emoji、图片网址或上传的图片' },
     author: { k: 'author', label: '署名', type: 'text' },
     btnBg: { k: 'btnBg', label: '按钮底色 / 边框色', type: 'color', hint: '留空跟随主题色或组件默认' },
     btnColor: { k: 'btnColor', label: '按钮文字色', type: 'color', hint: '留空跟随组件默认' },
@@ -133,37 +133,37 @@
     rightText: { k: 'rightText', label: '右栏内容', type: 'textarea' },
 
     /* --- 导航与框架 --- */
-    navItems: { k: 'navItems', label: '菜单项（每行：文字 | 链接）', type: 'textarea', rows: 5, hint: '如：产品 | #products' },
+    navItems: { k: 'navItems', label: '菜单项', type: 'rows', cols: ['菜单文字', '链接'], hint: '点链接那一格可以改跳转地址，如 #products' },
     sticky: { k: 'sticky', label: '滚动时吸顶', type: 'seg', opts: [['1', '吸顶'], ['0', '不吸顶']], hint: '滚动画布或导出页面时会固定在顶部' },
     stickyTop: { k: 'stickyTop', label: '吸顶距顶部', type: 'range', min: 0, max: 120, unit: 'px' },
     navHeight: { k: 'navHeight', label: '导航高度', type: 'range', min: 44, max: 100, unit: 'px' },
-    crumbItems: { k: 'crumbItems', label: '层级（每行：文字 | 链接）', type: 'textarea', rows: 4, hint: '最后一项留空链接即当前页' },
-    footerLinks: { k: 'footerLinks', label: '底部链接（每行：文字 | 链接）', type: 'textarea', rows: 4 },
+    crumbItems: { k: 'crumbItems', label: '面包屑', type: 'rows', cols: ['文字', '链接'], hint: '最后一项留空链接即当前页' },
+    footerLinks: { k: 'footerLinks', label: '底部链接', type: 'rows', cols: ['文字', '链接'] },
     copyright: { k: 'copyright', label: '版权信息', type: 'text' },
     phone: { k: 'phone', label: '联系电话', type: 'text' },
     email: { k: 'email', label: '联系邮箱', type: 'text' },
     address: { k: 'address', label: '地址', type: 'text' },
     navCtaHref: { k: 'navCtaHref', label: '按钮链接', type: 'text', hint: '如 #contact 或 https://…' },
-    subItems: { k: 'subItems', label: '子菜单（每行：主菜单名 | 子项>链接,子项>链接）', type: 'textarea', rows: 5, hint: '主菜单名需与「菜单项」里的文字一致' },
-    dropItems: { k: 'dropItems', label: '下拉内容（每行：标题 | 内容或链接）', type: 'textarea', rows: 5, hint: '内容以 http/# 开头会渲染成链接' },
-    checkItems: { k: 'checkItems', label: '选项（每行：文字 | 值 | 默认选中填 1）', type: 'textarea', rows: 5 },
+    subItems: { k: 'subItems', label: '子菜单', type: 'rows', cols: ['主菜单', '子项（逗号分隔）'], long: 1, hint: '主菜单名需与「菜单项」里的文字一致' },
+    dropItems: { k: 'dropItems', label: '下拉内容', type: 'rows', cols: ['标题', '内容或链接'], long: 1, hint: '内容以 http/# 开头会渲染成链接' },
+    checkItems: { k: 'checkItems', label: '选项', type: 'rows', cols: ['文字', '值', '默认选中（填 1）'] },
     chkBtn: { k: 'chkBtn', label: '按钮文字', type: 'text' },
     chkResult: { k: 'chkResult', label: '结果前缀', type: 'text' },
     themeBtnText: { k: 'themeBtnText', label: '主题按钮文字', type: 'text' },
     searchPlaceholder: { k: 'searchPlaceholder', label: '搜索框提示', type: 'text' },
 
     /* --- 多行内容 --- */
-    btnItems: { k: 'btnItems', label: '按钮（每行：文字 | 链接 | 主按钮填 1）', type: 'textarea', rows: 4 },
-    featureItems: { k: 'featureItems', label: '要点（每行：图标或图片 | 标题 | 说明）', type: 'textarea', rows: 5, mediaRows: true, hint: '第一格可填 emoji、图片网址或上传的图片' },
-    galleryItems: { k: 'galleryItems', label: '图片（每行：图片地址 | 说明）', type: 'textarea', rows: 5, mediaRows: true, hint: '地址留空显示占位图；可上传图片自动填地址' },
-    priceItems: { k: 'priceItems', label: '方案（名称 | 价格 | 特点用；分隔 | 按钮 | 推荐填 1）', type: 'textarea', rows: 5 },
-    teamItems: { k: 'teamItems', label: '成员（每行：头像或 emoji | 姓名 | 职位 | 简介）', type: 'textarea', rows: 5, mediaRows: true, hint: '第一格可填 emoji、图片网址或上传的图片' },
-    faqItems: { k: 'faqItems', label: '问答（每行：问题 | 答案）', type: 'textarea', rows: 5 },
+    btnItems: { k: 'btnItems', label: '按钮', type: 'rows', cols: ['文字', '链接', '主按钮（填 1）'] },
+    featureItems: { k: 'featureItems', label: '要点', type: 'rows', cols: ['图标', '标题', '说明'], long: 2, mediaRows: true, hint: '第一格可填 emoji、图片网址或上传的图片' },
+    galleryItems: { k: 'galleryItems', label: '图片', type: 'rows', cols: ['图片地址', '说明'], long: 1, mediaRows: true, hint: '地址留空显示占位图；可上传图片自动填地址' },
+    priceItems: { k: 'priceItems', label: '方案', type: 'rows', cols: ['方案名', '价格', '特点（一行一条）', '按钮文字', '推荐（填 1）'], long: 2 },
+    teamItems: { k: 'teamItems', label: '成员', type: 'rows', cols: ['头像', '姓名', '职位', '简介'], long: 3, mediaRows: true, hint: '第一格可填 emoji、图片网址或上传的图片' },
+    faqItems: { k: 'faqItems', label: '问答', type: 'rows', cols: ['问题', '答案'], long: 1 },
     openFirst: { k: 'openFirst', label: '默认展开第一项', type: 'seg', opts: [['1', '展开'], ['0', '收起']] },
-    timelineItems: { k: 'timelineItems', label: '节点（每行：时间 | 标题 | 说明）', type: 'textarea', rows: 5 },
-    progressItems: { k: 'progressItems', label: '进度（每行：名称 | 百分比）', type: 'textarea', rows: 5 },
-    logoItems: { k: 'logoItems', label: '品牌（每行：名称或 Logo 图片 | 链接）', type: 'textarea', rows: 4, mediaRows: true, hint: '第一格填名称或图片，第二格可选填链接' },
-    tableData: { k: 'tableData', label: '表格（每行一列用 | 分隔，首行为表头）', type: 'textarea', rows: 5 },
+    timelineItems: { k: 'timelineItems', label: '节点', type: 'rows', cols: ['时间', '标题', '说明'], long: 2 },
+    progressItems: { k: 'progressItems', label: '进度', type: 'rows', cols: ['名称', '百分比'] },
+    logoItems: { k: 'logoItems', label: '品牌', type: 'rows', cols: ['名称或 Logo', '链接'], mediaRows: true, hint: '第一格填名称或图片，第二格可选填链接' },
+    tableData: { k: 'tableData', label: '表格', type: 'rows', cols: ['列 1', '列 2', '列 3'], flexCols: true },
     codeText: { k: 'codeText', label: '代码内容', type: 'textarea', rows: 7 },
     codeLang: { k: 'codeLang', label: '语言标签', type: 'text' },
     noticeType: { k: 'noticeType', label: '提示类型', type: 'select', opts: [['info', '信息 蓝'], ['success', '成功 绿'], ['warning', '提醒 橙'], ['danger', '警告 红']] },
@@ -183,8 +183,8 @@
     barColor: { k: 'barColor', label: '进度条颜色', type: 'color' },
 
     /* --- 参考国内外知名站点的内容字段 --- */
-    hotItems: { k: 'hotItems', label: '热搜（每行：关键词 | 热度 | 标签）', type: 'textarea', rows: 7, hint: '标签可填 爆 / 热 / 新 / 沸，留空也行' },
-    feedItems: { k: 'feedItems', label: '动态（头像 | 昵称 | 时间 | 正文 | 配图 | 转发 | 评论 | 赞）', type: 'textarea', rows: 7, mediaRows: true, hint: '头像可填 emoji 或图片网址；配图可留空' },
+    hotItems: { k: 'hotItems', label: '热搜', type: 'rows', cols: ['关键词', '热度', '标签'], hint: '标签可填 爆 / 热 / 新 / 沸，留空也行' },
+    feedItems: { k: 'feedItems', label: '动态', type: 'rows', cols: ['头像', '昵称', '时间', '正文', '配图', '转发', '评论', '赞'], long: 3, mediaRows: true, hint: '头像可填 emoji 或图片网址；配图可留空' },
     feedStyle: { k: 'feedStyle', label: '信息流样式', type: 'seg', opts: [['weibo', '微博卡片'], ['x', 'X 时间线']] },
     qaQuestion: { k: 'qaQuestion', label: '问题标题', type: 'text' },
     qaAuthor: { k: 'qaAuthor', label: '回答者', type: 'text' },
@@ -194,7 +194,7 @@
     qaVote: { k: 'qaVote', label: '赞同数', type: 'text' },
     qaComments: { k: 'qaComments', label: '评论数', type: 'text' },
     qaTags: { k: 'qaTags', label: '话题标签', type: 'text', hint: '用逗号分隔' },
-    ratingItems: { k: 'ratingItems', label: '条目（标题 | 年份 | 评分 | 海报 | 简介）', type: 'textarea', rows: 6, mediaRows: true, hint: '评分 0~10，例如 9.2' },
+    ratingItems: { k: 'ratingItems', label: '条目', type: 'rows', cols: ['标题', '年份', '评分', '海报', '简介'], long: 4, mediaRows: true, hint: '评分 0~10，例如 9.2' },
     searchPlaceholder: { k: 'searchPlaceholder', label: '搜索框提示文字', type: 'text' },
     searchBtn: { k: 'searchBtn', label: '搜索按钮文字', type: 'text' },
     searchAction: { k: 'searchAction', label: '搜索提交地址', type: 'text', hint: '如 https://www.google.com/search；留空只做展示' },
@@ -209,21 +209,21 @@
     repoTopics: { k: 'repoTopics', label: '主题标签', type: 'text', hint: '用逗号分隔' },
     repoUpdated: { k: 'repoUpdated', label: '更新时间', type: 'text' },
     wikiLead: { k: 'wikiLead', label: '导语', type: 'textarea', rows: 4 },
-    wikiInfobox: { k: 'wikiInfobox', label: '信息框（每行：名称 | 内容）', type: 'textarea', rows: 6 },
-    wikiToc: { k: 'wikiToc', label: '目录（每行：标题，用 | 表示缩进层级）', type: 'textarea', rows: 5 },
+    wikiInfobox: { k: 'wikiInfobox', label: '信息框', type: 'rows', cols: ['名称', '内容'], long: 1 },
+    wikiToc: { k: 'wikiToc', label: '目录', type: 'rows', cols: ['标题', '缩进层级'] },
     wikiBody: { k: 'wikiBody', label: '正文段落', type: 'textarea', rows: 7 },
     chatServer: { k: 'chatServer', label: '服务器名称', type: 'text' },
     chatChannel: { k: 'chatChannel', label: '频道名称', type: 'text' },
-    chatMembers: { k: 'chatMembers', label: '在线成员（头像 | 昵称）', type: 'textarea', rows: 4, mediaRows: true },
-    chatItems: { k: 'chatItems', label: '消息（头像 | 昵称 | 时间 | 内容 | 角色色）', type: 'textarea', rows: 7, mediaRows: true, hint: '角色色可填 #e91e63 等，留空用默认色' },
-    awardItems: { k: 'awardItems', label: '作品（封面 | 名称 | 团队 | 奖项）', type: 'textarea', rows: 6, mediaRows: true },
+    chatMembers: { k: 'chatMembers', label: '在线成员', type: 'rows', cols: ['头像', '昵称'], mediaRows: true },
+    chatItems: { k: 'chatItems', label: '消息', type: 'rows', cols: ['头像', '昵称', '时间', '内容', '角色色'], long: 3, mediaRows: true, hint: '角色色可填 #e91e63 等，留空用默认色' },
+    awardItems: { k: 'awardItems', label: '作品', type: 'rows', cols: ['封面', '名称', '团队', '奖项'], mediaRows: true },
     awardDesc: { k: 'awardDesc', label: '副标题', type: 'text' },
-    marqueeText: { k: 'marqueeText', label: '跑马灯文字', type: 'textarea', rows: 3, hint: '每行一组，组与组之间用 · 分隔显示' },
+    marqueeText: { k: 'marqueeText', label: '跑马灯文字', type: 'rows', cols: ['一组文字'], hint: '一行一组，导出时自动用 · 连成一整条' },
     marqueeSpeed: { k: 'marqueeSpeed', label: '一轮时长', type: 'range', min: 8, max: 80, unit: '秒' },
     marqueeDir: { k: 'marqueeDir', label: '滚动方向', type: 'seg', opts: [['left', '向左'], ['right', '向右']] },
 
     /* --- 视觉实验：品牌墙 / 未来排版 / 几何 / 动感 / 高清图 / 3D --- */
-    brandItems: { k: 'brandItems', label: '品牌（每行：Logo 或名称 | 链接 | 说明）', type: 'textarea', rows: 6, mediaRows: true, hint: '第一格可填文字、emoji 或图片网址' },
+    brandItems: { k: 'brandItems', label: '品牌', type: 'rows', cols: ['Logo 或名称', '链接', '说明'], long: 2, mediaRows: true, hint: '第一格可填文字、emoji 或图片网址' },
     brandStyle: { k: 'brandStyle', label: '品牌墙样式', type: 'seg', opts: [['grid', '矩阵网格'], ['marquee', '流动长廊']] },
     brandCols: { k: 'brandCols', label: '一行几个', type: 'range', min: 2, max: 8, unit: '个' },
     brandSpeed: { k: 'brandSpeed', label: '长廊一轮时长', type: 'range', min: 10, max: 80, unit: '秒' },
@@ -231,7 +231,7 @@
     futypeSub: { k: 'futypeSub', label: '副标题', type: 'text' },
     futypeStyle: { k: 'futypeStyle', label: '排版风格', type: 'select', opts: [['neon', '霓虹故障'], ['outline', '镂空描边'], ['gradient', '渐变金属'], ['glitch', '错位故障']] },
     futypeSize: { k: 'futypeSize', label: '字号', type: 'range', min: 36, max: 140, unit: 'px' },
-    shapeItems: { k: 'shapeItems', label: '形状（每行：形状 | 颜色）', type: 'textarea', rows: 6, hint: '形状可填 圆 / 方 / 三角 / 六边形 / 环 / 水滴' },
+    shapeItems: { k: 'shapeItems', label: '形状', type: 'rows', cols: ['形状', '颜色'], hint: '形状可填 圆 / 方 / 三角 / 六边形 / 环 / 水滴' },
     shapeSize: { k: 'shapeSize', label: '形状基准尺寸', type: 'range', min: 60, max: 240, unit: 'px' },
     shapeSpeed: { k: 'shapeSpeed', label: '漂浮一轮时长', type: 'range', min: 4, max: 24, unit: '秒' },
     shapeFill: { k: 'shapeFill', label: '默认颜色', type: 'color' },
@@ -258,41 +258,41 @@
     cardRole: { k: 'cardRole', label: '头衔 / 身份', type: 'text' },
     cardAvatar: { k: 'cardAvatar', label: '头像', type: 'media', hint: '可上传或从我的图片选择，留空用文字首字母' },
     cardBio: { k: 'cardBio', label: '个人简介', type: 'textarea', rows: 3 },
-    cardLinks: { k: 'cardLinks', label: '社交链接（每行：平台 | 地址）', type: 'textarea', rows: 5 },
+    cardLinks: { k: 'cardLinks', label: '社交链接', type: 'rows', cols: ['平台', '地址'] },
     cardVerified: { k: 'cardVerified', label: '认证标识', type: 'seg', opts: [['1', '显示'], ['0', '隐藏']] },
     cardLayout: { k: 'cardLayout', label: '名片布局', type: 'seg', opts: [['center', '居中'], ['left', '左对齐']] },
     skillTitle: { k: 'skillTitle', label: '标题', type: 'text' },
-    skillItems: { k: 'skillItems', label: '技能（每行：名称 | 熟练度 0-100）', type: 'textarea', rows: 6 },
+    skillItems: { k: 'skillItems', label: '技能', type: 'rows', cols: ['名称', '熟练度 0-100'] },
     skillColor: { k: 'skillColor', label: '进度条颜色', type: 'color' },
     skillTrack: { k: 'skillTrack', label: '轨道颜色', type: 'color' },
     skillAnimate: { k: 'skillAnimate', label: '入场增长', type: 'seg', opts: [['1', '开启'], ['0', '关闭']] },
     tlTitle: { k: 'tlTitle', label: '标题', type: 'text' },
-    tlItems: { k: 'tlItems', label: '经历（每行：年份 | 标题 | 说明）', type: 'textarea', rows: 6 },
+    tlItems: { k: 'tlItems', label: '经历', type: 'rows', cols: ['年份', '标题', '说明'], long: 2 },
     tlLineColor: { k: 'tlLineColor', label: '轴线颜色', type: 'color' },
     tlDotColor: { k: 'tlDotColor', label: '节点颜色', type: 'color' },
     linkTitle: { k: 'linkTitle', label: '标题', type: 'text' },
     linkBio: { k: 'linkBio', label: '一句话简介', type: 'text' },
-    linkItems: { k: 'linkItems', label: '链接按钮（每行：名称 | 地址 | 图标）', type: 'textarea', rows: 6 },
+    linkItems: { k: 'linkItems', label: '链接按钮', type: 'rows', cols: ['名称', '地址', '图标'] },
     linkBtnBg: { k: 'linkBtnBg', label: '按钮底色', type: 'color' },
     linkBtnColor: { k: 'linkBtnColor', label: '按钮文字色', type: 'color' },
     linkShape: { k: 'linkShape', label: '按钮形状', type: 'seg', opts: [['round', '圆角'], ['pill', '胶囊']] },
     tagTitle: { k: 'tagTitle', label: '标题', type: 'text' },
-    tagItems: { k: 'tagItems', label: '标签（每行：文字 | 权重 1-5 | 颜色，可省略）', type: 'textarea', rows: 6 },
+    tagItems: { k: 'tagItems', label: '标签', type: 'rows', cols: ['文字', '权重 1-5', '颜色'] },
     tagStyle: { k: 'tagStyle', label: '标签样式', type: 'seg', opts: [['pill', '胶囊'], ['card', '卡片']] },
     tagSpread: { k: 'tagSpread', label: '排布方式', type: 'seg', opts: [['wrap', '自然排列'], ['center', '居中密集']] },
     statTitle: { k: 'statTitle', label: '标题', type: 'text' },
-    statItems: { k: 'statItems', label: '数据（每行：数值 | 单位 | 说明）', type: 'textarea', rows: 5 },
+    statItems: { k: 'statItems', label: '数据', type: 'rows', cols: ['数值', '单位', '说明'], long: 2 },
     statCols: { k: 'statCols', label: '每行几项', type: 'range', min: 2, max: 5, unit: '列' },
     statAccent: { k: 'statAccent', label: '数字颜色', type: 'color' },
     statDivider: { k: 'statDivider', label: '分隔线', type: 'seg', opts: [['1', '显示'], ['0', '隐藏']] },
     polarTitle: { k: 'polarTitle', label: '标题', type: 'text' },
-    polarItems: { k: 'polarItems', label: '照片（每行：图片地址 | 说明 | 角度 -15~15）', type: 'textarea', rows: 6 },
+    polarItems: { k: 'polarItems', label: '照片', type: 'rows', cols: ['图片地址', '说明', '角度 -15~15'], long: 1 },
     polarCols: { k: 'polarCols', label: '每行几张', type: 'range', min: 2, max: 5, unit: '列' },
     polarTilt: { k: 'polarTilt', label: '照片倾斜', type: 'seg', opts: [['1', '开启'], ['0', '关闭']] },
 
     /* --- 网页外观控制：颜色切换 / 深色模式 / 字号调节 / 主题切换器 --- */
     swLabel: { k: 'swLabel', label: '按钮组标题', type: 'text' },
-    swColors: { k: 'swColors', label: '可选颜色（每行：颜色值 | 名称）', type: 'textarea', rows: 5, hint: '如 #3b82f6 | 蓝；点它就会把整页强调色换成这个颜色' },
+    swColors: { k: 'swColors', label: '可选颜色', type: 'rows', cols: ['颜色值', '名称'], hint: '点任意一个就会把整页强调色换成这个颜色' },
     swShape: { k: 'swShape', label: '色块形状', type: 'seg', opts: [['round', '圆形'], ['square', '圆角方形']] },
     swSize: { k: 'swSize', label: '色块大小', type: 'range', min: 20, max: 56, unit: 'px' },
     swShowName: { k: 'swShowName', label: '显示颜色名称', type: 'seg', opts: [['1', '显示'], ['0', '隐藏']] },
@@ -309,7 +309,7 @@
     fsStep: { k: 'fsStep', label: '每次调整', type: 'range', min: 5, max: 25, unit: '%' },
     fsShowValue: { k: 'fsShowValue', label: '显示百分比', type: 'seg', opts: [['1', '显示'], ['0', '隐藏']] },
     tpLabel: { k: 'tpLabel', label: '控件标题', type: 'text' },
-    tpThemes: { k: 'tpThemes', label: '主题（每行：名称 | 强调色 | 背景色 | 文字色）', type: 'textarea', rows: 5 },
+    tpThemes: { k: 'tpThemes', label: '主题', type: 'rows', cols: ['名称', '强调色', '背景色', '文字色'] },
     tpStyle: { k: 'tpStyle', label: '切换器样式', type: 'seg', opts: [['chip', '标签按钮'], ['swatch', '色卡']] },
 
     /* --- 层叠：任意模块都能浮在其他模块上 --- */
@@ -433,7 +433,7 @@
     devTilt: { k: 'devTilt', label: '轻微倾斜', type: 'seg', opts: [['1', '开启'], ['0', '关闭']] },
     devGlow: { k: 'devGlow', label: '背景光晕', type: 'seg', opts: [['1', '开启'], ['0', '关闭']] },
     /* 转动品牌墙：3D 环形旋转 */
-    rotItems: { k: 'rotItems', label: '品牌（每行：Logo 或名称 | 链接）', type: 'textarea', rows: 6, mediaRows: true, hint: '第一格可填文字、emoji 或图片网址；数量决定环上分布' },
+    rotItems: { k: 'rotItems', label: '品牌', type: 'rows', cols: ['Logo 或名称', '链接'], mediaRows: true, hint: '第一格可填文字、emoji 或图片网址；数量决定环上分布' },
     rotShape: { k: 'rotShape', label: '排布形状', type: 'seg', opts: [['ring', '环形旋转'], ['sphere', '球形旋转']] },
     rotSpeed: { k: 'rotSpeed', label: '转一圈用时', type: 'range', min: 8, max: 90, unit: '秒' },
     rotRadius: { k: 'rotRadius', label: '环半径', type: 'range', min: 120, max: 480, unit: 'px' },
@@ -448,7 +448,7 @@
     playW: { k: 'playW', label: '播放器宽度', type: 'range', min: 40, max: 100, unit: '%' },
     playCaption: { k: 'playCaption', label: '视频说明', type: 'text' },
     /* 图片轮播 / 幻灯片 */
-    slideItems: { k: 'slideItems', label: '幻灯片（每行：图片 | 标题 | 链接）', type: 'textarea', rows: 6, mediaRows: true, hint: '第一格可上传图片；标题、链接可留空' },
+    slideItems: { k: 'slideItems', label: '幻灯片', type: 'rows', cols: ['图片', '标题', '链接'], mediaRows: true, hint: '第一格可上传图片；标题、链接可留空' },
     slideH: { k: 'slideH', label: '画面高度', type: 'range', min: 180, max: 640, unit: 'px' },
     slideAuto: { k: 'slideAuto', label: '自动切换', type: 'seg', opts: [['1', '开启'], ['0', '手动']] },
     slideDur: { k: 'slideDur', label: '每张停留', type: 'range', min: 2, max: 12, unit: '秒' },
@@ -456,7 +456,7 @@
     slideFit: { k: 'slideFit', label: '图片填充', type: 'seg', opts: [['cover', '铺满'], ['contain', '完整']] },
     slideCapBg: { k: 'slideCapBg', label: '标题条底色', type: 'color' },
     /* 选项卡 */
-    tabItems: { k: 'tabItems', label: '选项卡（每行：标签 | 内容）', type: 'textarea', rows: 6, hint: '内容支持换行；第二格是文字说明' },
+    tabItems: { k: 'tabItems', label: '选项卡', type: 'rows', cols: ['标签', '内容'], long: 1, hint: '内容支持换行；第二格是文字说明' },
     tabStyle: { k: 'tabStyle', label: '标签样式', type: 'seg', opts: [['line', '下划线'], ['pill', '胶囊'], ['card', '卡片']] },
     tabAlign: { k: 'tabAlign', label: '标签对齐', type: 'seg', opts: [['left', '靠左'], ['center', '居中']] },
     tabCardBg: { k: 'tabCardBg', label: '内容区背景', type: 'color' },
@@ -486,14 +486,14 @@
 
     /* ===== 常用组件第二批：步骤 / 文章 / 订阅 / 商品 / 优惠券 / 下载 / 分享 / 地址 / 活动 / 职位 / 图标导航 / 正文 ===== */
     /* 步骤流程 */
-    stepsItems: { k: 'stepsItems', label: '步骤（每行：标题 | 说明）', type: 'textarea', rows: 5, hint: '一行一个步骤，第二格是说明文字' },
+    stepsItems: { k: 'stepsItems', label: '步骤', type: 'rows', cols: ['标题', '说明'], long: 1, hint: '一行一个步骤，第二格是说明文字' },
     stepsLayout: { k: 'stepsLayout', label: '排列', type: 'seg', opts: [['row', '横向'], ['col', '纵向']] },
     stepsShape: { k: 'stepsShape', label: '序号样式', type: 'seg', opts: [['num', '数字'], ['check', '对勾'], ['dot', '圆点']] },
     stepsLine: { k: 'stepsLine', label: '连接线', type: 'seg', opts: [['1', '显示'], ['0', '隐藏']] },
     stepsAccent: { k: 'stepsAccent', label: '序号颜色', type: 'color' },
     stepsCardBg: { k: 'stepsCardBg', label: '卡片背景', type: 'color' },
     /* 文章列表 / 博客 */
-    postItems: { k: 'postItems', label: '文章（每行：图片 | 标题 | 日期 | 简介 | 链接）', type: 'textarea', rows: 6, mediaRows: true, hint: '第一格可上传图片；其余格子留空即可' },
+    postItems: { k: 'postItems', label: '文章', type: 'rows', cols: ['图片', '标题', '日期', '简介', '链接'], long: 3, mediaRows: true, hint: '第一格可上传图片；其余格子留空即可' },
     postCols: { k: 'postCols', label: '每行几篇', type: 'seg', opts: [['2', '2 篇'], ['3', '3 篇'], ['4', '4 篇']] },
     postCardBg: { k: 'postCardBg', label: '卡片背景', type: 'color' },
     postImgH: { k: 'postImgH', label: '封面高度', type: 'range', min: 100, max: 320, unit: 'px' },
@@ -554,12 +554,12 @@
     evtHref: { k: 'evtHref', label: '按钮链接', type: 'text' },
     evtAccent: { k: 'evtAccent', label: '日期色块背景', type: 'color' },
     /* 职位列表 */
-    jobItems: { k: 'jobItems', label: '职位（每行：职位 | 地点 | 薪资 | 链接）', type: 'textarea', rows: 5, hint: '一行一个职位' },
+    jobItems: { k: 'jobItems', label: '职位', type: 'rows', cols: ['职位', '地点', '薪资', '链接'], hint: '一行一个职位' },
     jobTitle: { k: 'jobTitle', label: '模块标题', type: 'text' },
     jobCardBg: { k: 'jobCardBg', label: '卡片背景', type: 'color' },
     jobAccent: { k: 'jobAccent', label: '强调色', type: 'color' },
     /* 图标导航宫格 */
-    navItems2: { k: 'navItems2', label: '入口（每行：图标 | 名称 | 链接）', type: 'textarea', rows: 6, mediaRows: true, hint: '第一格可填 emoji、图片或上传素材' },
+    navItems2: { k: 'navItems2', label: '入口', type: 'rows', cols: ['图标', '名称', '链接'], mediaRows: true, hint: '第一格可填 emoji、图片或上传素材' },
     navCols: { k: 'navCols', label: '每行几个', type: 'seg', opts: [['3', '3 个'], ['4', '4 个'], ['5', '5 个'], ['6', '6 个']] },
     navItemBg: { k: 'navItemBg', label: '单项背景', type: 'color' },
     /* 文章正文 */
@@ -861,6 +861,7 @@
       fields: ['leftTitle', 'leftText', 'rightTitle', 'rightText', 'cardBg', 'color', 'radius', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'padY', 'bg'],
       d: { leftTitle: '左边标题', leftText: '左栏的正文内容，可以写特点、说明或列表。', rightTitle: '右边标题', rightText: '右栏的正文内容，与左栏形成对照或补充。', cardBg: '#f5f8ff', color: '#16233a', radius: 14, cardPadX: 26, cardPadY: 26, cardTitleSize: 19, cardTextSize: 14, padY: 36, padX: 24, bg: '' } },
     { type: 'stats', label: '数字统计', ico: '№', tone: 'gold',
+      rowCols: { items: ['数值', '说明'] },
       fields: ['items', 'title', 'color', 'bg', 'padY'],
       d: { items: '12 | 年经验\n240 | 个项目\n99% | 好评率', title: '', color: '#16233a', bg: '#f5f8ff', padY: 40, padX: 24 } },
     { type: 'quote', label: '引用', ico: '❝', tone: '',
@@ -1265,6 +1266,7 @@
     var realType = def.preset ? def.preset.realType : type;
     var realDef = ASSET_MAP[realType] || def;
     var base = Object.assign({}, realDef.d, def.preset ? def.preset.p : {}, p || {});
+    rowsNormalize(realType, base);
     var b = { id: uid(), type: realType, p: base };
     if (realDef.nest) b.children = [];
     return b;
@@ -1293,6 +1295,7 @@
       var def = ASSET_MAP[b.type].d || {};
       Object.keys(def).forEach(function (k) { if (b.p[k] === undefined) b.p[k] = def[k]; });
       Object.keys(COMMON_DEFAULTS).forEach(function (k) { if (b.p[k] === undefined) b.p[k] = COMMON_DEFAULTS[k]; });
+      rowsNormalize(b.type, b.p);
       if (isContainer(b)) b.children = normalizeBlocks(b.children);
       else delete b.children;
       out.push(b);
@@ -2095,12 +2098,24 @@
     }
     return s;
   }
-  function itemRows(v) {
-    return String(v || '').split('\n').map(function (l) { return l.trim(); })
-      .filter(Boolean).map(function (l) {
-        var c = l.split('|').map(function (s) { return s.trim(); });
-        return { a: c[0] || '', b: c[1] || '', c: c.slice(2).join(' | ') || '' };
+  /* 多行内容统一入口：现在的数据是「行 → 单元格」的二维数组，
+     老项目里还是 "a | b | c" + 换行的字符串，这里一并兼容，避免旧数据打不开。 */
+  function rowsOf(v) {
+    if (Array.isArray(v)) {
+      return v.map(function (r) {
+        if (Array.isArray(r)) return r.map(function (c) { return c == null ? '' : String(c); });
+        return [r == null ? '' : String(r)];
       });
+    }
+    return String(v == null ? '' : v).split('\n')
+      .map(function (l) { return l.replace(/\s+$/, ''); })
+      .filter(function (l) { return l.trim() !== ''; })
+      .map(function (l) { return l.split('|').map(function (s) { return s.trim(); }); });
+  }
+  function itemRows(v) {
+    return rowsOf(v).map(function (c) {
+      return { a: c[0] || '', b: c[1] || '', c: c.slice(2).join(' | ') || '' };
+    });
   }
   var PLACEHOLDER_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420"><rect width="800" height="420" fill="#e8eef8"/><g fill="none" stroke="#a9bbd4" stroke-width="3"><rect x="1.5" y="1.5" width="797" height="417" stroke-dasharray="12 9"/></g><circle cx="400" cy="180" r="34" fill="#c6d5ea"/><path d="M340 300 L420 220 L480 280 L540 240 L640 330 L340 330Z" fill="#c6d5ea"/><text x="400" y="382" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#7f93af">在右侧填写图片地址，或从左侧上传</text></svg>'
@@ -2171,8 +2186,22 @@
   }
   /* ---------- 辅助：多行数据 / 安全链接 ---------- */
   function rowCells(v) {
-    return String(v || '').split('\n').map(function (l) { return l.trim(); })
-      .filter(Boolean).map(function (l) { return l.split('|').map(function (s) { return s.trim(); }); });
+    return rowsOf(v);
+  }
+  /* 一列几个格：取字段声明，行数据更长时以数据为准 */
+  function rowsCols(f, rows) {
+    var n = (f && f.cols ? f.cols.length : 0) || 1;
+    (rows || []).forEach(function (r) { if (r.length > n) n = r.length; });
+    return n;
+  }
+  /* 老项目 / 识别结果里这些字段还是字符串，进内存时统一转成数组 */
+  function rowsNormalize(type, p) {
+    var flds = (ASSET_MAP[type] && ASSET_MAP[type].fields) || [];
+    flds.forEach(function (k) {
+      var f = FIELD_MAP[k];
+      if (f && f.type === 'rows' && !Array.isArray(p[k])) p[k] = rowsOf(p[k]);
+    });
+    return p;
   }
   function safeUrl(u, fallback) {
     var s = String(u || '').trim();
@@ -3959,7 +3988,7 @@
           'grid-template-columns': gridCols(Math.min(3, Math.max(1, prRows.length)), 3),
           gap: (p.gap || 16) + 'px', color: p.color || page.text
         }) + '">' + prRows.map(function (r) {
-          var feats = String(r[2] || '').split(/[；;]/).map(function (s) { return s.trim(); }).filter(Boolean);
+          var feats = String(r[2] || '').split(/[；;\n]/).map(function (s) { return s.trim(); }).filter(Boolean);
           var hot = String(r[4] || '').trim() === '1';
           var pbtn = btnSkin(p, {
             bg: page.accent, color: '#fff', radius: 9, padX: 11, padY: 11, fontSize: 14,
@@ -4287,7 +4316,7 @@
       }
       case 'wiki': {
         var inf = rowCells(p.wikiInfobox).slice(0, 10);
-        var toc = String(p.wikiToc || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean).slice(0, 10);
+        var toc = rowsOf(p.wikiToc).slice(0, 10);
         var body = String(p.wikiBody || '').split(/\n\s*\n/).map(function (l) { return l.trim(); }).filter(Boolean);
         inner = '<article class="wr-wiki" style="' + css({
           display: 'grid', 'grid-template-columns': 'minmax(0,1fr) 260px', gap: '30px',
@@ -4296,9 +4325,10 @@
         }) + '"><div class="wr-wiki-main">' +
           head +
           '<p class="wr-wiki-lead">' + esc(p.wikiLead) + '</p>' +
-          (toc.length ? '<nav class="wr-wiki-toc"><b>目录</b>' + toc.map(function (t) {
-            var c = t.split('|');
-            return '<a href="#' + esc(String(c[0] || '').replace(/[^\w\u4e00-\u9fa5-]/g, '').slice(0, 20)) + '" class="wr-toc-' + Math.min(c.length, 3) + '">' + esc(c[c.length - 1]) + '</a>';
+          (toc.length ? '<nav class="wr-wiki-toc"><b>目录</b>' + toc.map(function (c) {
+            var tl = String(c[0] || '');
+            var lv = Math.min(3, Math.max(1, Number(c[1]) || 1));
+            return '<a href="#' + esc(tl.replace(/[^\w\u4e00-\u9fa5-]/g, '').slice(0, 20)) + '" class="wr-toc-' + lv + '">' + esc(tl) + '</a>';
           }).join('') + '</nav>' : '') +
           body.map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') + '</div>' +
           '<aside class="wr-wiki-info"><b>' + esc(p.title || '条目') + '</b>' +
@@ -4347,7 +4377,8 @@
         break;
       }
       case 'marquee': {
-        var words = String(p.marqueeText || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean).join(' · ');
+        var words = rowsOf(p.marqueeText).map(function (r) { return String(r[0] || '').trim(); })
+          .filter(Boolean).join(' · ');
         var track = '<span>' + esc(words) + '</span><span aria-hidden="true">' + esc(words) + '</span>';
         inner = '<div class="wr-marquee' + (String(p.marqueeDir) === 'right' ? ' is-right' : '') + '" style="' + css({
           '--wr-marquee-dur': Math.max(8, Math.min(80, Number(p.marqueeSpeed) || 24)) + 's',
@@ -5535,7 +5566,104 @@
     return false;
   }
 
-  function fieldHTML(f, value) {
+  /* 多行内容的编辑器：一行一个块，每格一个输入框，行可以加 / 删 / 上下移 */
+  /* 同一个字段键在不同组件里含义可能不同（如 items：网格是图标/标题，数字统计是数值/说明） */
+  function rowsFieldFor(type, key) {
+    var f = FIELD_MAP[key];
+    if (!f || f.type !== 'rows') return f;
+    var over = type && ASSET_MAP[type] && ASSET_MAP[type].rowCols ? ASSET_MAP[type].rowCols[key] : null;
+    if (!over) return f;
+    return Object.assign({}, f, { cols: over, long: -1 });
+  }
+  function rowsBodyHTML(f, rows) {
+    var cols = rowsCols(f, rows);
+    var names = (f.cols || []).slice();
+    while (names.length < cols) names.push('第 ' + (names.length + 1) + ' 格');
+    var body = rows.map(function (r, i) {
+      var cells = '';
+      for (var j = 0; j < cols; j++) {
+        var val = r[j] == null ? '' : r[j];
+        var attr = ' data-key="' + f.k + '" data-row="' + i + '" data-col="' + j + '"' +
+          ' placeholder="' + esc(names[j]) + '" title="' + esc(names[j]) + '"';
+        cells += (f.long === j)
+          ? '<textarea class="prop-textarea rows-cell rows-long"' + attr + ' rows="2" spellcheck="false">' + esc(val) + '</textarea>'
+          : '<input class="prop-input rows-cell"' + attr + ' value="' + esc(val) + '" spellcheck="false">';
+      }
+      return '<div class="rows-item">' +
+        '<div class="rows-bar"><b>' + (i + 1) + '</b><span class="rows-move">' +
+        (i > 0 ? '<button type="button" data-row-act="up" title="上移">↑</button>' : '') +
+        (i < rows.length - 1 ? '<button type="button" data-row-act="down" title="下移">↓</button>' : '') +
+        '<button type="button" data-row-act="del" title="删除这一行">✕</button></span></div>' +
+        '<div class="rows-cells' + (cols > 1 ? ' is-two' : '') + '">' + cells + '</div></div>';
+    }).join('');
+    var head = '<div class="rows-head"><span>' + (rows.length ? '共 ' + rows.length + ' 行' : '还没有内容') + '</span>' +
+      (rows.length ? '<button type="button" data-row-act="clear">清空</button>' : '') + '</div>';
+    var colTools = f.flexCols
+      ? '<div class="rows-cols"><button type="button" data-row-act="addcol">＋ 加一列</button>' +
+        (cols > 1 ? '<button type="button" data-row-act="delcol">－ 去一列</button>' : '') + '</div>'
+      : '';
+    var mediaTools = f.mediaRows
+      ? '<div class="media-row-tools">' +
+        '<button type="button" data-media="upload" data-row-key="' + f.k + '">＋ 追加图片行</button>' +
+        '<select class="media-pick" data-media="asset" data-row-key="' + f.k + '">' + mediaAssetOptions() + '</select>' +
+        '<input type="file" class="media-file" data-media-file="' + f.k + '" data-media-row="1" accept="image/*" hidden>' +
+        '</div>'
+      : '';
+    return head + body +
+      '<button type="button" class="rows-add" data-row-act="add">＋ 添加一行</button>' + colTools + mediaTools;
+  }
+  function rowsBoxHTML(f, value) {
+    return '<div class="prop-rows" data-rows="' + f.k + '">' + rowsBodyHTML(f, rowsOf(value)) + '</div>';
+  }
+  /* 只重绘这一个编辑器，面板不整体刷新，滚动位置和输入焦点都不会丢 */
+  function refreshRows(key) {
+    var b = getBlock(selectedId);
+    var f = FIELD_MAP[key];
+    var box = $('#propPanel .prop-rows[data-rows="' + key + '"]');
+    if (!b || !f || !box) return;
+    box.innerHTML = rowsBodyHTML(rowsFieldFor(b.type, key) || f, rowsOf(b.p[key]));
+  }
+  function setRowCell(key, el) {
+    var b = getBlock(selectedId);
+    if (!b) return;
+    var i = Number(el.getAttribute('data-row')), j = Number(el.getAttribute('data-col'));
+    if (!isFinite(i) || !isFinite(j) || i < 0 || j < 0) return;
+    var rows = rowsOf(b.p[key]);
+    while (rows.length <= i) rows.push([]);
+    while (rows[i].length <= j) rows[i].push('');
+    rows[i][j] = el.value;
+    b.p[key] = rows;
+    scheduleCanvasRender(); scheduleHistory(); scheduleSave();
+  }
+  function rowAction(key, act, idx) {
+    var b = getBlock(selectedId);
+    if (!b) return;
+    var f = rowsFieldFor(b.type, key) || { cols: [] };
+    var rows = rowsOf(b.p[key]);
+    var cols = rowsCols(f, rows);
+    if (act === 'add') {
+      var nr = [];
+      for (var i = 0; i < cols; i++) nr.push('');
+      rows.push(nr);
+    } else if (act === 'del') {
+      rows.splice(idx, 1);
+    } else if (act === 'up' && idx > 0) {
+      var a = rows[idx - 1]; rows[idx - 1] = rows[idx]; rows[idx] = a;
+    } else if (act === 'down' && idx >= 0 && idx < rows.length - 1) {
+      var c2 = rows[idx + 1]; rows[idx + 1] = rows[idx]; rows[idx] = c2;
+    } else if (act === 'clear') {
+      rows = [];
+    } else if (act === 'addcol') {
+      rows.forEach(function (r) { r.push(''); });
+    } else if (act === 'delcol') {
+      if (cols <= 1) return;
+      rows.forEach(function (r) { r.length = Math.max(1, r.length - 1); });
+    }
+    b.p[key] = rows;
+    refreshRows(key);
+    scheduleCanvasRender(); scheduleHistory(); scheduleSave();
+  }
+  function fieldHTML(f, value, type) {
     var v = value == null ? '' : value;
     var hint = f.hint ? ' <span class="opt">' + esc(f.hint) + '</span>' : '';
     var ctrl = '';
@@ -5562,6 +5690,9 @@
             '<input type="file" class="media-file" data-media-file="' + f.k + '" data-media-row="1" accept="image/*" hidden>' +
             '</div>';
         }
+        break;
+      case 'rows':
+        ctrl = rowsBoxHTML(rowsFieldFor(type, f.k) || f, v);
         break;
       case 'color':
         ctrl = colorFieldHTML(f.k, v, f.ph); break;
@@ -5607,7 +5738,9 @@
       default:
         ctrl = '<input class="prop-input" data-key="' + f.k + '" value="' + esc(v) + '">';
     }
-    return '<div class="prop-field"><label>' + esc(f.label) + hint + '</label>' + ctrl + '</div>';
+    // 多行内容的文字都躺在输入框里，textContent 搜不到，单独记一份给属性搜索用
+    var dq = f.type === 'rows' ? rowsOf(v).map(function (r) { return r.join(' '); }).join(' ').slice(0, 400) : '';
+    return '<div class="prop-field"' + (dq ? ' data-q="' + esc(dq) + '"' : '') + '><label>' + esc(f.label) + hint + '</label>' + ctrl + '</div>';
   }
   function pageFieldsHTML() {
     var p = state.page;
@@ -5981,7 +6114,7 @@
     var a = ASSET_MAP[b.type];
     var normalFields = a.fields.filter(function (k) { return SUB_KEYS.indexOf(k) < 0; });
     var groups = [
-      { title: '内容', fields: normalFields.filter(function (k) { return FIELD_MAP[k] && ['textarea', 'text', 'code', 'select', 'media', 'film'].indexOf(FIELD_MAP[k].type) >= 0; }) },
+      { title: '内容', fields: normalFields.filter(function (k) { return FIELD_MAP[k] && ['rows', 'textarea', 'text', 'code', 'select', 'media', 'film'].indexOf(FIELD_MAP[k].type) >= 0; }) },
       { title: '外观', fields: normalFields.filter(function (k) { return FIELD_MAP[k] && FIELD_MAP[k].type === 'color'; }) },
       { title: '布局', fields: normalFields.filter(function (k) { return FIELD_MAP[k] && ['range', 'seg'].indexOf(FIELD_MAP[k].type) >= 0; }) }
     ];
@@ -6002,7 +6135,7 @@
     function groupHTML(g) {
       if (!g || !g.fields.length) return '';
       return '<div class="prop-group"><h3>' + g.title + '</h3>' +
-        g.fields.map(function (k) { return fieldHTML(FIELD_MAP[k], b.p[k]); }).join('') + '</div>';
+        g.fields.map(function (k) { return fieldHTML(FIELD_MAP[k], b.p[k], b.type); }).join('') + '</div>';
     }
     // 先放文字内容，紧接着放按钮 / 输入框 / 导航 / 页脚这些「组件里的组件」，
     // 最后才是外观与布局，避免改按钮颜色时要一路滚到底。
@@ -6488,11 +6621,17 @@
   function appendMediaRow(key, ref) {
     var b = getBlock(selectedId);
     if (!b || !key) return;
-    var tpl = MEDIA_ROW_TPL[key] || '';
-    var cur = String(b.p[key] || '').replace(/\s+$/, '');
-    b.p[key] = (cur ? cur + '\n' : '') + ref + tpl;
+    var f = rowsFieldFor(b.type, key) || { cols: [] };
+    var tpl = rowsOf(MEDIA_ROW_TPL[key] || '');
+    var row = tpl.length ? tpl[0].slice() : [];
+    var cols = Math.max((f.cols || []).length, row.length, 1);
+    while (row.length < cols) row.push('');
+    row[0] = ref;
+    var rows = rowsOf(b.p[key]);
+    rows.push(row);
+    b.p[key] = rows;
     pushHistory(); renderAll(); scheduleSave();
-    toast('已追加图片行，可在文本框里修改文字');
+    toast('已追加图片行，可在上面修改文字');
   }
   function mediaFilePicked(input) {
     var file = input.files && input.files[0];
@@ -8723,6 +8862,8 @@
       var gfield = el.closest ? el.closest('.color-field') : null;
       if (gfield && el.closest('.grad-editor')) { handleGradInput(gfield, el); return; }
       if (!key) return;
+      // 多行内容里的单个格子：只改这一格，整行数据留在数组里
+      if (el.hasAttribute('data-row')) { setRowCell(key, el); return; }
       syncColorRow(el);
       // 媒体字段：边输入边刷新缩略图（不重绘面板，避免打断输入）
       if (el.closest && el.closest('.media-field')) {
@@ -8754,6 +8895,18 @@
       if (el.tagName === 'SELECT' || el.type === 'color') applyProp(key, el.value, el);
     });
     box.addEventListener('click', function (e) {
+      // 多行内容：加行 / 删行 / 上下移 / 加列
+      var rbtn = e.target.closest ? e.target.closest('[data-row-act]') : null;
+      if (rbtn) {
+        var rbox = rbtn.closest('.prop-rows');
+        if (rbox) {
+          var rkey = rbox.getAttribute('data-rows');
+          var rrow = rbtn.closest('.rows-item');
+          var ridx = rrow ? Array.prototype.indexOf.call(rbox.querySelectorAll('.rows-item'), rrow) : -1;
+          rowAction(rkey, rbtn.getAttribute('data-row-act'), ridx);
+          return;
+        }
+      }
       var cfield = e.target.closest ? e.target.closest('.color-field') : null;
       if (cfield && handleGradClick(cfield, e.target)) return;
       var pick = e.target.closest ? e.target.closest('[data-film-pick]') : null;
@@ -9890,7 +10043,8 @@
     var box = $('#propPanel'), input = $('#propSearch');
     q = String(q == null ? (input ? input.value : '') : q).trim().toLowerCase();
     $$('.prop-field', box).forEach(function (f) {
-      f.hidden = !!q && f.textContent.toLowerCase().indexOf(q) < 0;
+      var txt = f.textContent + ' ' + (f.getAttribute('data-q') || '');
+      f.hidden = !!q && txt.toLowerCase().indexOf(q) < 0;
     });
     $$('.prop-group, details.common-sec', box).forEach(function (g) {
       var any = $$('.prop-field', g).some(function (f) { return !f.hidden; });
