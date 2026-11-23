@@ -6,7 +6,7 @@
   <title>建站工坊 · 拖拽即所得的网页制作工具</title>
   <meta name="description" content="无需写代码，拖拽素材、套用模板、实时编辑，几分钟做出属于自己的网站。支持一键导出独立 HTML。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="portal.css">
+  <link rel="stylesheet" href="portal.css?v=20261122b">
 </head>
 <body class="pt-body" data-pt-page="home">
 
@@ -20,6 +20,7 @@
       <nav class="pt-nav-links">
         <a href="#features">功能</a>
         <a href="#templates">模板库</a>
+        <a href="board.html">留言板</a>
         <a href="#projects">我的项目</a>
         <a href="editor.html">编辑器</a>
       </nav>
@@ -35,6 +36,7 @@
             <span class="pt-user-name" id="ptUserName">用户</span>
           </button>
           <div class="pt-dropdown" id="ptDropdown">
+            <button data-useract="profile">☺ 个人资料</button>
             <button data-useract="projects">▤ 我的项目</button>
             <button data-useract="templates">✦ 模板库</button>
             <button data-useract="dbadmin" style="display:none">⚙ 数据库管理</button>
@@ -186,6 +188,6 @@
   </div>
 
   <script src="templates.js"></script>
-  <script src="portal.js"></script>
+  <script src="portal.js?v=20261122b"></script>
 </body>
 </html>

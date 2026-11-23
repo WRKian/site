@@ -17,6 +17,7 @@
   };
 
   var MODE = 'local'; // 'flask' | 'local'
+  var prefillEmail = ''; // 重置密码成功后，切回登录弹窗时带回邮箱
   var CACHE = { user: null, projects: [], templates: [] };
 
   /* ---------- 本地降级用存储工具 ---------- */
@@ -100,13 +101,13 @@
       var done = false;
       function finish() { if (!done) { done = true; resolve(); } }
       // 探测后端：超时 1.5s，避免静态环境下卡住首屏
-      setTimeout(finish, 1500);
+      setTimeout(finish, 8000);
       try {
         var init = { method: 'GET', cache: 'no-store' };
         if (typeof AbortController === 'function') {
           var ctl = new AbortController();
           init.signal = ctl.signal;
-          setTimeout(function () { ctl.abort(); }, 1400);
+          setTimeout(function () { ctl.abort(); }, 7800);
         }
         fetch('/api/health', init).then(function (r) {
           return r.ok ? r.json() : null;
@@ -347,7 +348,10 @@
       var nm = document.getElementById('ptUserName');
       var av = document.getElementById('ptAvatar');
       if (nm) nm.textContent = u.name;
-      if (av) av.textContent = (u.name || u.email || '用').slice(0, 1).toUpperCase();
+      if (av) {
+        av.textContent = u.avatar || (u.name || u.email || '用').slice(0, 1).toUpperCase();
+        if (u.color) av.style.background = u.color;
+      }
       var dbItem = document.querySelector('[data-useract="dbadmin"]');
       if (dbItem) dbItem.style.display = u.isAdmin ? '' : 'none';
       var dbLinks = document.querySelectorAll('[data-admin-only]');
@@ -471,8 +475,15 @@
   function bindAuthShell(box) {
     var close = box.querySelector('[data-closeauth]');
     if (close) close.addEventListener('click', closeAuth);
-    var sw = box.querySelector('[data-authmode]');
-    if (sw) sw.addEventListener('click', function () { renderAuthModal(sw.getAttribute('data-authmode')); });
+    // 弹窗底部可能同时有「免费注册」和「忘记密码」两个链接，必须逐个绑定，
+    // 只取第一个会导致后面那个（忘记密码）点了没反应。
+    var links = box.querySelectorAll('[data-authmode]');
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener('click', function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        renderAuthModal(this.getAttribute('data-authmode'));
+      });
+    }
   }
 
   function bindCodeRow(box, purpose) {
@@ -501,7 +512,11 @@
           return;
         }
         tip.className = 'pt-code-tip' + (res.dev ? ' dev' : '');
-        tip.textContent = (res.msg || '验证码已发送') + (res.dev && res.devCode ? '：' + res.devCode : '');
+        if (res.dev && res.devCode) {
+          tip.textContent = '本地未配置邮件服务，验证码已自动填入：' + res.devCode + '（直接设置新密码即可）';
+        } else {
+          tip.textContent = res.msg || '验证码已发送';
+        }
         if (res.dev && res.devCode) codeInput.value = res.devCode;
         codeInput.focus();
         var left = res.cooldown || 60;
@@ -525,10 +540,14 @@
   }
 
   function bindAuthSubmit(box, opt) {
-    box.querySelector('#ptAuthForm').addEventListener('submit', function (e) {
-      e.preventDefault();
+    var form = box.querySelector('#ptAuthForm');
+    var submit = box.querySelector('#ptAuthSubmit');
+    if (!form || !submit) return;
+
+    function doSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (submit.disabled) return;
       var err = box.querySelector('#ptErr');
-      var submit = box.querySelector('button[type="submit"]');
       err.textContent = '';
       submit.disabled = true;
       submit.textContent = '请稍候…';
@@ -547,6 +566,7 @@
         submit.textContent = opt.label;
         if (!res.ok) { err.textContent = res.msg; return; }
         if (opt.isReset) {
+          prefillEmail = email;
           toast('密码已重置，请用新密码登录');
           renderAuthModal('login');
           return;
@@ -562,7 +582,12 @@
         submit.textContent = opt.label;
         err.textContent = '操作失败，请稍后重试';
       });
-    });
+    }
+
+    // 同时监听表单提交（回车）和按钮点击：按钮是 type=button，
+    // 即使某些环境下 submit 事件不冒泡，点击也一定能进到这里。
+    form.addEventListener('submit', doSubmit);
+    submit.addEventListener('click', doSubmit);
   }
 
   function renderAuthModal(mode) {
@@ -604,7 +629,7 @@
       '<div class="pt-field"><label>' + (isReset ? '新密码' : '密码') + '</label>' +
       '<input id="ptFPass" type="password" autocomplete="' + (isReset || isReg ? 'new-password' : 'current-password') + '" placeholder="至少 6 位"></div>' +
       '<div class="pt-err" id="ptErr"></div>' +
-      '<button class="pt-btn pt-btn-primary pt-btn-block pt-btn-lg" type="submit">' + label + '</button>' +
+      '<button class="pt-btn pt-btn-primary pt-btn-block pt-btn-lg" type="button" id="ptAuthSubmit">' + label + '</button>' +
       '</form>' +
       '<div class="pt-auth-switch">' + (isReset
         ? '<a data-authmode="login">返回登录</a>'
@@ -618,6 +643,12 @@
       '</div>';
 
     bindAuthShell(box);
+    var backEmail = box.querySelector('#ptFEmail');
+    if (backEmail && prefillEmail) {
+      backEmail.value = prefillEmail;
+      prefillEmail = '';
+      backEmail.focus();
+    }
     bindCodeRow(box, isReset ? 'reset' : 'register');
     bindAuthSubmit(box, { isReg: isReg, isReset: isReset, label: label });
   }
@@ -640,6 +671,7 @@
       e.stopPropagation();
       dd.classList.remove('open');
       if (act === 'dbadmin') { window.location.href = 'dbadmin.html'; }
+      else if (act === 'profile') { window.location.href = 'profile.html'; }
       else if (act === 'projects') { window.location.href = 'index.html#projects'; }
       else if (act === 'templates') { window.location.href = 'index.html#templates'; }
       else if (act === 'logout') {
@@ -648,6 +680,418 @@
           window.location.href = 'index.html';
         });
       }
+    });
+  }
+
+  /* ============================================================
+     个人资料页
+     ============================================================ */
+  function dayStr(ts) {
+    if (!ts) return '—';
+    var d = new Date(ts);
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+
+  function bindProfile() {
+    var guest = document.getElementById('pfGuest');
+    var main = document.getElementById('pfMain');
+    var u = currentUser();
+    onLogin = function () { window.location.reload(); };
+    if (!u) {
+      if (guest) guest.hidden = false;
+      if (main) main.hidden = true;
+      return;
+    }
+    if (guest) guest.hidden = true;
+    if (main) main.hidden = false;
+
+    var EMOJIS = ['🐱', '🚀', '🌟', '🎨', '📚', '💡', '🌿', '🔥', '🎧', '🐼', '☕', '🍀'];
+    var COLORS = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#16a34a', '#0891b2', '#475569', '#ca8a04'];
+    var state = { avatar: u.avatar || '', color: u.color || '#2563eb' };
+    var nameInput = document.getElementById('pfInputName');
+    var bioInput = document.getElementById('pfInputBio');
+    var bioCount = document.getElementById('pfBioCount');
+    var formErr = document.getElementById('pfErr');
+    var avatarBox = document.getElementById('pfAvatar');
+    var codeTimer = null;
+
+    function paintAvatar() {
+      if (!avatarBox) return;
+      avatarBox.textContent = state.avatar || (nameInput && nameInput.value || u.name || '用').slice(0, 1).toUpperCase();
+      avatarBox.style.background = state.color;
+    }
+    function paintPickers() {
+      var er = document.getElementById('pfEmojiRow');
+      if (er) {
+        er.innerHTML = EMOJIS.map(function (e) {
+          return '<button type="button" class="pf-emoji' + (state.avatar === e ? ' sel' : '') + '" data-emoji="' + e + '">' + e + '</button>';
+        }).join('') + '<button type="button" class="pf-emoji pf-emoji-none' + (!state.avatar ? ' sel' : '') + '" data-emoji="">首字母</button>';
+      }
+      var cr = document.getElementById('pfColorRow');
+      if (cr) {
+        cr.innerHTML = COLORS.map(function (c) {
+          return '<button type="button" class="pf-color' + (state.color === c ? ' sel' : '') + '" data-color="' + c + '" style="background:' + c + '" aria-label="' + c + '"></button>';
+        }).join('');
+      }
+    }
+    function paintHead(res) {
+      var nameEl = document.getElementById('pfName');
+      var metaEl = document.getElementById('pfMeta');
+      var badgeEl = document.getElementById('pfBadges');
+      var statsEl = document.getElementById('pfStats');
+      if (nameEl) nameEl.textContent = res.user.name;
+      if (metaEl) metaEl.textContent = res.user.email + ' · 加入于 ' + dayStr(res.joinedAt || res.user.createdAt);
+      if (badgeEl) {
+        badgeEl.innerHTML = (res.isAdmin
+          ? '<span class="pf-badge admin">⚙ 站长</span>'
+          : '<span class="pf-badge">普通用户</span>') +
+          '<span class="pf-badge">ID ' + esc(String(res.user.id || '').slice(-6)) + '</span>';
+      }
+      if (statsEl) {
+        statsEl.innerHTML =
+          '<div><b>' + (res.stats.projects || 0) + '</b><span>项目</span></div>' +
+          '<div><b>' + (res.stats.templates || 0) + '</b><span>模板</span></div>' +
+          '<div><b>' + (res.stats.messages || 0) + '</b><span>留言</span></div>';
+      }
+    }
+
+    paintPickers();
+    paintAvatar();
+
+    api('/api/profile').then(function (res) {
+      if (!res.ok) {
+        if (formErr) formErr.textContent = res.msg || '资料加载失败';
+        if (/登录/.test(res.msg || '')) {
+          if (guest) guest.hidden = false;
+          if (main) main.hidden = true;
+        }
+        return;
+      }
+      var p = res.profile || {};
+      if (nameInput) nameInput.value = res.user.name || '';
+      if (bioInput) bioInput.value = p.bio || '';
+      state.avatar = p.avatar || '';
+      state.color = p.color || '#2563eb';
+      if (bioCount) bioCount.textContent = (bioInput ? bioInput.value.length : 0) + '/200';
+      paintPickers();
+      paintAvatar();
+      paintHead(res);
+    }).catch(function () {
+      if (formErr) formErr.textContent = '连接服务器失败，请刷新重试';
+    });
+
+    var form = document.getElementById('pfForm');
+    if (form) form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      formErr.textContent = '';
+      var name = (nameInput.value || '').trim();
+      if (name.length < 2) { formErr.textContent = '昵称至少 2 个字'; nameInput.focus(); return; }
+      var btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = '保存中…';
+      api('/api/profile', {
+        method: 'POST',
+        body: { name: name, bio: (bioInput.value || '').trim(), avatar: state.avatar, color: state.color }
+      }).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = '保存资料';
+        if (!res.ok) { formErr.textContent = res.msg || '保存失败'; return; }
+        u.name = res.user.name;
+        u.avatar = res.user.avatar;
+        u.color = res.user.color;
+        u.bio = res.user.bio;
+        paintAvatar();
+        renderAuthArea();
+        var nameEl = document.getElementById('pfName');
+        if (nameEl) nameEl.textContent = res.user.name;
+        toast('资料已保存');
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = '保存资料';
+        formErr.textContent = '连接服务器失败，请稍后重试';
+      });
+    });
+
+    if (bioInput && bioCount) {
+      bioInput.addEventListener('input', function () {
+        bioCount.textContent = bioInput.value.length + '/200';
+      });
+    }
+    var er = document.getElementById('pfEmojiRow');
+    if (er) er.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-emoji]');
+      if (!b) return;
+      state.avatar = b.getAttribute('data-emoji') || '';
+      paintPickers();
+      paintAvatar();
+    });
+    var cr = document.getElementById('pfColorRow');
+    if (cr) cr.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-color]');
+      if (!b) return;
+      state.color = b.getAttribute('data-color');
+      paintPickers();
+      paintAvatar();
+    });
+
+    /* ---- 更换邮箱 ---- */
+    var emailForm = document.getElementById('pfEmailForm');
+    var newEmail = document.getElementById('pfNewEmail');
+    var emailCode = document.getElementById('pfEmailCode');
+    var emailErr = document.getElementById('pfEmailErr');
+    var codeTip = document.getElementById('pfCodeTip');
+    var codeBtn = document.getElementById('pfSendCode');
+
+    if (codeBtn) codeBtn.addEventListener('click', function () {
+      var email = (newEmail.value || '').trim().toLowerCase();
+      emailErr.textContent = '';
+      if (!validEmail(email)) {
+        emailErr.textContent = '请先填写正确的新邮箱';
+        newEmail.focus();
+        return;
+      }
+      codeBtn.disabled = true;
+      codeBtn.textContent = '发送中…';
+      sendCode(email, 'email').then(function (res) {
+        if (!res.ok) {
+          codeBtn.disabled = false;
+          codeBtn.textContent = '获取验证码';
+          emailErr.textContent = res.msg || '发送失败';
+          return;
+        }
+        codeTip.className = 'pt-code-tip' + (res.dev ? ' dev' : '');
+        codeTip.textContent = (res.dev && res.devCode)
+          ? ('本地未配置邮件服务，验证码已自动填入：' + res.devCode)
+          : (res.msg || '验证码已发送，请查收邮件（也看看垃圾箱）');
+        if (res.dev && res.devCode) emailCode.value = res.devCode;
+        emailCode.focus();
+        if (codeTimer) clearInterval(codeTimer);
+        var left = res.cooldown || 60;
+        codeBtn.textContent = left + ' 秒后重发';
+        codeTimer = setInterval(function () {
+          left -= 1;
+          if (left <= 0) {
+            clearInterval(codeTimer);
+            codeTimer = null;
+            codeBtn.disabled = false;
+            codeBtn.textContent = '重新获取';
+            return;
+          }
+          codeBtn.textContent = left + ' 秒后重发';
+        }, 1000);
+      }).catch(function () {
+        codeBtn.disabled = false;
+        codeBtn.textContent = '获取验证码';
+        emailErr.textContent = '连接服务器失败，请稍后重试';
+      });
+    });
+
+    if (emailForm) emailForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      emailErr.textContent = '';
+      var email = (newEmail.value || '').trim().toLowerCase();
+      var code = (emailCode.value || '').trim();
+      if (!validEmail(email)) { emailErr.textContent = '邮箱格式不正确'; return; }
+      if (!/^\d{6}$/.test(code)) { emailErr.textContent = '请填写 6 位验证码'; emailCode.focus(); return; }
+      var btn = emailForm.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = '提交中…';
+      api('/api/profile/email', { method: 'POST', body: { email: email, code: code } }).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = '更新邮箱';
+        if (!res.ok) { emailErr.textContent = res.msg || '更新失败'; return; }
+        u.email = res.user.email;
+        var metaEl = document.getElementById('pfMeta');
+        if (metaEl) metaEl.textContent = res.user.email + ' · 加入于 ' + dayStr(res.user.createdAt);
+        emailForm.reset();
+        codeTip.textContent = '';
+        codeTip.className = 'pt-code-tip';
+        if (codeTimer) { clearInterval(codeTimer); codeTimer = null; }
+        codeBtn.disabled = false;
+        codeBtn.textContent = '获取验证码';
+        toast('邮箱已更新');
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = '更新邮箱';
+        emailErr.textContent = '连接服务器失败，请稍后重试';
+      });
+    });
+
+    /* ---- 修改密码 ---- */
+    var passForm = document.getElementById('pfPassForm');
+    if (passForm) passForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = document.getElementById('pfPassErr');
+      err.textContent = '';
+      var old = document.getElementById('pfOldPass').value;
+      var n1 = document.getElementById('pfNewPass').value;
+      var n2 = document.getElementById('pfNewPass2').value;
+      if (!old) { err.textContent = '请输入当前密码'; return; }
+      if (n1.length < 6) { err.textContent = '新密码至少 6 位'; return; }
+      if (n1 !== n2) { err.textContent = '两次输入的新密码不一致'; return; }
+      var btn = passForm.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = '更新中…';
+      api('/api/profile/password', { method: 'POST', body: { oldPassword: old, newPassword: n1 } }).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = '更新密码';
+        if (!res.ok) { err.textContent = res.msg || '更新失败'; return; }
+        passForm.reset();
+        toast('密码已更新');
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = '更新密码';
+        err.textContent = '连接服务器失败，请稍后重试';
+      });
+    });
+  }
+
+  /* ============================================================
+     留言板
+     ============================================================ */
+  function bindBoard() {
+    var list = document.getElementById('bdList');
+    var compose = document.getElementById('bdCompose');
+    var guestBox = document.getElementById('bdGuest');
+    var totalEl = document.getElementById('bdTotal');
+    var moreBtn = document.getElementById('bdMore');
+    var sendBtn = document.getElementById('bdSend');
+    var input = document.getElementById('bdInput');
+    var counter = document.getElementById('bdCounter');
+    var errBox = document.getElementById('bdErr');
+    var page = 0;
+    var pages = 1;
+    var isAdmin = false;
+
+    onLogin = function () { window.location.reload(); };
+
+    function avText(u) {
+      return u.avatar || (u.name || u.email || '用').slice(0, 1).toUpperCase();
+    }
+    function paintCompose() {
+      var u = currentUser();
+      if (!compose || !guestBox) return;
+      if (!u) {
+        compose.hidden = true;
+        guestBox.hidden = false;
+        return;
+      }
+      compose.hidden = false;
+      guestBox.hidden = true;
+      var av = document.getElementById('bdMyAvatar');
+      if (av) {
+        av.textContent = avText(u);
+        av.style.background = u.color || '#2563eb';
+      }
+      var nm = document.getElementById('bdMyName');
+      if (nm) nm.textContent = u.name;
+    }
+
+    function card(m) {
+      var mine = currentUser() && m.userId === currentUser().id;
+      return '<article class="bd-item">' +
+        '<div class="bd-avatar" style="background:' + esc(m.color || '#2563eb') + '">' +
+        esc(m.avatar || (m.name || '用').slice(0, 1).toUpperCase()) + '</div>' +
+        '<div class="bd-body">' +
+        '<div class="bd-head"><b>' + esc(m.name) + '</b>' +
+        (mine ? '<span class="bd-me-tag">我</span>' : '') +
+        '<time>' + esc(timeStr(m.createdAt)) + '</time></div>' +
+        '<p>' + esc(m.content) + '</p>' +
+        '</div>' +
+        (isAdmin ? '<button class="bd-del" data-delmsg="' + esc(m.id) + '" title="删除这条留言">删除</button>' : '') +
+        '</article>';
+    }
+
+    function load(p) {
+      return api('/api/messages?page=' + p).then(function (res) {
+        if (!res.ok) {
+          if (p === 1 && list) list.innerHTML = '<div class="bd-empty">留言加载失败：' + esc(res.msg || '请刷新重试') + '</div>';
+          return;
+        }
+        isAdmin = !!res.isAdmin;
+        if (totalEl) totalEl.textContent = res.total;
+        if (p === 1 && list) list.innerHTML = '';
+        if (!res.items.length && p === 1 && list) {
+          list.innerHTML = '<div class="bd-empty">还没有留言，来占个沙发吧。</div>';
+        }
+        if (list && res.items.length) {
+          list.insertAdjacentHTML('beforeend', res.items.map(card).join(''));
+        }
+        page = res.page;
+        pages = res.pages;
+        if (moreBtn) moreBtn.hidden = page >= pages;
+      }).catch(function () {
+        if (p === 1 && list) list.innerHTML = '<div class="bd-empty">连接服务器失败，请刷新重试。</div>';
+      });
+    }
+
+    paintCompose();
+    load(1);
+
+    if (moreBtn) moreBtn.addEventListener('click', function () {
+      moreBtn.disabled = true;
+      moreBtn.textContent = '加载中…';
+      load(page + 1).then(function () {
+        moreBtn.disabled = false;
+        moreBtn.textContent = '加载更多';
+      });
+    });
+
+    if (input && counter) {
+      input.addEventListener('input', function () {
+        counter.textContent = input.value.length + ' / 500';
+      });
+    }
+
+    if (sendBtn) sendBtn.addEventListener('click', function () {
+      var u = currentUser();
+      if (!u) { openAuth('login'); return; }
+      var content = (input.value || '').trim();
+      errBox.textContent = '';
+      if (content.length < 2) { errBox.textContent = '至少写 2 个字'; input.focus(); return; }
+      sendBtn.disabled = true;
+      sendBtn.textContent = '发布中…';
+      api('/api/messages', { method: 'POST', body: { content: content } }).then(function (res) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = '发布留言';
+        if (!res.ok) { errBox.textContent = res.msg || '发布失败'; return; }
+        input.value = '';
+        counter.textContent = '0 / 500';
+        if (list) {
+          var empty = list.querySelector('.bd-empty');
+          if (empty) empty.remove();
+          list.insertAdjacentHTML('afterbegin', card(res.item));
+        }
+        if (totalEl) totalEl.textContent = (parseInt(totalEl.textContent, 10) || 0) + 1;
+        toast('留言已发布');
+      }).catch(function () {
+        sendBtn.disabled = false;
+        sendBtn.textContent = '发布留言';
+        errBox.textContent = '连接服务器失败，请稍后重试';
+      });
+    });
+
+    if (list) list.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-delmsg]');
+      if (!b) return;
+      if (!window.confirm('确定删除这条留言吗？删除后其他人都看不到。')) return;
+      b.disabled = true;
+      api('/api/messages/' + encodeURIComponent(b.getAttribute('data-delmsg')), { method: 'DELETE' }).then(function (res) {
+        if (!res.ok) { b.disabled = false; toast(res.msg || '删除失败', true); return; }
+        var item = b.closest('.bd-item');
+        if (item) item.remove();
+        if (totalEl) {
+          var n = (parseInt(totalEl.textContent, 10) || 1) - 1;
+          totalEl.textContent = n > 0 ? n : 0;
+        }
+        if (list && !list.querySelector('.bd-item')) {
+          list.innerHTML = '<div class="bd-empty">还没有留言，来占个沙发吧。</div>';
+        }
+        toast('留言已删除');
+      }).catch(function () {
+        b.disabled = false;
+        toast('连接服务器失败', true);
+      });
     });
   }
 
@@ -737,7 +1181,7 @@
       slot.innerHTML =
         '<div class="pt-user-menu-wrap">' +
         '<button class="pt-user-chip" id="ptEdChip"><span class="pt-avatar">' + esc((u.name || u.email).slice(0, 1).toUpperCase()) + '</span><span class="pt-user-name">' + esc(u.name) + '</span></button>' +
-        '<div class="pt-dropdown" id="ptEdDrop"><button data-ed="home">⌂ 返回首页</button><button data-ed="projects">▤ 我的项目</button><button data-ed="templates">✦ 模板库</button>' +
+        '<div class="pt-dropdown" id="ptEdDrop"><button data-ed="home">⌂ 返回首页</button><button data-ed="profile">☺ 个人资料</button><button data-ed="projects">▤ 我的项目</button><button data-ed="templates">✦ 模板库</button>' +
         (u.isAdmin ? '<button data-ed="dbadmin">⚙ 数据库管理</button>' : '') +
         '<hr><button data-ed="logout">退出登录</button></div>' +
         '</div>';
@@ -747,6 +1191,7 @@
       dd.addEventListener('click', function (e) {
         var a = e.target.getAttribute('data-ed'); if (!a) return;
         if (a === 'home') window.location.href = 'index.html';
+        else if (a === 'profile') window.location.href = 'profile.html';
         else if (a === 'projects') window.location.href = 'index.html#projects';
         else if (a === 'templates') window.location.href = 'index.html#templates';
         else if (a === 'dbadmin') window.location.href = 'dbadmin.html';
@@ -803,6 +1248,11 @@
         var el = e.target.closest && e.target.closest('[data-openauth]');
         if (el) openAuth(el.getAttribute('data-openauth'));
       });
+    } else if (page === 'profile' || page === 'board') {
+      renderAuthArea();
+      bindUserMenu();
+      if (page === 'profile') bindProfile();
+      else bindBoard();
     }
   }
 
