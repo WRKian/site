@@ -109,6 +109,32 @@ class EmailCode(db.Model):
     created_at = db.Column(db.Integer, default=now_ms, index=True)
 
 
+class UserProfile(db.Model):
+    """个人资料：与 user 一对一。独立成表，老库不用改列（create_all 会自动建表）。"""
+    __tablename__ = "user_profile"
+    user_id = db.Column(db.String(64), primary_key=True)
+    bio = db.Column(db.String(200), nullable=False, default="")
+    avatar = db.Column(db.String(16), nullable=False, default="")   # emoji 头像，空则用首字母
+    color = db.Column(db.String(16), nullable=False, default="#2563eb")
+    updated_at = db.Column(db.BigInteger, default=now_ms)
+
+
+class Message(db.Model):
+    """留言板：所有人可读，登录可发，仅站长可删（软删除，误删可在数据库后台恢复）。"""
+    __tablename__ = "message"
+    id = db.Column(db.String(64), primary_key=True, default=lambda: new_id("msg_"))
+    user_id = db.Column(db.String(64), nullable=False, index=True)
+    user_name = db.Column(db.String(24), nullable=False)
+    avatar = db.Column(db.String(16), nullable=False, default="")
+    color = db.Column(db.String(16), nullable=False, default="#2563eb")
+    content = db.Column(db.String(500), nullable=False)
+    created_at = db.Column(db.BigInteger, default=now_ms, index=True)
+    deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_by = db.Column(db.String(64), nullable=False, default="")
+    deleted_at = db.Column(db.BigInteger, default=0)
+
+
+
 class Project(db.Model):
     id = db.Column(db.String(64), primary_key=True, default=lambda: new_id("p_"))
     owner_id = db.Column(db.String(64), db.ForeignKey("user.id"), nullable=False, index=True)
@@ -192,8 +218,33 @@ def clean(value, limit):
     return str(value if value is not None else "").strip()[:limit]
 
 
+def profile_of(user_id):
+    """取资料，没有就建一条空的（首次登录/注册后自动拥有）。"""
+    p = db.session.get(UserProfile, user_id)
+    if not p:
+        p = UserProfile(user_id=user_id, bio="", avatar="", color="#2563eb")
+        db.session.add(p)
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            p = db.session.get(UserProfile, user_id) or p
+    return p
+
+
 def user_dict(u):
-    return {"id": u.id, "name": u.name, "email": u.email}
+    p = db.session.get(UserProfile, u.id)
+    return {"id": u.id, "name": u.name, "email": u.email,
+            "avatar": (p.avatar if p else "") or "",
+            "color": (p.color if p else "") or "#2563eb",
+            "bio": (p.bio if p else "") or "",
+            "createdAt": u.created_at}
+
+
+def message_dict(m):
+    return {"id": m.id, "userId": m.user_id, "name": m.user_name,
+            "avatar": m.avatar or "", "color": m.color or "#2563eb",
+            "content": m.content, "createdAt": m.created_at}
 
 
 def project_dict(p):
@@ -227,6 +278,18 @@ def editor():
     return render_template("editor.html")
 
 
+@app.route("/profile")
+@app.route("/profile.html")
+def profile_page():
+    return render_template("profile.html")
+
+
+@app.route("/board")
+@app.route("/board.html")
+def board_page():
+    return render_template("board.html")
+
+
 @app.route("/api/health")
 def health():
     return ok(backend="flask", version=2)
@@ -240,29 +303,131 @@ IP_WINDOW_MS = 10 * 60 * 1000       # IP 限流窗口 10 分钟
 IP_MAX_SENDS = 10                   # 窗口内同 IP 最多发 10 封
 
 
+# 常见邮箱服务商的发信服务器。有了这张表，只填「邮箱 + 授权码」就能发信，
+# 不用去查 smtp.xxx.com 和端口。键是域名后缀，匹配时从最具体到最宽泛（vip.qq.com → qq.com）。
+SMTP_PRESETS = {
+    "qq.com": ("smtp.qq.com", 465, "ssl"),
+    "vip.qq.com": ("smtp.qq.com", 465, "ssl"),
+    "foxmail.com": ("smtp.qq.com", 465, "ssl"),
+    "exmail.qq.com": ("smtp.exmail.qq.com", 465, "ssl"),
+    "163.com": ("smtp.163.com", 465, "ssl"),
+    "126.com": ("smtp.126.com", 465, "ssl"),
+    "yeah.net": ("smtp.yeah.net", 465, "ssl"),
+    "qiye.163.com": ("smtp.qiye.163.com", 465, "ssl"),
+    "sina.com": ("smtp.sina.com", 465, "ssl"),
+    "sina.cn": ("smtp.sina.cn", 465, "ssl"),
+    "sohu.com": ("smtp.sohu.com", 465, "ssl"),
+    "139.com": ("smtp.139.com", 465, "ssl"),
+    "189.cn": ("smtp.189.cn", 465, "ssl"),
+    "aliyun.com": ("smtp.aliyun.com", 465, "ssl"),
+    "gmail.com": ("smtp.gmail.com", 465, "ssl"),
+    "googlemail.com": ("smtp.gmail.com", 465, "ssl"),
+    "outlook.com": ("smtp-mail.outlook.com", 587, "starttls"),
+    "hotmail.com": ("smtp-mail.outlook.com", 587, "starttls"),
+    "live.com": ("smtp-mail.outlook.com", 587, "starttls"),
+    "msn.com": ("smtp-mail.outlook.com", 587, "starttls"),
+    "office365.com": ("smtp.office365.com", 587, "starttls"),
+    "yahoo.com": ("smtp.mail.yahoo.com", 465, "ssl"),
+    "icloud.com": ("smtp.mail.me.com", 587, "starttls"),
+    "me.com": ("smtp.mail.me.com", 587, "starttls"),
+    "mac.com": ("smtp.mail.me.com", 587, "starttls"),
+    "zoho.com": ("smtp.zoho.com", 465, "ssl"),
+    "zoho.com.cn": ("smtp.zoho.com.cn", 465, "ssl"),
+    "yandex.com": ("smtp.yandex.com", 465, "ssl"),
+    "yandex.ru": ("smtp.yandex.ru", 465, "ssl"),
+    "gmx.com": ("smtp.gmx.com", 587, "starttls"),
+    "gmx.net": ("smtp.gmx.net", 587, "starttls"),
+    "feishu.cn": ("smtp.feishu.cn", 465, "ssl"),
+}
+
+_SMTP_OK = {}   # host -> (端口, 加密方式)：探测成功过的组合，进程内复用，省掉重复试错
+
+
+def smtp_preset_for(addr):
+    """按邮箱域名找发信服务器。返回 (host, port, tls, 是否靠猜)；域名都取不到时返回 None。"""
+    domain = (addr or "").rsplit("@", 1)[-1].strip().strip(".").lower()
+    if not domain or "." not in domain:
+        return None
+    parts = domain.split(".")
+    for i in range(len(parts) - 1):
+        key = ".".join(parts[i:])
+        if key in SMTP_PRESETS:
+            return SMTP_PRESETS[key] + (False,)
+    # 认不出来的多半是企业邮箱，习惯用 smtp.域名；端口不确定，交给 send_mail 逐个试
+    return ("smtp." + domain, 465, "ssl", True)
+
+
 def mail_conf():
-    """读取 SMTP 配置。未填 HOST 时进入开发模式：验证码直接回显到页面。"""
+    """读取 SMTP 配置。HOST 留空时按 SMTP_USER 的邮箱域名自动识别，
+    所以换任何一家邮箱都不用改代码；连账号都没填才进入开发模式。"""
     host = clean(os.environ.get("SITE_BUILDER_SMTP_HOST"), 120)
-    raw_port = clean(os.environ.get("SITE_BUILDER_SMTP_PORT"), 8) or "465"
-    try:
-        port = int(raw_port)
-    except ValueError:
-        port = 465
+    raw_port = clean(os.environ.get("SITE_BUILDER_SMTP_PORT"), 8)
+    raw_tls = (clean(os.environ.get("SITE_BUILDER_SMTP_TLS"), 12) or "").lower()
     user = clean(os.environ.get("SITE_BUILDER_SMTP_USER"), 160)
+
+    auto = raw_port.lower() == "auto"
+    source = "env" if host else ""
+    if not host and user:
+        preset = smtp_preset_for(user)
+        if preset:
+            host, p_port, p_tls, guessed = preset
+            auto = auto or guessed
+            raw_port = raw_port or str(p_port)
+            raw_tls = raw_tls or p_tls
+            source = "guess" if guessed else "preset"
+
+    if raw_port.lower() == "auto":
+        auto = True
+    try:
+        port = int(raw_port or 465)
+    except ValueError:
+        port, auto = 465, True
+
     return {
         "host": host,
         "port": port,
+        "auto": auto,
+        "source": source,
         "user": user,
         "password": os.environ.get("SITE_BUILDER_SMTP_PASS") or "",
         "sender": clean(os.environ.get("SITE_BUILDER_SMTP_FROM"), 160) or user,
-        "tls": (clean(os.environ.get("SITE_BUILDER_SMTP_TLS"), 12) or "ssl").lower(),
+        "tls": raw_tls or "ssl",
         "dev": os.environ.get("SITE_BUILDER_MAIL_DEV") == "1" or not host,
         "strict": os.environ.get("SITE_BUILDER_MAIL_STRICT") == "1",
     }
 
 
+def _allow_dev_echo():
+    """验证码要不要直接回显在页面上。
+    只对本机（和显式 SITE_BUILDER_MAIL_DEV=1）开放：线上域名如果没有配置 SMTP 还回显验证码，
+    「忘记密码」就等于一个能重置任意账号（含站长）密码的后门。"""
+    if os.environ.get("SITE_BUILDER_MAIL_DEV") == "1":
+        return True
+    host = (request.host or "").split(":")[0].strip("[]").lower()
+    return host in ("127.0.0.1", "localhost", "::1", "0.0.0.0")
+
+
+def smtp_candidates(conf):
+    """要依次尝试的 (端口, 加密方式)。
+    显式配了端口就只试一个；自动识别时按「上次成功的 → 预设 → 465/ssl → 587/starttls → 25/none」。"""
+    if not conf["auto"]:
+        return [(conf["port"], conf["tls"])]
+    seq = []
+    hit = _SMTP_OK.get(conf["host"])
+    if hit:
+        seq.append(hit)
+    seq.append((conf["port"], conf["tls"]))
+    seq += [(465, "ssl"), (587, "starttls"), (25, "none")]
+    out = []
+    for item in seq:
+        if item not in out:
+            out.append(item)
+    return out
+
+
 def send_mail(to_addr, subject, text):
-    """发送纯文本邮件，返回 (成功?, 错误信息)。"""
+    """发送纯文本邮件，返回 (成功?, 错误信息)。
+    自动识别模式下会依次试几种常见端口；认证被拒则立刻停（换端口也没用）。"""
     conf = mail_conf()
     if not conf["host"]:
         return False, "未配置 SMTP"
@@ -276,28 +441,35 @@ def send_mail(to_addr, subject, text):
     msg["From"] = formataddr((str(Header("建站工坊", "utf-8")), conf["sender"]))
     msg["To"] = to_addr
 
-    srv = None
-    try:
-        if conf["tls"] == "ssl":
-            srv = smtplib.SMTP_SSL(conf["host"], conf["port"], timeout=12)
-        else:
-            srv = smtplib.SMTP(conf["host"], conf["port"], timeout=12)
-        srv.ehlo()
-        if conf["tls"] == "starttls":
-            srv.starttls()
-            srv.ehlo()
-        if conf["user"]:
-            srv.login(conf["user"], conf["password"])
-        srv.sendmail(conf["sender"], [to_addr], msg.as_string())
-        return True, ""
-    except Exception as exc:
-        return False, str(exc)[:200]
-    finally:
+    last = "未知错误"
+    for port, tls in smtp_candidates(conf):
+        srv = None
         try:
-            if srv is not None:
-                srv.quit()
-        except Exception:
-            pass
+            if tls == "ssl":
+                srv = smtplib.SMTP_SSL(conf["host"], port, timeout=8)
+            else:
+                srv = smtplib.SMTP(conf["host"], port, timeout=8)
+            srv.ehlo()
+            if tls == "starttls":
+                srv.starttls()
+                srv.ehlo()
+            if conf["user"]:
+                srv.login(conf["user"], conf["password"])
+            srv.sendmail(conf["sender"], [to_addr], msg.as_string())
+            _SMTP_OK[conf["host"]] = (port, tls)
+            return True, ""
+        except smtplib.SMTPAuthenticationError as exc:
+            return False, ("登录被拒绝：请确认填的是授权码/应用专用密码，且该邮箱已开启 SMTP 服务。%s"
+                           % str(exc)[:120])
+        except Exception as exc:
+            last = "%s:%d/%s → %s" % (conf["host"], port, tls, str(exc)[:120])
+        finally:
+            try:
+                if srv is not None:
+                    srv.quit()
+            except Exception:
+                pass
+    return False, last
 
 
 def code_digest(email, purpose, code):
@@ -378,7 +550,7 @@ def auth_send_code():
     d = body()
     email = clean(d.get("email"), 120).lower()
     purpose = clean(d.get("purpose"), 16) or "register"
-    if purpose not in ("register", "reset"):
+    if purpose not in ("register", "reset", "email"):
         return fail("参数不正确")
     if not EMAIL_RE.match(email):
         return fail("邮箱格式不正确")
@@ -388,6 +560,12 @@ def auth_send_code():
         return fail("该邮箱已注册，请直接登录", 409)
     if purpose == "reset" and not exists:
         return fail("该邮箱未注册", 404)
+    if purpose == "email":
+        # 换绑邮箱：验证码发到「新邮箱」，因此新邮箱必须可用且没被其他账号占用
+        if not current_user.is_authenticated:
+            return fail("请先登录", 401)
+        if exists and exists.id != current_user.id:
+            return fail("该邮箱已被其他账号使用", 409)
 
     last = (EmailCode.query.filter_by(email=email, purpose=purpose)
             .order_by(EmailCode.created_at.desc()).first())
@@ -405,25 +583,26 @@ def auth_send_code():
             return fail("请求过于频繁，请稍后再试", 429)
 
     conf = mail_conf()
-    if conf["strict"] and not conf["host"]:
+    if not conf["host"] and not _allow_dev_echo():
         return fail("服务器未配置邮件服务（SITE_BUILDER_SMTP_HOST），暂时无法发送验证码", 503)
 
     purge_old_codes()
     code = issue_code(email, purpose, ip)
 
-    label = "注册验证" if purpose == "register" else "重置密码"
+    label = {"register": "注册验证", "reset": "重置密码", "email": "更换邮箱"}.get(purpose, "邮箱验证")
     text = ("你正在为《建站工坊》进行%s，验证码：%s\n\n"
             "该验证码 10 分钟内有效，请勿泄露给他人。\n"
             "如果这不是你本人的操作，请忽略这封邮件。" % (label, code))
+    # 开发模式（没配 SMTP，或显式 MAIL_DEV=1）：只在本机回显，不真发信
+    if conf["dev"] and _allow_dev_echo():
+        return ok(dev=True, devCode=code, cooldown=60, ttl=600,
+                  msg="未配置邮件服务，验证码已直接显示（仅本机开发可用）")
+
     sent, err = send_mail(email, "【建站工坊】%s验证码 %s" % (label, code), text)
 
     if sent:
         return ok(dev=False, cooldown=60, ttl=600,
                   msg="验证码已发送，请查收邮件（也看看垃圾箱）")
-
-    if not conf["host"]:
-        return ok(dev=True, devCode=code, cooldown=60, ttl=600,
-                  msg="未配置邮件服务，验证码已直接显示（仅本地开发可用）")
     return fail("验证码发送失败：%s" % err, 502)
 
 
@@ -504,6 +683,134 @@ def me():
     if user:
         user["isAdmin"] = is_site_admin(current_user)
     return ok(user=user)
+
+
+# ---------------------------------------------------------------- 个人资料
+@app.route("/api/profile")
+@login_required
+def get_profile():
+    p = profile_of(current_user.id)
+    return ok(
+        user=user_dict(current_user),
+        profile={"bio": p.bio, "avatar": p.avatar, "color": p.color},
+        stats={
+            "projects": Project.query.filter_by(owner_id=current_user.id).count(),
+            "templates": Template.query.filter_by(owner_id=current_user.id).count(),
+            "messages": Message.query.filter_by(user_id=current_user.id, deleted=False).count(),
+        },
+        joinedAt=current_user.created_at,
+        isAdmin=is_site_admin(current_user),
+    )
+
+
+@app.route("/api/profile", methods=["POST"])
+@login_required
+def update_profile():
+    d = body()
+    name = clean(d.get("name"), 24)
+    if not name:
+        return fail("昵称不能为空")
+    if len(name) < 2:
+        return fail("昵称至少 2 个字")
+    bio = clean(d.get("bio"), 200)
+    avatar = clean(d.get("avatar"), 8)
+    color = clean(d.get("color"), 16)
+    if color and not re.match(r"^#[0-9a-fA-F]{6}$", color):
+        return fail("头像颜色格式不正确")
+    p = profile_of(current_user.id)
+    current_user.name = name
+    p.bio = bio
+    p.avatar = avatar
+    p.color = color or p.color
+    p.updated_at = now_ms()
+    db.session.commit()
+    return ok(user=user_dict(current_user), msg="资料已保存")
+
+
+@app.route("/api/profile/password", methods=["POST"])
+@login_required
+def change_password():
+    d = body()
+    old = str(d.get("oldPassword") or "")
+    new = str(d.get("newPassword") or "")
+    if not check_password_hash(current_user.pass_hash, old):
+        return fail("当前密码不正确", 401)
+    if len(new) < 6:
+        return fail("新密码至少 6 位")
+    if new == old:
+        return fail("新密码不能与当前密码相同")
+    current_user.pass_hash = generate_password_hash(new)
+    db.session.commit()
+    return ok(msg="密码已更新，下次请用新密码登录")
+
+
+@app.route("/api/profile/email", methods=["POST"])
+@login_required
+def change_email():
+    d = body()
+    email = clean(d.get("email"), 120).lower()
+    if not EMAIL_RE.match(email):
+        return fail("邮箱格式不正确")
+    if email == (current_user.email or "").lower():
+        return fail("新邮箱与当前邮箱相同")
+    if User.query.filter_by(email=email).first():
+        return fail("该邮箱已被使用", 409)
+    passed, err = consume_code(email, "email", d.get("code"))
+    if not passed:
+        return fail(err)
+    current_user.email = email
+    db.session.commit()
+    _ADMIN_STATE["email"] = ""  # 站长身份缓存失效，下次重新判定
+    return ok(user=user_dict(current_user), msg="邮箱已更新")
+
+
+# ---------------------------------------------------------------- 留言板
+@app.route("/api/messages")
+def list_messages():
+    try:
+        page = max(1, int(request.args.get("page", "1")))
+    except (TypeError, ValueError):
+        page = 1
+    per = 20
+    q = Message.query.filter_by(deleted=False)
+    total = q.count()
+    items = q.order_by(Message.created_at.desc()).offset((page - 1) * per).limit(per).all()
+    return ok(items=[message_dict(m) for m in items], total=total, page=page,
+              pages=max(1, (total + per - 1) // per), per=per,
+              isAdmin=is_site_admin())
+
+
+@app.route("/api/messages", methods=["POST"])
+@login_required
+def create_message():
+    content = clean(body().get("content"), 500)
+    if len(content) < 2:
+        return fail("留言至少 2 个字")
+    last = (Message.query.filter_by(user_id=current_user.id)
+            .order_by(Message.created_at.desc()).first())
+    if last and now_ms() - (last.created_at or 0) < 15000:
+        return fail("留言太频繁，休息一下再发", 429)
+    p = profile_of(current_user.id)
+    m = Message(user_id=current_user.id, user_name=current_user.name,
+                avatar=p.avatar or "", color=p.color or "#2563eb", content=content)
+    db.session.add(m)
+    db.session.commit()
+    return ok(item=message_dict(m), msg="留言已发布")
+
+
+@app.route("/api/messages/<mid>", methods=["DELETE"])
+@login_required
+def delete_message(mid):
+    if not is_site_admin(current_user):
+        return fail("只有站长可以删除留言", 403)
+    m = db.session.get(Message, mid)
+    if not m or m.deleted:
+        return fail("留言不存在", 404)
+    m.deleted = True
+    m.deleted_by = current_user.email or ""
+    m.deleted_at = now_ms()
+    db.session.commit()
+    return ok(msg="留言已删除")
 
 
 # ---------------------------------------------------------------- 项目

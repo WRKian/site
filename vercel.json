@@ -3,7 +3,7 @@
   "functions": {
     "app.py": {
       "maxDuration": 30,
-      "includeFiles": "{index.html,editor.html,app.js,portal.js,templates.js,media.js,style.css,portal.css}"
+      "includeFiles": "{index.html,editor.html,profile.html,board.html,dbadmin.html,app.js,portal.js,templates.js,media.js,style.css,portal.css}"
     }
   }
 }
