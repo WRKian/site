@@ -102,11 +102,11 @@ class EmailCode(db.Model):
     email = db.Column(db.String(120), nullable=False, index=True)
     code_hash = db.Column(db.String(80), nullable=False)
     purpose = db.Column(db.String(16), nullable=False)      # register / reset
-    expires_at = db.Column(db.Integer, nullable=False)      # 毫秒时间戳
+    expires_at = db.Column(db.BigInteger, nullable=False)      # 毫秒时间戳
     used = db.Column(db.Boolean, default=False, nullable=False)
     attempts = db.Column(db.Integer, default=0, nullable=False)
     ip = db.Column(db.String(64), default="")
-    created_at = db.Column(db.Integer, default=now_ms, index=True)
+    created_at = db.Column(db.BigInteger, default=now_ms, index=True)
 
 
 class UserProfile(db.Model):
@@ -169,25 +169,36 @@ class Module(db.Model):
 with app.app_context():
     db.create_all()
 
-    # 迁移：旧版把毫秒时间戳定义成 Integer，PostgreSQL 的 int4 上限 2147483647，
-    # 装不下毫秒时间戳（约 1.7e12）会报 NumericValueOutOfRange。
-    # 已建好的表 create_all() 不会改列类型，这里主动把 5 列升级为 BIGINT（幂等，可重复执行）。
-    # 仅对 PostgreSQL 生效；SQLite 的 INTEGER 本身就是 8 字节，无需处理。
-    if str(db.engine.url).startswith("postgresql"):
-        _migrations = [
-            ("user", "created_at"),
-            ("project", "created_at"), ("project", "updated_at"),
-            ("template", "created_at"),
-            ("module", "updated_at"),
-        ]
-        for _table, _column in _migrations:
+    # 迁移：旧版把毫秒时间戳定义成 Integer，而 PostgreSQL 的 int4 上限是 2147483647，
+    # 装不下毫秒时间戳（约 1.7e12），插入时报 NumericValueOutOfRange，接口直接 500。
+    # create_all() 不会修改已存在表的列类型，所以这里按模型把所有 BIGINT 列主动升级一遍，
+    # 幂等、可重复执行；只在 PostgreSQL 上跑（SQLite 的 INTEGER 本身就是 8 字节）。
+    if db.engine.dialect.name == "postgresql":
+        # 模型里声明为 BIGINT 的列
+        _want = {(t.name, c.name)
+                 for t in db.metadata.sorted_tables
+                 for c in t.columns
+                 if isinstance(c.type, db.BigInteger)}
+        # 线上实际还是 int4 的列：先查一次，已经是 BIGINT 就不发 DDL，冷启动几乎无额外耗时
+        try:
+            _rows = db.session.execute(sa_text(
+                "SELECT table_name, column_name FROM information_schema.columns "
+                "WHERE data_type = 'integer' "
+                "AND table_schema NOT IN ('pg_catalog', 'information_schema')"
+            )).fetchall()
+            _todo = [(t, c) for (t, c) in _rows if (t, c) in _want]
+            db.session.rollback()
+        except Exception:
+            db.session.rollback()
+            _todo = sorted(_want)      # 查不到就全量尝试，宁可多跑几条 DDL
+        for _table, _column in _todo:
             try:
                 db.session.execute(sa_text(
                     'ALTER TABLE "%s" ALTER COLUMN "%s" TYPE BIGINT' % (_table, _column)
                 ))
                 db.session.commit()
             except Exception:
-                db.session.rollback()  # 列已是 BIGINT 或表不存在时忽略，不影响启动
+                db.session.rollback()   # 无权限或表不存在时忽略，不影响启动
 
 
 @login_manager.user_loader
@@ -198,6 +209,29 @@ def load_user(uid):
 @login_manager.unauthorized_handler
 def unauthorized():
     return jsonify(ok=False, msg="请先登录"), 401
+
+
+@app.errorhandler(Exception)
+def _handle_unexpected(exc):
+    """未捕获异常统一返回 JSON。
+    否则前端拿到的是平台返回的 HTML 错误页，解析失败后只能显示「连接服务器失败」，
+    既看不出原因，也分不清是超时、数据库还是代码问题。"""
+    from werkzeug.exceptions import HTTPException
+
+    if isinstance(exc, HTTPException):
+        return exc.get_response()          # 404 / 405 / 413 等保持原样
+
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+
+    if request.path.startswith("/api/"):
+        if os.environ.get("SITE_BUILDER_ERROR_DETAIL", "1") != "0":
+            detail = "%s: %s" % (type(exc).__name__, str(exc)[:180])
+            return jsonify(ok=False, msg="服务器内部错误（%s）" % detail), 500
+        return jsonify(ok=False, msg="服务器内部错误，请查看平台运行日志"), 500
+    return "服务器内部错误，请查看平台运行日志", 500
 
 
 # ---------------------------------------------------------------- 工具
