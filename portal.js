@@ -776,6 +776,10 @@
       paintPickers();
       paintAvatar();
       paintHead(res);
+      if (res.isAdmin) {   // 站长账号禁止自我注销，避免站点失去管理员
+        var dz = document.getElementById('pfDeleteStart');
+        if (dz) { dz.disabled = true; dz.textContent = '站长账号不能注销'; }
+      }
     }).catch(function () {
       if (formErr) formErr.textContent = '连接服务器失败，请刷新重试';
     });
@@ -942,6 +946,59 @@
         btn.disabled = false;
         btn.textContent = '更新密码';
         err.textContent = '连接服务器失败，请稍后重试';
+      });
+    });
+
+    /* ---- 注销账号（不可恢复） ---- */
+    var delStart = document.getElementById('pfDeleteStart');
+    var delForm = document.getElementById('pfDeleteForm');
+    var delErr = document.getElementById('pfDeleteErr');
+    var delPass = document.getElementById('pfDeletePass');
+
+    function closeDanger() {
+      if (!delForm) return;
+      delForm.hidden = true;
+      delForm.reset();
+      delErr.textContent = '';
+      if (delStart) {
+        delStart.disabled = false;
+        delStart.textContent = '注销账号';
+      }
+    }
+
+    if (delStart && delForm) {
+      delStart.addEventListener('click', function () {
+        delForm.hidden = false;
+        delStart.disabled = true;
+        delStart.textContent = '请在下方确认';
+        if (delPass) delPass.focus();
+      });
+    }
+    var delCancel = document.getElementById('pfDeleteCancel');
+    if (delCancel) delCancel.addEventListener('click', closeDanger);
+
+    if (delForm) delForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      delErr.textContent = '';
+      var pwd = delPass ? delPass.value : '';
+      if (!pwd) { delErr.textContent = '请输入登录密码'; if (delPass) delPass.focus(); return; }
+      if (!window.confirm('注销后账号、作品、模板和留言会被永久删除，无法恢复。确定继续吗？')) return;
+      var btn = delForm.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = '注销中…';
+      api('/api/profile/delete', { method: 'POST', body: { password: pwd } }).then(function (res) {
+        if (!res.ok) {
+          btn.disabled = false;
+          btn.textContent = '确认永久注销';
+          delErr.textContent = res.msg || '注销失败';
+          return;
+        }
+        toast('账号已注销，正在退出…');
+        setTimeout(function () { window.location.href = 'index.html'; }, 900);
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = '确认永久注销';
+        delErr.textContent = '连接服务器失败，请稍后重试';
       });
     });
   }

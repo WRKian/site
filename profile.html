@@ -6,7 +6,7 @@
   <title>个人资料 · 建站工坊</title>
   <meta name="description" content="修改昵称、头像、简介，换绑邮箱与修改密码。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="portal.css?v=20261122b">
+  <link rel="stylesheet" href="portal.css?v=20261123">
 </head>
 <body class="pt-body" data-pt-page="profile">
 
@@ -157,6 +157,31 @@
           </form>
         </section>
 
+        <section class="pt-card pf-danger">
+          <div class="pf-card-head">
+            <h3>注销账号</h3>
+            <span>不可恢复，请谨慎操作</span>
+          </div>
+          <p class="pf-danger-tip">
+            注销会立即删除你的账号、个人资料、作品、模板和留言，删完无法找回。
+            如果只是想换个账号登录，请用右上角头像菜单里的「退出登录」。
+          </p>
+          <div class="pf-actions">
+            <button class="pt-btn pf-btn-danger" type="button" id="pfDeleteStart">注销账号</button>
+          </div>
+          <form id="pfDeleteForm" class="pf-danger-form" hidden novalidate>
+            <div class="pf-field">
+              <label for="pfDeletePass">输入登录密码确认</label>
+              <input id="pfDeletePass" type="password" autocomplete="current-password" placeholder="请输入当前密码">
+            </div>
+            <div class="pt-err" id="pfDeleteErr"></div>
+            <div class="pf-actions">
+              <button class="pt-btn pt-btn-ghost" type="button" id="pfDeleteCancel">取消</button>
+              <button class="pt-btn pf-btn-danger" type="submit">确认永久注销</button>
+            </div>
+          </form>
+        </section>
+
       </div>
     </div>
   </main>
@@ -166,6 +191,6 @@
   </div>
 
   <script src="templates.js"></script>
-  <script src="portal.js?v=20261122b"></script>
+  <script src="portal.js?v=20261123"></script>
 </body>
 </html>

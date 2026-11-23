@@ -800,6 +800,40 @@ def change_email():
     return ok(user=user_dict(current_user), msg="邮箱已更新")
 
 
+@app.route("/api/profile/delete", methods=["POST"])
+@login_required
+def delete_account():
+    """注销账号：连同资料、作品、模板、模块、留言一起删除，不可恢复。
+    站长账号禁止自我注销——站长判定依赖邮箱或最早注册的账号，
+    删掉之后站点会没有管理员，数据库后台也就进不去了。"""
+    pwd = str(body().get("password") or "")
+    if not pwd:
+        return fail("请输入登录密码以确认注销")
+    if not check_password_hash(current_user.pass_hash, pwd):
+        return fail("密码不正确", 401)
+    if is_site_admin(current_user):
+        return fail("站长账号不能注销，请先把站长身份转给他人", 403)
+
+    uid = current_user.id
+    email = (current_user.email or "").lower()
+    removed = {
+        "projects": Project.query.filter_by(owner_id=uid).delete(synchronize_session=False),
+        "templates": Template.query.filter_by(owner_id=uid).delete(synchronize_session=False),
+        "modules": Module.query.filter_by(owner_id=uid).delete(synchronize_session=False),
+        "messages": Message.query.filter_by(user_id=uid).delete(synchronize_session=False),
+    }
+    UserProfile.query.filter_by(user_id=uid).delete(synchronize_session=False)
+    if email:
+        EmailCode.query.filter_by(email=email).delete(synchronize_session=False)
+    user = db.session.get(User, uid)
+    if user is not None:
+        db.session.delete(user)
+    db.session.commit()
+    logout_user()                 # 服端会话失效，前端随后跳回首页
+    _ADMIN_STATE["email"] = ""    # 站长判定缓存失效
+    return ok(msg="账号已注销，相关数据已删除", removed=removed)
+
+
 # ---------------------------------------------------------------- 留言板
 @app.route("/api/messages")
 def list_messages():

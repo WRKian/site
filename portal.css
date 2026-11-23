@@ -282,6 +282,14 @@ body.pt-body{
 .pf-color{width:30px;height:30px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #e2e8f0;transition:.15s}
 .pf-color.sel{box-shadow:0 0 0 2px var(--pt-brand),0 0 0 5px rgba(37,99,235,.15)}
 .pf-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+/* 注销账号：危险区，红色边框与文字提示不可恢复 */
+.pf-danger{border-color:#fecaca}
+.pf-danger .pf-card-head h3{color:#b91c1c}
+.pf-danger-tip{margin:-4px 0 14px;font-size:13.5px;line-height:1.7;color:var(--pt-sub)}
+.pf-btn-danger{border:1px solid #fecaca;background:#fef2f2;color:#dc2626}
+.pf-btn-danger:hover{background:#fee2e2;border-color:#fca5a5}
+.pf-btn-danger:disabled{opacity:.55;cursor:not-allowed}
+.pf-danger-form{margin-top:16px;padding-top:16px;border-top:1px dashed #fecaca}
 .pf-guest{text-align:center;padding:54px 24px}
 .pf-guest-ico{font-size:40px;margin-bottom:10px}
 .pf-guest h2{margin:0 0 8px;font-size:21px}
