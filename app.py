@@ -429,6 +429,8 @@ def send_mail(to_addr, subject, text):
     """发送纯文本邮件，返回 (成功?, 错误信息)。
     自动识别模式下会依次试几种常见端口；认证被拒则立刻停（换端口也没用）。"""
     conf = mail_conf()
+    if conf["password"] and not conf["password"].isascii():
+        return False, "SMTP 密码里混进了中文或全角字符，授权码 / API Key 只能是英文字母、数字和 - _ 等符号"
     if not conf["host"]:
         return False, "未配置 SMTP"
     import smtplib
