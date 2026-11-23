@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>留言板 · 建站工坊</title>
+  <meta name="description" content="所有人都能查看的留言板，登录后可以留言，站长可以删除不合适的内容。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="portal.css?v=20261122b">
+</head>
+<body class="pt-body" data-pt-page="board">
+
+  <header class="pt-nav">
+    <div class="pt-nav-in">
+      <a class="pt-logo" href="index.html">
+        <span class="pt-logo-mark">W</span>
+        <span>建站工坊<small>WEBFORGE STUDIO</small></span>
+      </a>
+      <nav class="pt-nav-links">
+        <a href="index.html#features">功能</a>
+        <a href="index.html#templates">模板库</a>
+        <a href="board.html" class="active">留言板</a>
+        <a href="editor.html">编辑器</a>
+      </nav>
+      <div class="pt-nav-spacer"></div>
+      <div class="pt-user-guest" id="ptGuest">
+        <button class="pt-btn pt-btn-ghost pt-btn-sm" data-openauth="login">登录</button>
+        <button class="pt-btn pt-btn-primary pt-btn-sm" data-openauth="register">免费注册</button>
+      </div>
+      <div class="pt-user-auth pt-hide" id="ptAuth">
+        <div class="pt-user-menu-wrap">
+          <button class="pt-user-chip" id="ptUserChip">
+            <span class="pt-avatar" id="ptAvatar">用</span>
+            <span class="pt-user-name" id="ptUserName">用户</span>
+          </button>
+          <div class="pt-dropdown" id="ptDropdown">
+            <button data-useract="profile">☺ 个人资料</button>
+            <button data-useract="projects">▤ 我的项目</button>
+            <button data-useract="templates">✦ 模板库</button>
+            <button data-useract="dbadmin" style="display:none">⚙ 数据库管理</button>
+            <hr>
+            <button data-useract="logout">退出登录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-page">
+    <div class="pt-wrap pt-mid">
+
+      <div class="pt-page-head">
+        <h1>留言板 <span class="bd-count" id="bdTotal">0</span></h1>
+        <p>所有人都能查看。登录后可以留言，站长可以删除不合适的内容。</p>
+      </div>
+
+      <!-- 发布区：登录后显示 -->
+      <section class="pt-card bd-compose" id="bdCompose" hidden>
+        <div class="bd-me">
+          <div class="bd-avatar" id="bdMyAvatar">我</div>
+          <div class="bd-me-copy">
+            <b id="bdMyName">我</b>
+            <span>以这个身份留言</span>
+          </div>
+        </div>
+        <textarea id="bdInput" maxlength="500" rows="3" placeholder="说点什么吧：遇到的问题、想要的功能、做出来的站点都行…"></textarea>
+        <div class="bd-compose-foot">
+          <span class="bd-counter" id="bdCounter">0 / 500</span>
+          <div class="pt-err" id="bdErr"></div>
+          <button class="pt-btn pt-btn-primary" id="bdSend" type="button">发布留言</button>
+        </div>
+      </section>
+
+      <!-- 未登录提示 -->
+      <section class="pt-card bd-guest" id="bdGuest" hidden>
+        <span class="bd-guest-ico">💬</span>
+        <div>
+          <b>登录后就能留言</b>
+          <p>不登录也可以浏览大家的留言。</p>
+        </div>
+        <button class="pt-btn pt-btn-primary pt-btn-sm" data-openauth="login">去登录</button>
+      </section>
+
+      <div class="bd-list" id="bdList">
+        <div class="bd-loading">正在加载留言…</div>
+      </div>
+
+      <div class="bd-more">
+        <button class="pt-btn pt-btn-ghost" id="bdMore" type="button" hidden>加载更多</button>
+      </div>
+
+    </div>
+  </main>
+
+  <div class="pt-mask" id="ptAuthMask">
+    <div class="pt-modal" id="ptAuthModal" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <script src="templates.js"></script>
+  <script src="portal.js?v=20261122b"></script>
+</body>
+</html>

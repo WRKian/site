@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>个人资料 · 建站工坊</title>
+  <meta name="description" content="修改昵称、头像、简介，换绑邮箱与修改密码。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="portal.css?v=20261122b">
+</head>
+<body class="pt-body" data-pt-page="profile">
+
+  <header class="pt-nav">
+    <div class="pt-nav-in">
+      <a class="pt-logo" href="index.html">
+        <span class="pt-logo-mark">W</span>
+        <span>建站工坊<small>WEBFORGE STUDIO</small></span>
+      </a>
+      <nav class="pt-nav-links">
+        <a href="index.html#features">功能</a>
+        <a href="index.html#templates">模板库</a>
+        <a href="board.html">留言板</a>
+        <a href="editor.html">编辑器</a>
+      </nav>
+      <div class="pt-nav-spacer"></div>
+      <div class="pt-user-guest" id="ptGuest">
+        <button class="pt-btn pt-btn-ghost pt-btn-sm" data-openauth="login">登录</button>
+        <button class="pt-btn pt-btn-primary pt-btn-sm" data-openauth="register">免费注册</button>
+      </div>
+      <div class="pt-user-auth pt-hide" id="ptAuth">
+        <div class="pt-user-menu-wrap">
+          <button class="pt-user-chip" id="ptUserChip">
+            <span class="pt-avatar" id="ptAvatar">用</span>
+            <span class="pt-user-name" id="ptUserName">用户</span>
+          </button>
+          <div class="pt-dropdown" id="ptDropdown">
+            <button data-useract="profile">☺ 个人资料</button>
+            <button data-useract="projects">▤ 我的项目</button>
+            <button data-useract="templates">✦ 模板库</button>
+            <button data-useract="dbadmin" style="display:none">⚙ 数据库管理</button>
+            <hr>
+            <button data-useract="logout">退出登录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-page">
+    <div class="pt-wrap pt-narrow">
+
+      <div class="pt-page-head">
+        <h1>个人资料</h1>
+        <p>改昵称、头像和简介；换邮箱要收验证码，改密码要验证当前密码。</p>
+      </div>
+
+      <!-- 未登录 -->
+      <section class="pt-card pf-guest" id="pfGuest" hidden>
+        <div class="pf-guest-ico">🔒</div>
+        <h2>登录后才能编辑资料</h2>
+        <p>资料、项目和留言都跟账号绑定，登录后即可修改。</p>
+        <div class="pf-guest-actions">
+          <button class="pt-btn pt-btn-primary" data-openauth="login">登录</button>
+          <button class="pt-btn pt-btn-ghost" data-openauth="register">免费注册</button>
+        </div>
+      </section>
+
+      <!-- 已登录 -->
+      <div id="pfMain" hidden>
+
+        <section class="pt-card pf-hero">
+          <div class="pf-avatar" id="pfAvatar">用</div>
+          <div class="pf-hero-copy">
+            <h2 id="pfName">加载中…</h2>
+            <p id="pfMeta">—</p>
+            <div class="pf-badges" id="pfBadges"></div>
+          </div>
+          <div class="pf-stats" id="pfStats"></div>
+        </section>
+
+        <section class="pt-card">
+          <div class="pf-card-head">
+            <h3>基本资料</h3>
+            <span>昵称和头像会显示在留言板</span>
+          </div>
+          <form id="pfForm" novalidate>
+            <div class="pf-field">
+              <label for="pfInputName">昵称</label>
+              <input id="pfInputName" maxlength="24" autocomplete="nickname" placeholder="2–24 个字">
+            </div>
+            <div class="pf-field">
+              <label for="pfInputBio">一句话简介 <em id="pfBioCount">0/200</em></label>
+              <textarea id="pfInputBio" maxlength="200" rows="3" placeholder="介绍一下自己，比如在学什么、想做什么站点"></textarea>
+            </div>
+            <div class="pf-field">
+              <label>头像</label>
+              <div class="pf-emoji-row" id="pfEmojiRow"></div>
+            </div>
+            <div class="pf-field">
+              <label>头像底色</label>
+              <div class="pf-color-row" id="pfColorRow"></div>
+            </div>
+            <div class="pt-err" id="pfErr"></div>
+            <div class="pf-actions">
+              <button class="pt-btn pt-btn-primary" type="submit">保存资料</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="pt-card">
+          <div class="pf-card-head">
+            <h3>更换邮箱</h3>
+            <span>验证码发到新邮箱，10 分钟内有效</span>
+          </div>
+          <form id="pfEmailForm" novalidate>
+            <div class="pf-field">
+              <label for="pfNewEmail">新邮箱</label>
+              <input id="pfNewEmail" type="email" autocomplete="email" placeholder="new@example.com">
+            </div>
+            <div class="pf-field">
+              <label for="pfEmailCode">验证码</label>
+              <div class="pt-code-row">
+                <input id="pfEmailCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 位数字">
+                <button type="button" class="pt-code-btn" id="pfSendCode">获取验证码</button>
+              </div>
+              <div class="pt-code-tip" id="pfCodeTip"></div>
+            </div>
+            <div class="pt-err" id="pfEmailErr"></div>
+            <div class="pf-actions">
+              <button class="pt-btn pt-btn-primary" type="submit">更新邮箱</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="pt-card">
+          <div class="pf-card-head">
+            <h3>修改密码</h3>
+            <span>改完后其他设备上的登录状态不受影响</span>
+          </div>
+          <form id="pfPassForm" novalidate>
+            <div class="pf-field">
+              <label for="pfOldPass">当前密码</label>
+              <input id="pfOldPass" type="password" autocomplete="current-password" placeholder="请输入当前密码">
+            </div>
+            <div class="pf-field">
+              <label for="pfNewPass">新密码</label>
+              <input id="pfNewPass" type="password" autocomplete="new-password" placeholder="至少 6 位">
+            </div>
+            <div class="pf-field">
+              <label for="pfNewPass2">确认新密码</label>
+              <input id="pfNewPass2" type="password" autocomplete="new-password" placeholder="再输入一次">
+            </div>
+            <div class="pt-err" id="pfPassErr"></div>
+            <div class="pf-actions">
+              <button class="pt-btn pt-btn-primary" type="submit">更新密码</button>
+            </div>
+          </form>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="pt-mask" id="ptAuthMask">
+    <div class="pt-modal" id="ptAuthModal" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <script src="templates.js"></script>
+  <script src="portal.js?v=20261122b"></script>
+</body>
+</html>
