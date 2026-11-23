@@ -73,9 +73,52 @@
     width: { k: 'width', label: '图片宽度', type: 'range', min: 20, max: 100, unit: '%' },
     items: { k: 'items', label: '条目（每行：图标或图片 | 标题 | 说明）', type: 'textarea', mediaRows: true, hint: '第一格可填 emoji、图片网址或上传的图片' },
     author: { k: 'author', label: '署名', type: 'text' },
-    btnBg: { k: 'btnBg', label: '按钮颜色', type: 'color' },
-    btnColor: { k: 'btnColor', label: '按钮文字色', type: 'color' },
+    btnBg: { k: 'btnBg', label: '按钮底色 / 边框色', type: 'color', hint: '留空跟随主题色或组件默认' },
+    btnColor: { k: 'btnColor', label: '按钮文字色', type: 'color', hint: '留空跟随组件默认' },
+    /* 独立按钮：所有内嵌按钮的组件共用这一套设置 */
+    btnStyle: {
+      k: 'btnStyle', label: '按钮样式', type: 'select',
+      opts: [['auto', '跟随组件'], ['solid', '实心'], ['outline', '描边'], ['soft', '浅底'], ['ghost', '幽灵'], ['link', '文字链接']]
+    },
+    btnRadius: { k: 'btnRadius', label: '按钮圆角', type: 'range', min: 0, max: 60, unit: 'px' },
+    btnPadX: { k: 'btnPadX', label: '左右内边距', type: 'range', min: 0, max: 60, unit: 'px' },
+    btnPadY: { k: 'btnPadY', label: '上下内边距', type: 'range', min: 0, max: 30, unit: 'px' },
+    btnFontSize: { k: 'btnFontSize', label: '按钮字号', type: 'range', min: 10, max: 24, unit: 'px' },
+    btnWeight: { k: 'btnWeight', label: '按钮字重', type: 'seg', opts: [['500', '常规'], ['600', '半粗'], ['700', '加粗'], ['800', '特粗']] },
+    btnShadow: {
+      k: 'btnShadow', label: '按钮阴影', type: 'select',
+      opts: [['none', '无'], ['soft', '轻微'], ['strong', '明显'], ['glow', '柔光']]
+    },
+    btnFull: { k: 'btnFull', label: '按钮宽度', type: 'seg', opts: [['0', '随文字'], ['1', '占满整行']] },
+    btnBorderWidth: { k: 'btnBorderWidth', label: '按钮边框粗细', type: 'range', min: 0, max: 4, unit: 'px', hint: '描边 / 幽灵样式下生效' },
+    /* 导航内文字与链接 */
+    navLinkColor: { k: 'navLinkColor', label: '菜单文字色', type: 'color', hint: '留空跟随导航栏文字色' },
+    navLinkHover: { k: 'navLinkHover', label: '菜单悬停色', type: 'color', hint: '留空保持原色' },
+    navLinkSize: { k: 'navLinkSize', label: '菜单字号', type: 'range', min: 11, max: 20, unit: 'px' },
+    navLinkGap: { k: 'navLinkGap', label: '菜单间距', type: 'range', min: 0, max: 40, unit: 'px' },
+    navBrandSize: { k: 'navBrandSize', label: '品牌名字号', type: 'range', min: 13, max: 30, unit: 'px' },
+    /* 页脚内文字与链接 */
+    footLinkColor: { k: 'footLinkColor', label: '链接颜色', type: 'color', hint: '留空跟随页脚文字色' },
+    footLinkSize: { k: 'footLinkSize', label: '链接字号', type: 'range', min: 11, max: 20, unit: 'px' },
+    footLinkGap: { k: 'footLinkGap', label: '链接行距', type: 'range', min: 0, max: 24, unit: 'px' },
+    footTitleSize: { k: 'footTitleSize', label: '栏目标题字号', type: 'range', min: 12, max: 24, unit: 'px' },
+    footBottomSize: { k: 'footBottomSize', label: '版权文字字号', type: 'range', min: 10, max: 18, unit: 'px' },
+    /* 表单 / 搜索框的输入框 */
+    inputBg: { k: 'inputBg', label: '输入框背景', type: 'color', hint: '留空跟随组件默认（搜索框默认透明）' },
+    inputColor: { k: 'inputColor', label: '输入文字色', type: 'color' },
+    inputPhColor: { k: 'inputPhColor', label: '占位文字色', type: 'color', hint: '留空用浏览器默认' },
+    inputBorderColor: { k: 'inputBorderColor', label: '边框颜色', type: 'color' },
+    inputBorderWidth: { k: 'inputBorderWidth', label: '边框粗细', type: 'range', min: 0, max: 3, unit: 'px' },
+    inputRadius: { k: 'inputRadius', label: '输入框圆角', type: 'range', min: 0, max: 30, unit: 'px' },
+    inputPadX: { k: 'inputPadX', label: '左右内边距', type: 'range', min: 4, max: 30, unit: 'px' },
+    inputPadY: { k: 'inputPadY', label: '上下内边距', type: 'range', min: 4, max: 24, unit: 'px' },
     cardBg: { k: 'cardBg', label: '卡片背景', type: 'color' },
+    /* 卡片 / 条目内部：让每张卡片的内边距与文字层级单独可调 */
+    cardPadX: { k: 'cardPadX', label: '卡片左右内边距', type: 'range', min: 0, max: 80, unit: 'px' },
+    cardPadY: { k: 'cardPadY', label: '卡片上下内边距', type: 'range', min: 0, max: 80, unit: 'px' },
+    cardTitleSize: { k: 'cardTitleSize', label: '条目标题字号', type: 'range', min: 11, max: 40, unit: 'px' },
+    cardTextSize: { k: 'cardTextSize', label: '条目正文字号', type: 'range', min: 9, max: 30, unit: 'px' },
+    cardIconSize: { k: 'cardIconSize', label: '条目图标 / 头像尺寸', type: 'range', min: 16, max: 140, unit: 'px' },
     height: { k: 'height', label: '空白高度', type: 'range', min: 8, max: 200, unit: 'px' },    lineColor: { k: 'lineColor', label: '线条 / 边框颜色', type: 'color', hint: '留空则无边框' },
     thickness: { k: 'thickness', label: '线条粗细', type: 'range', min: 1, max: 12, unit: 'px' },
     lineWidth: { k: 'lineWidth', label: '线条宽度', type: 'range', min: 10, max: 100, unit: '%' },
@@ -794,8 +837,8 @@
   /* ---------- 素材库（35 种基础组件 · 5 个分组） ---------- */
   var ASSETS = [
     { type: 'hero', label: '主视觉区', ico: '◈', tone: '',
-      fields: ['kicker', 'title', 'desc', 'btnText', 'href', 'color', 'bg', 'align', 'padY', 'padX'],
-      d: { kicker: 'WELCOME', title: '把想法，做成看得见的页面', desc: '一段简洁有力的介绍文字，说明你是谁、做什么、为谁而做。', btnText: '了解更多', href: '#more', color: '#ffffff', bg: '#12233f', align: 'center', padY: 80, padX: 32, radius: 0 } },
+      fields: ['kicker', 'title', 'desc', 'btnText', 'href', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'color', 'bg', 'align', 'padY', 'padX'],
+      d: { kicker: 'WELCOME', title: '把想法，做成看得见的页面', desc: '一段简洁有力的介绍文字，说明你是谁、做什么、为谁而做。', btnText: '了解更多', href: '#more', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 10, btnPadX: 28, btnPadY: 13, btnFontSize: 15, btnWeight: '600', btnShadow: 'soft', color: '#ffffff', bg: '#12233f', align: 'center', padY: 80, padX: 32, radius: 0 } },
     { type: 'heading', label: '标题', ico: 'H', tone: '',
       fields: ['text', 'level', 'color', 'align', 'fontSize', 'padY', 'padX', 'bg'],
       d: { text: '在这里写标题', level: '2', color: '#16233a', align: 'center', fontSize: 36, padY: 28, padX: 24, bg: '' } },
@@ -803,20 +846,20 @@
       fields: ['text', 'color', 'align', 'fontSize', 'padY', 'padX', 'bg'],
       d: { text: '这是一段正文。点击选中后，可以在右侧修改文字、颜色、字号和对齐方式。支持换行。', color: '#4a5a72', align: 'center', fontSize: 16, padY: 12, padX: 24, bg: '' } },
     { type: 'button', label: '按钮', ico: '▭', tone: 'gold',
-      fields: ['text', 'href', 'btnBg', 'btnColor', 'radius', 'align', 'padY', 'bg'],
-      d: { text: '点击按钮', href: '#', btnBg: '#3b82f6', btnColor: '#ffffff', radius: 10, align: 'center', padY: 20, padX: 24, bg: '' } },
+      fields: ['text', 'href', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'btnBorderWidth', 'btnFull', 'align', 'padY', 'bg'],
+      d: { text: '点击按钮', href: '#', btnStyle: 'auto', btnBg: '#3b82f6', btnColor: '#ffffff', btnRadius: 10, btnPadX: 30, btnPadY: 13, btnFontSize: 15, btnWeight: '600', btnShadow: 'soft', btnBorderWidth: 0, btnFull: '0', radius: 10, align: 'center', padY: 20, padX: 24, bg: '' } },
     { type: 'image', label: '图片', ico: '▧', tone: '',
       fields: ['src', 'alt', 'caption', 'width', 'radius', 'align', 'padY', 'bg'],
       d: { src: '', alt: '图片', caption: '', width: 100, radius: 12, align: 'center', padY: 18, padX: 24, bg: '' } },
     { type: 'card', label: '卡片', ico: '▢', tone: '',
-      fields: ['emoji', 'title', 'desc', 'cardBg', 'color', 'radius', 'align', 'padY', 'bg'],
-      d: { emoji: '✦', title: '卡片标题', desc: '用一两句话说明这个模块要表达的重点。', cardBg: '#f3f7ff', color: '#16233a', radius: 16, align: 'left', padY: 24, padX: 24, bg: '' } },
+      fields: ['emoji', 'title', 'desc', 'cardBg', 'color', 'radius', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'cardIconSize', 'align', 'padY', 'bg'],
+      d: { emoji: '✦', title: '卡片标题', desc: '用一两句话说明这个模块要表达的重点。', cardBg: '#f3f7ff', color: '#16233a', radius: 16, cardPadX: 28, cardPadY: 28, cardTitleSize: 20, cardTextSize: 14, cardIconSize: 48, align: 'left', padY: 24, padX: 24, bg: '' } },
     { type: 'grid', label: '三栏特性', ico: '▦', tone: 'violet',
-      fields: ['items', 'title', 'cols', 'cardBg', 'color', 'radius', 'align', 'padY', 'bg'],
-      d: { items: '⚡ | 快速上手 | 拖一拖就能搭出页面\n🎨 | 自由定制 | 颜色字号留白都能改\n↧ | 一键导出 | 得到独立可用的 HTML', title: '', cols: 3, cardBg: '#f5f8ff', color: '#16233a', radius: 14, align: 'center', padY: 40, padX: 24, bg: '' } },
+      fields: ['items', 'title', 'cols', 'cardBg', 'color', 'radius', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'cardIconSize', 'align', 'padY', 'bg'],
+      d: { items: '⚡ | 快速上手 | 拖一拖就能搭出页面\n🎨 | 自由定制 | 颜色字号留白都能改\n↧ | 一键导出 | 得到独立可用的 HTML', title: '', cols: 3, cardBg: '#f5f8ff', color: '#16233a', radius: 14, cardPadX: 20, cardPadY: 26, cardTitleSize: 17, cardTextSize: 13, cardIconSize: 42, align: 'center', padY: 40, padX: 24, bg: '' } },
     { type: 'twocol', label: '双栏内容', ico: '▥', tone: '',
-      fields: ['leftTitle', 'leftText', 'rightTitle', 'rightText', 'cardBg', 'color', 'radius', 'padY', 'bg'],
-      d: { leftTitle: '左边标题', leftText: '左栏的正文内容，可以写特点、说明或列表。', rightTitle: '右边标题', rightText: '右栏的正文内容，与左栏形成对照或补充。', cardBg: '#f5f8ff', color: '#16233a', radius: 14, padY: 36, padX: 24, bg: '' } },
+      fields: ['leftTitle', 'leftText', 'rightTitle', 'rightText', 'cardBg', 'color', 'radius', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'padY', 'bg'],
+      d: { leftTitle: '左边标题', leftText: '左栏的正文内容，可以写特点、说明或列表。', rightTitle: '右边标题', rightText: '右栏的正文内容，与左栏形成对照或补充。', cardBg: '#f5f8ff', color: '#16233a', radius: 14, cardPadX: 26, cardPadY: 26, cardTitleSize: 19, cardTextSize: 14, padY: 36, padX: 24, bg: '' } },
     { type: 'stats', label: '数字统计', ico: '№', tone: 'gold',
       fields: ['items', 'title', 'color', 'bg', 'padY'],
       d: { items: '12 | 年经验\n240 | 个项目\n99% | 好评率', title: '', color: '#16233a', bg: '#f5f8ff', padY: 40, padX: 24 } },
@@ -833,8 +876,8 @@
       fields: ['height', 'bg'],
       d: { height: 48, bg: '', padY: 0, padX: 0 } },
     { type: 'video', label: '视频链接卡', ico: '▶', tone: 'gold',
-      fields: ['title', 'desc', 'url', 'btnText', 'btnBg', 'radius', 'align', 'padY', 'bg'],
-      d: { title: '观看介绍视频', desc: '点击下方按钮打开视频页面，可在右侧设置是否新标签页。', url: 'https://', btnText: '播放视频', btnBg: '#3b82f6', radius: 16, align: 'center', padY: 32, padX: 24, bg: '#f5f8ff' } },
+      fields: ['title', 'desc', 'url', 'btnText', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'radius', 'align', 'padY', 'bg'],
+      d: { title: '观看介绍视频', desc: '点击下方按钮打开视频页面，可在右侧设置是否新标签页。', url: 'https://', btnText: '播放视频', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnPadX: 26, btnPadY: 11, btnFontSize: 14, btnWeight: '600', btnShadow: 'none', radius: 16, align: 'center', padY: 32, padX: 24, bg: '#f5f8ff' } },
     { type: 'film', label: '滚动视频', ico: '◉', tone: 'violet',
       fields: ['filmSrc', 'filmMode', 'filmH', 'filmW', 'filmPoster', 'radius', 'padY', 'padX', 'bg'],
       d: {
@@ -842,8 +885,8 @@
         radius: 16, padY: 24, padX: 24, bg: ''
       } },
     { type: 'form', label: '联系表单', ico: '✉', tone: 'violet',
-      fields: ['title', 'desc', 'btnText', 'btnBg', 'color', 'bg', 'radius', 'padY'],
-      d: { title: '和我们聊聊', desc: '留下联系方式，我们会尽快回复。', btnText: '提交', btnBg: '#3b82f6', color: '#16233a', bg: '#f5f8ff', radius: 16, padY: 40, align: 'center', padX: 24 } }
+      fields: ['title', 'desc', 'btnText', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'btnFull', 'inputBg', 'inputColor', 'inputPhColor', 'inputBorderColor', 'inputBorderWidth', 'inputRadius', 'inputPadX', 'inputPadY', 'color', 'bg', 'radius', 'padY'],
+      d: { title: '和我们聊聊', desc: '留下联系方式，我们会尽快回复。', btnText: '提交', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 8, btnPadX: 12, btnPadY: 12, btnFontSize: 14, btnWeight: '600', btnShadow: 'none', btnFull: '1', inputBg: '', inputColor: '', inputPhColor: '', inputBorderColor: '', inputBorderWidth: 1, inputRadius: 8, inputPadX: 13, inputPadY: 11, color: '#16233a', bg: '#f5f8ff', radius: 16, padY: 40, align: 'center', padX: 24 } }
   ];
   /* ---------- 分组归属 ---------- */
   var GROUPS = [
@@ -878,34 +921,34 @@
 
     /* ===== 导航与框架 ===== */
     { type: 'navbar', label: '导航栏', ico: '☰', tone: 'gold', g: 'nav',
-      fields: ['title', 'emoji', 'navItems', 'btnText', 'navCtaHref', 'sticky', 'stickyTop', 'navHeight', 'align', 'color', 'bg', 'padX'],
-      d: { title: 'WR Studio', emoji: '✦', navItems: '首页 | #top\n功能 | #features\n案例 | #works\n关于我们 | #about', btnText: '开始使用', navCtaHref: '#contact', sticky: '1', stickyTop: 0, navHeight: 64, align: 'right', color: '#16233a', bg: '#ffffff', padY: 0, padX: 24 } },
+      fields: ['title', 'emoji', 'navItems', 'btnText', 'navCtaHref', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'navLinkColor', 'navLinkHover', 'navLinkSize', 'navLinkGap', 'navBrandSize', 'sticky', 'stickyTop', 'navHeight', 'align', 'color', 'bg', 'padX'],
+      d: { title: 'WR Studio', emoji: '✦', navItems: '首页 | #top\n功能 | #features\n案例 | #works\n关于我们 | #about', btnText: '开始使用', navCtaHref: '#contact', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnPadX: 18, btnPadY: 9, btnFontSize: 14, btnWeight: '600', btnShadow: 'none', navLinkColor: '', navLinkHover: '', navLinkSize: 14, navLinkGap: 20, navBrandSize: 17, sticky: '1', stickyTop: 0, navHeight: 64, align: 'right', color: '#16233a', bg: '#ffffff', padY: 0, padX: 24 } },
     { type: 'announce', label: '顶部公告条', ico: '!', tone: '', g: 'nav',
-      fields: ['text', 'emoji', 'btnText', 'href', 'color', 'bg'],
-      d: { text: '新版已上线，新增 19 个常用组件', emoji: '📣', btnText: '查看详情', href: '#features', color: '#ffffff', bg: '#1b3b6f', padY: 10, padX: 24, align: 'center' } },
+      fields: ['text', 'emoji', 'btnText', 'href', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'color', 'bg'],
+      d: { text: '新版已上线，新增 19 个常用组件', emoji: '📣', btnText: '查看详情', href: '#features', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 60, btnPadX: 12, btnPadY: 6, btnFontSize: 13, btnWeight: '600', btnShadow: 'none', color: '#ffffff', bg: '#1b3b6f', padY: 10, padX: 24, align: 'center' } },
     { type: 'breadcrumb', label: '面包屑', ico: '›', tone: '', g: 'nav',
       fields: ['crumbItems', 'color', 'bg', 'align', 'padY', 'padX'],
       d: { crumbItems: '首页 | #top\n产品 | #features\n拖拽建站', color: '#7a8aa3', bg: '', align: 'left', padY: 14, padX: 24 } },
     { type: 'footer', label: '页脚', ico: '▄', tone: 'gold', g: 'nav',
-      fields: ['title', 'desc', 'footerLinks', 'copyright', 'phone', 'email', 'address', 'color', 'bg', 'padY', 'padX'],
-      d: { title: 'WR Studio', desc: '一个专注把想法快速落地的小团队。', footerLinks: '首页 | #top\n功能 | #features\n关于我们 | #about\n联系我们 | #contact', copyright: '© 2026 WR Studio · 保留所有权利', phone: '400-000-0000', email: 'hello@example.com', address: '中国 · 上海', color: '#c8d6ea', bg: '#12233f', padY: 48, padX: 32, radius: 0 } },
+      fields: ['title', 'desc', 'footerLinks', 'copyright', 'phone', 'email', 'address', 'footLinkColor', 'footLinkSize', 'footLinkGap', 'footTitleSize', 'footBottomSize', 'color', 'bg', 'padY', 'padX'],
+      d: { title: 'WR Studio', desc: '一个专注把想法快速落地的小团队。', footerLinks: '首页 | #top\n功能 | #features\n关于我们 | #about\n联系我们 | #contact', copyright: '© 2026 WR Studio · 保留所有权利', phone: '400-000-0000', email: 'hello@example.com', address: '中国 · 上海', footLinkColor: '', footLinkSize: 13, footLinkGap: 7, footTitleSize: 14, footBottomSize: 12, color: '#c8d6ea', bg: '#12233f', padY: 48, padX: 32, radius: 0 } },
 
     /* ===== 内容展示 ===== */
     { type: 'features', label: '要点清单', ico: '✓', tone: '', g: 'show',
-      fields: ['featureItems', 'title', 'cardBg', 'color', 'radius', 'gap', 'padY', 'bg'],
-      d: { title: '为什么选择我们', featureItems: '⚡ | 开箱即用 | 无需安装，打开浏览器就能开始\n🎯 | 所见即所得 | 每次修改都能立刻看到效果\n↧ | 一键导出 | 生成一个可直接上传的 HTML 文件\n🔒 | 数据在本地 | 所有内容只保存在你的浏览器里', cardBg: '#f5f8ff', color: '#16233a', radius: 12, gap: 14, align: 'left', padY: 36, padX: 24, bg: '' } },
+      fields: ['featureItems', 'title', 'cardBg', 'color', 'radius', 'gap', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'cardIconSize', 'padY', 'bg'],
+      d: { title: '为什么选择我们', featureItems: '⚡ | 开箱即用 | 无需安装，打开浏览器就能开始\n🎯 | 所见即所得 | 每次修改都能立刻看到效果\n↧ | 一键导出 | 生成一个可直接上传的 HTML 文件\n🔒 | 数据在本地 | 所有内容只保存在你的浏览器里', cardBg: '#f5f8ff', color: '#16233a', radius: 12, gap: 14, cardPadX: 20, cardPadY: 20, cardTitleSize: 16, cardTextSize: 13, cardIconSize: 38, align: 'left', padY: 36, padX: 24, bg: '' } },
     { type: 'gallery', label: '图片画廊', ico: '▩', tone: '', g: 'show',
       fields: ['galleryItems', 'title', 'cols', 'gap', 'radius', 'color', 'bg', 'padY'],
       d: { title: '作品展示', galleryItems: ' | 项目一\n | 项目二\n | 项目三', cols: 3, gap: 12, radius: 10, color: '#7a8aa3', align: 'center', padY: 32, padX: 24, bg: '' } },
     { type: 'pricing', label: '价格方案', ico: '＄', tone: 'gold', g: 'show',
-      fields: ['priceItems', 'title', 'href', 'cardBg', 'color', 'radius', 'gap', 'bg', 'padY'],
-      d: { title: '选择适合你的方案', href: '#contact', priceItems: '入门版 | ¥0 | 无限页面；基础组件；本地保存 | 免费开始 | 0\n专业版 | ¥99/月 | 全部组件；自定义域名；优先支持 | 立即购买 | 1\n团队版 | ¥299/月 | 多人协作；品牌定制；专属顾问 | 联系销售 | 0', cardBg: '#ffffff', color: '#16233a', radius: 16, gap: 16, align: 'center', padY: 40, padX: 24, bg: '#f5f8ff' } },
+      fields: ['priceItems', 'title', 'href', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'cardBg', 'color', 'radius', 'gap', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'bg', 'padY'],
+      d: { title: '选择适合你的方案', href: '#contact', priceItems: '入门版 | ¥0 | 无限页面；基础组件；本地保存 | 免费开始 | 0\n专业版 | ¥99/月 | 全部组件；自定义域名；优先支持 | 立即购买 | 1\n团队版 | ¥299/月 | 多人协作；品牌定制；专属顾问 | 联系销售 | 0', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnPadX: 11, btnPadY: 11, btnFontSize: 14, btnWeight: '600', btnShadow: 'none', cardBg: '#ffffff', color: '#16233a', radius: 16, gap: 16, cardPadX: 22, cardPadY: 28, cardTitleSize: 17, cardTextSize: 13, align: 'center', padY: 40, padX: 24, bg: '#f5f8ff' } },
     { type: 'team', label: '团队成员', ico: '☻', tone: '', g: 'show',
-      fields: ['teamItems', 'title', 'cardBg', 'color', 'radius', 'gap', 'bg', 'padY'],
-      d: { title: '认识我们的团队', teamItems: '👩‍💻 | 林晓 | 前端工程师 | 负责交互与可视化编辑器\n🧑‍🎨 | 陈默 | 视觉设计师 | 让每个页面都好看又好用\n🧑‍💼 | 苏禾 | 项目负责人 | 把控节奏与交付质量', cardBg: '#f5f8ff', color: '#16233a', radius: 14, gap: 16, align: 'center', padY: 40, padX: 24, bg: '' } },
+      fields: ['teamItems', 'title', 'cardBg', 'color', 'radius', 'gap', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'cardIconSize', 'bg', 'padY'],
+      d: { title: '认识我们的团队', teamItems: '👩‍💻 | 林晓 | 前端工程师 | 负责交互与可视化编辑器\n🧑‍🎨 | 陈默 | 视觉设计师 | 让每个页面都好看又好用\n🧑‍💼 | 苏禾 | 项目负责人 | 把控节奏与交付质量', cardBg: '#f5f8ff', color: '#16233a', radius: 14, gap: 16, cardPadX: 18, cardPadY: 26, cardTitleSize: 16, cardTextSize: 13, cardIconSize: 62, align: 'center', padY: 40, padX: 24, bg: '' } },
     { type: 'testimonial', label: '用户评价', ico: '★', tone: 'violet', g: 'show',
-      fields: ['text', 'stars', 'avatar', 'author', 'role', 'cardBg', 'color', 'radius', 'bg', 'padY'],
-      d: { text: '以前做个落地页要等一周，现在自己拖一拖，下午就能上线给客户看。', stars: 5, avatar: '🙂', author: '王先生', role: '某互联网公司 · 运营负责人', cardBg: '#f5f8ff', color: '#16233a', radius: 16, align: 'center', padY: 44, padX: 32, bg: '' } },
+      fields: ['text', 'stars', 'avatar', 'author', 'role', 'cardBg', 'color', 'radius', 'cardPadX', 'cardPadY', 'cardTextSize', 'cardIconSize', 'bg', 'padY'],
+      d: { text: '以前做个落地页要等一周，现在自己拖一拖，下午就能上线给客户看。', stars: 5, avatar: '🙂', author: '王先生', role: '某互联网公司 · 运营负责人', cardBg: '#f5f8ff', color: '#16233a', radius: 16, cardPadX: 30, cardPadY: 34, cardTextSize: 19, cardIconSize: 46, align: 'center', padY: 44, padX: 32, bg: '' } },
     { type: 'timeline', label: '时间线', ico: '⌁', tone: '', g: 'show',
       fields: ['timelineItems', 'title', 'lineColor', 'color', 'bg', 'padY'],
       d: { title: '我们的历程', timelineItems: '2023 | 团队成立 | 三个人、一台服务器，从第一个小项目开始\n2024 | 产品上线 | 自研工具正式对外开放，服务第一批客户\n2026 | 持续进化 | 组件库扩充到 36 个，容器里还能一行放多个模块', lineColor: '#c9dcf7', color: '#16233a', padY: 40, padX: 32, bg: '' } },
@@ -924,11 +967,11 @@
 
     /* ===== 转化与互动 ===== */
     { type: 'cta', label: '行动号召', ico: '➤', tone: 'gold', g: 'convert',
-      fields: ['title', 'desc', 'btnText', 'href', 'btnBg', 'color', 'radius', 'bg', 'align', 'padY'],
-      d: { title: '准备好开始了吗？', desc: '不用写代码，几分钟就能做出属于你的页面。', btnText: '立即开始', href: '#top', btnBg: '#ffffff', color: '#ffffff', radius: 18, bg: '#2a5bd7', align: 'center', padY: 52, padX: 32 } },
+      fields: ['title', 'desc', 'btnText', 'href', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'color', 'radius', 'bg', 'align', 'padY'],
+      d: { title: '准备好开始了吗？', desc: '不用写代码，几分钟就能做出属于你的页面。', btnText: '立即开始', href: '#top', btnStyle: 'auto', btnBg: '', btnColor: '#1b3b6f', btnRadius: 10, btnPadX: 28, btnPadY: 12, btnFontSize: 15, btnWeight: '700', btnShadow: 'none', color: '#ffffff', radius: 18, bg: '#2a5bd7', align: 'center', padY: 52, padX: 32 } },
     { type: 'buttongroup', label: '按钮组', ico: '▭▭', tone: '', g: 'convert',
-      fields: ['btnItems', 'title', 'btnBg', 'radius', 'gap', 'align', 'padY', 'bg'],
-      d: { title: '', btnItems: '主要按钮 | #top | 1\n次要按钮 | #features | 0\n了解更多 | #about | 0', btnBg: '#3b82f6', radius: 10, gap: 12, align: 'center', padY: 26, padX: 24, bg: '' } },
+      fields: ['btnItems', 'title', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'gap', 'align', 'padY', 'bg'],
+      d: { title: '', btnItems: '主要按钮 | #top | 1\n次要按钮 | #features | 0\n了解更多 | #about | 0', btnStyle: 'auto', btnBg: '#3b82f6', btnColor: '', btnRadius: 10, btnPadX: 24, btnPadY: 11, btnFontSize: 14, btnWeight: '600', btnShadow: 'none', radius: 10, gap: 12, align: 'center', padY: 26, padX: 24, bg: '' } },
     { type: 'faq', label: '折叠问答', ico: '?', tone: 'violet', g: 'convert',
       fields: ['faqItems', 'title', 'openFirst', 'cardBg', 'color', 'radius', 'gap', 'bg', 'padY'],
       d: { title: '常见问题', faqItems: '需要安装什么软件吗？ | 不需要，浏览器打开就能用，导出的是单个 HTML 文件。\n我的内容会上传到服务器吗？ | 不会，所有编辑都保存在浏览器本地。\n导出的页面能绑定自己的域名吗？ | 可以，上传 HTML 到任意静态托管或你的服务器即可。', openFirst: '1', cardBg: '#f5f8ff', color: '#16233a', radius: 12, gap: 10, padY: 40, padX: 32, bg: '' } },
@@ -953,8 +996,8 @@
       fields: ['title', 'ratingItems', 'cardBg', 'color', 'radius', 'gap', 'bg', 'padY'],
       d: { title: '本周值得看', ratingItems: '海边的房间 | 2025 | 8.7 |  | 一个关于告别与重新出发的故事，镜头安静但后劲很足。\n漫长的周末 | 2024 | 7.9 |  | 适合下雨天看的电影，节奏慢，细节很丰富。\n抵达之前 | 2026 | 9.1 |  | 今年最惊喜的一部，看完想立刻去旅行。', cardBg: '#ffffff', color: '#16233a', radius: 14, gap: 16, align: 'left', padY: 40, padX: 24, bg: '#fffaf2' } },
     { type: 'search', label: '搜索焦点区', ico: '⌕', tone: '', g: 'social',
-      fields: ['title', 'desc', 'searchPlaceholder', 'searchBtn', 'searchAction', 'searchSuggest', 'btnBg', 'color', 'bg', 'radius', 'padY'],
-      d: { title: '想找什么，直接搜', desc: '一个干净的搜索入口，适合资料站、文档站与作品站。', searchPlaceholder: '输入关键词，按回车搜索', searchBtn: '搜索', searchAction: 'https://www.google.com/search', searchSuggest: '设计灵感, 前端开发, 开源项目, 旅行攻略', btnBg: '#3b82f6', color: '#16233a', bg: '#f5f8ff', radius: 999, align: 'center', padY: 72, padX: 24 } },
+      fields: ['title', 'desc', 'searchPlaceholder', 'searchBtn', 'searchAction', 'searchSuggest', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'inputBg', 'inputColor', 'inputPhColor', 'inputBorderColor', 'inputBorderWidth', 'inputRadius', 'inputPadX', 'inputPadY', 'color', 'bg', 'radius', 'padY'],
+      d: { title: '想找什么，直接搜', desc: '一个干净的搜索入口，适合资料站、文档站与作品站。', searchPlaceholder: '输入关键词，按回车搜索', searchBtn: '搜索', searchAction: 'https://www.google.com/search', searchSuggest: '设计灵感, 前端开发, 开源项目, 旅行攻略', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 60, btnPadX: 26, btnPadY: 13, btnFontSize: 15, btnWeight: '600', btnShadow: 'none', inputBg: '', inputColor: '', inputPhColor: '', inputBorderColor: '', inputBorderWidth: 0, inputRadius: 30, inputPadX: 16, inputPadY: 13, color: '#16233a', bg: '#f5f8ff', radius: 999, align: 'center', padY: 72, padX: 24 } },
     { type: 'repo', label: '仓库项目卡', ico: '⌥', tone: '', g: 'social',
       fields: ['repoName', 'repoOwner', 'repoDesc', 'repoLang', 'repoStars', 'repoForks', 'repoIssues', 'repoTopics', 'repoUpdated', 'cardBg', 'color', 'radius', 'bg', 'padY'],
       d: { repoName: 'awesome-web-studio', repoOwner: 'wr-team', repoDesc: '一个收集建站灵感、组件写法和交互动效的开源清单，持续更新。', repoLang: 'JavaScript', repoStars: '3.2k', repoForks: '486', repoIssues: '12', repoTopics: 'website, components, animation, open-source', repoUpdated: '2 小时前更新', cardBg: '#ffffff', color: '#16233a', radius: 14, align: 'left', padY: 40, padX: 24, bg: '#f6f8fa' } },
@@ -1020,10 +1063,10 @@
         tlLineColor: '#dfe6f5', tlDotColor: '#6d5efc', cardBg: '', color: '#16233a',
         radius: 0, align: 'left', padY: 48, padX: 24, bg: '#ffffff' } },
     { type: 'linkhub', label: '社交链接矩阵', ico: '⌘', tone: 'violet', g: 'personal',
-      fields: ['linkTitle', 'linkBio', 'linkItems', 'linkBtnBg', 'linkBtnColor', 'linkShape', 'cardBg', 'color', 'radius', 'bg', 'padY'],
+      fields: ['linkTitle', 'linkBio', 'linkItems', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'cardBg', 'color', 'radius', 'bg', 'padY'],
       d: { linkTitle: '@xiaoman', linkBio: '设计师 / 创作者 / 咖啡爱好者 ☕',
         linkItems: '我的博客 | https://example.com/blog | 📝\nGitHub | https://github.com | 🐙\nInstagram | https://instagram.com | 📷\n联系我 | mailto:hello@example.com | ✉️',
-        linkBtnBg: '#ffffff', linkBtnColor: '#1f2a44', linkShape: 'pill',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 16, btnPadX: 20, btnPadY: 14, btnFontSize: 15, btnWeight: '700', btnShadow: 'soft',
         cardBg: '', color: '#ffffff', radius: 0, align: 'center', padY: 56, padX: 24,
         bg: 'linear-gradient(160deg,#5b4be0,#9d5cf6 60%,#ec4899)' } },
     { type: 'tagcloud', label: '兴趣标签云', ico: '#', tone: '', g: 'personal',
@@ -1121,41 +1164,49 @@
         postCols: '3', postCardBg: '#ffffff', postImgH: 160,
         radius: 14, align: 'left', padY: 44, padX: 24, bg: '#f6f9fc' } },
     { type: 'newsletter', label: '邮件订阅', ico: '✉', tone: 'gold', g: 'convert',
-      fields: ['subTitle', 'subDesc', 'subPlaceholder', 'subBtn', 'subAction', 'subCardBg', 'subBtnBg', 'radius', 'padY'],
+      fields: ['subTitle', 'subDesc', 'subPlaceholder', 'subBtn', 'subAction', 'subCardBg', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'btnFull', 'inputBg', 'inputColor', 'inputPhColor', 'inputBorderColor', 'inputBorderWidth', 'inputRadius', 'inputPadX', 'inputPadY', 'radius', 'padY'],
       d: { subTitle: '订阅我们的 newsletter', subDesc: '每周一封，分享设计、开发与灵感，不定时退订。',
         subPlaceholder: '输入你的邮箱地址', subBtn: '立即订阅', subAction: '',
-        subCardBg: '#ffffff', subBtnBg: '#3b82f6', radius: 18, align: 'center', padY: 52, padX: 28,
+        subCardBg: '#ffffff', btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 10, btnPadX: 22, btnPadY: 13, btnFontSize: 14, btnWeight: '700', btnShadow: 'none', btnFull: '0',
+        inputBg: '', inputColor: '', inputPhColor: '', inputBorderColor: '', inputBorderWidth: 1, inputRadius: 10, inputPadX: 16, inputPadY: 13,
+        radius: 18, align: 'center', padY: 52, padX: 28,
         bg: 'linear-gradient(135deg,#eef3ff,#faf5ff)' } },
     { type: 'product', label: '商品卡片', ico: '◇', tone: 'gold', g: 'convert',
-      fields: ['prodImage', 'prodName', 'prodDesc', 'prodPrice', 'prodOldPrice', 'prodBadge', 'prodBtn', 'prodHref', 'prodCardBg', 'radius', 'padY'],
+      fields: ['prodImage', 'prodName', 'prodDesc', 'prodPrice', 'prodOldPrice', 'prodBadge', 'prodBtn', 'prodHref', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'btnFull', 'prodCardBg', 'radius', 'padY'],
       d: { prodImage: '', prodName: '精选好物 · 标准版', prodDesc: '品质与设计兼备，适合日常使用与送礼。',
         prodPrice: '¥299', prodOldPrice: '¥399', prodBadge: '热销', prodBtn: '立即购买', prodHref: '#',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 10, btnPadX: 13, btnPadY: 13, btnFontSize: 15, btnWeight: '700', btnShadow: 'none', btnFull: '1',
         prodCardBg: '#ffffff', radius: 18, align: 'center', padY: 40, padX: 24, bg: '#f6f9fc' } },
     { type: 'coupon', label: '优惠券', ico: '★', tone: 'gold', g: 'convert',
-      fields: ['cpAmount', 'cpCondition', 'cpTitle', 'cpCode', 'cpBtn', 'cpHref', 'cpBg', 'cpAccent', 'radius', 'padY'],
+      fields: ['cpAmount', 'cpCondition', 'cpTitle', 'cpCode', 'cpBtn', 'cpHref', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'cpBg', 'cpAccent', 'radius', 'padY'],
       d: { cpAmount: '¥50', cpCondition: '满 299 元可用', cpTitle: '新人专享券', cpCode: 'NEW50', cpBtn: '立即领取', cpHref: '#',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 60, btnPadX: 20, btnPadY: 11, btnFontSize: 14, btnWeight: '700', btnShadow: 'none',
         cpBg: '#fff6f2', cpAccent: '#f0623c', radius: 16, align: 'center', padY: 32, padX: 24, bg: '' } },
     { type: 'download', label: '下载卡片', ico: '↓', tone: '', g: 'convert',
-      fields: ['dlIcon', 'dlName', 'dlMeta', 'dlBtn', 'dlHref', 'dlCardBg', 'radius', 'padY'],
+      fields: ['dlIcon', 'dlName', 'dlMeta', 'dlBtn', 'dlHref', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'dlCardBg', 'radius', 'padY'],
       d: { dlIcon: '📦', dlName: '产品使用手册.pdf', dlMeta: 'PDF 文档 · 2.4 MB', dlBtn: '下载文件', dlHref: '#',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnPadX: 18, btnPadY: 10, btnFontSize: 14, btnWeight: '600', btnShadow: 'none',
         dlCardBg: '#ffffff', radius: 14, align: 'left', padY: 28, padX: 24, bg: '#f6f9fc' } },
     { type: 'share', label: '社交分享', ico: '↗', tone: '', g: 'social',
       fields: ['shareTitle', 'sharePlatforms', 'shareStyle', 'shareAccent', 'align', 'padY'],
       d: { shareTitle: '觉得有用？分享给朋友', sharePlatforms: '微信,微博,QQ,复制链接', shareStyle: 'icon', shareAccent: '#3b82f6',
         align: 'center', padY: 32, padX: 24, bg: '' } },
     { type: 'mapcard', label: '地址 / 门店卡', ico: '⌖', tone: '', g: 'show',
-      fields: ['mapTitle', 'mapAddress', 'mapPhone', 'mapHours', 'mapLink', 'mapBtn', 'mapCardBg', 'radius', 'padY'],
+      fields: ['mapTitle', 'mapAddress', 'mapPhone', 'mapHours', 'mapLink', 'mapBtn', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'mapCardBg', 'radius', 'padY'],
       d: { mapTitle: 'WR Studio 体验店', mapAddress: '上海市静安区某某路 88 号', mapPhone: '400-000-0000',
         mapHours: '周一至周日 10:00 - 20:00', mapLink: '', mapBtn: '查看地图',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 10, btnPadX: 20, btnPadY: 11, btnFontSize: 14, btnWeight: '600', btnShadow: 'none',
         mapCardBg: '#ffffff', radius: 16, align: 'left', padY: 32, padX: 24, bg: '#f6f9fc' } },
     { type: 'event', label: '活动 / 日程卡', ico: '▣', tone: 'violet', g: 'convert',
-      fields: ['evtDate', 'evtTime', 'evtTitle', 'evtDesc', 'evtLocation', 'evtBtn', 'evtHref', 'evtAccent', 'radius', 'padY'],
+      fields: ['evtDate', 'evtTime', 'evtTitle', 'evtDesc', 'evtLocation', 'evtBtn', 'evtHref', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'evtAccent', 'radius', 'padY'],
       d: { evtDate: '11月28日', evtTime: '14:00 - 17:00', evtTitle: '2026 产品设计分享会',
         evtDesc: '和行业大咖一起，聊聊产品设计那些事儿。', evtLocation: '上海 · 静安', evtBtn: '立即报名', evtHref: '#',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 10, btnPadX: 22, btnPadY: 11, btnFontSize: 14, btnWeight: '700', btnShadow: 'none',
         evtAccent: '#3b82f6', radius: 18, align: 'left', padY: 36, padX: 24, bg: '#f6f9fc' } },
     { type: 'jobs', label: '职位列表', ico: '⌗', tone: '', g: 'convert',
-      fields: ['jobTitle', 'jobItems', 'jobCardBg', 'jobAccent', 'radius', 'padY'],
+      fields: ['jobTitle', 'jobItems', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'jobCardBg', 'jobAccent', 'radius', 'padY'],
       d: { jobTitle: '加入我们', jobItems: '高级前端工程师 | 上海 | 25-40K | #\n产品设计师 | 上海 / 远程 | 18-30K | #\n内容运营 | 上海 | 12-20K | #',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 8, btnPadX: 16, btnPadY: 8, btnFontSize: 13, btnWeight: '600', btnShadow: 'none',
         jobCardBg: '#ffffff', jobAccent: '#3b82f6', radius: 14, align: 'left', padY: 44, padX: 24, bg: '#f6f9fc' } },
     { type: 'iconnav', label: '图标导航宫格', ico: '⊞', tone: 'violet', g: 'nav',
       fields: ['title', 'navItems2', 'navCols', 'navItemBg', 'radius', 'padY'],
@@ -1169,26 +1220,34 @@
 
     /* ===== 拓展组件：二级导航 / 多功能导航 / 下拉栏 / 多选框 ===== */
     { type: 'subnav', label: '二级导航栏', ico: '▤', tone: 'gold', g: 'nav',
-      fields: ['title', 'emoji', 'navItems', 'subItems', 'btnText', 'navCtaHref', 'sticky', 'stickyTop', 'navHeight', 'align', 'color', 'bg', 'padX'],
+      fields: ['title', 'emoji', 'navItems', 'subItems', 'btnText', 'navCtaHref', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'navLinkColor', 'navLinkHover', 'navLinkSize', 'navLinkGap', 'navBrandSize', 'sticky', 'stickyTop', 'navHeight', 'align', 'color', 'bg', 'padX'],
       d: { title: 'WR Studio', emoji: '✦', navItems: '产品 | #products\n解决方案 | #solutions\n关于我们 | #about',
         subItems: '产品 | 网页搭建>#products\n网站模板>#templates\n帮助中心>#help\n解决方案 | 企业官网>#enterprise\n电商商城>#shop\n关于我们 | 团队介绍>#team\n联系我们>#contact',
-        btnText: '开始使用', navCtaHref: '#contact', sticky: '1', stickyTop: 0, navHeight: 64,
+        btnText: '开始使用', navCtaHref: '#contact',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnPadX: 18, btnPadY: 9, btnFontSize: 14, btnWeight: '600', btnShadow: 'none',
+        navLinkColor: '', navLinkHover: '', navLinkSize: 14, navLinkGap: 6, navBrandSize: 17,
+        sticky: '1', stickyTop: 0, navHeight: 64,
         align: 'right', color: '#16233a', bg: '#ffffff', padY: 0, padX: 24 } },
     { type: 'smartnav', label: '多功能导航栏', ico: '✦', tone: 'violet', g: 'nav',
-      fields: ['title', 'emoji', 'navItems', 'btnText', 'navCtaHref', 'themeBtnText', 'searchPlaceholder', 'sticky', 'stickyTop', 'navHeight', 'align', 'color', 'bg', 'padX'],
+      fields: ['title', 'emoji', 'navItems', 'btnText', 'navCtaHref', 'themeBtnText', 'searchPlaceholder', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'navLinkColor', 'navLinkHover', 'navLinkSize', 'navLinkGap', 'navBrandSize', 'sticky', 'stickyTop', 'navHeight', 'align', 'color', 'bg', 'padX'],
       d: { title: 'WR Studio', emoji: '✦', navItems: '首页 | #top\n功能 | #features\n案例 | #works\n博客 | #blog',
         btnText: '立即开始', navCtaHref: '#contact', themeBtnText: '切换主题',
-        searchPlaceholder: '搜索…', sticky: '1', stickyTop: 0, navHeight: 68,
+        searchPlaceholder: '搜索…',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnPadX: 18, btnPadY: 9, btnFontSize: 14, btnWeight: '600', btnShadow: 'none',
+        navLinkColor: '', navLinkHover: '', navLinkSize: 14, navLinkGap: 16, navBrandSize: 17,
+        sticky: '1', stickyTop: 0, navHeight: 68,
         align: 'right', color: '#16233a', bg: '#ffffff', padY: 0, padX: 24 } },
     { type: 'dropdownbar', label: '下拉栏', ico: '⌄', tone: '', g: 'show',
       fields: ['title', 'dropItems', 'openFirst', 'cardBg', 'color', 'radius', 'gap', 'align', 'padY', 'bg'],
       d: { title: '常见问题', dropItems: '如何开始？ | 选中模板或直接拖入组件，右侧改文字即可。\n能导出源码吗？ | 可以，点顶部「导出 HTML」得到独立页面。\n数据存在哪里？ | 登录后会保存到服务器数据库。',
         openFirst: '0', cardBg: '#f6f9fc', color: '#16233a', radius: 12, gap: 10, align: 'left', padY: 36, padX: 24, bg: '' } },
     { type: 'checkboxset', label: '多选框', ico: '☑', tone: '', g: 'convert',
-      fields: ['title', 'desc', 'checkItems', 'chkBtn', 'chkResult', 'cardBg', 'color', 'radius', 'align', 'padY', 'bg'],
+      fields: ['title', 'desc', 'checkItems', 'chkBtn', 'chkResult', 'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'cardBg', 'color', 'radius', 'align', 'padY', 'bg'],
       d: { title: '你感兴趣的方向', desc: '可多选，选好后点按钮查看结果。',
         checkItems: '网页设计 | design | 1\n品牌视觉 | brand\n数字营销 | marketing\n企业服务 | business',
-        chkBtn: '查看选择', chkResult: '已选择：', cardBg: '#f6f9fc', color: '#16233a',
+        chkBtn: '查看选择', chkResult: '已选择：',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnPadX: 22, btnPadY: 10, btnFontSize: 14, btnWeight: '600', btnShadow: 'none',
+        cardBg: '#f6f9fc', color: '#16233a',
         radius: 14, align: 'left', padY: 36, padX: 24, bg: '' } }
   ]);
 
@@ -1227,6 +1286,10 @@
       if (!b || typeof b !== 'object' || !b.type || !ASSET_MAP[b.type]) return;
       if (typeof b.id !== 'string' || !b.id) b.id = uid();
       if (!b.p || typeof b.p !== 'object' || Array.isArray(b.p)) b.p = {};
+      // 老项目兼容：按钮组 / 社交链接以前把圆角写在模块的 radius 上，迁移到按钮自己的 btnRadius
+      if (b.type === 'buttongroup' && b.p.btnRadius === undefined && b.p.radius != null) b.p.btnRadius = b.p.radius;
+      if (b.type === 'button' && b.p.btnRadius === undefined && b.p.radius != null) b.p.btnRadius = b.p.radius;
+      if (b.type === 'linkhub' && b.p.btnRadius === undefined) b.p.btnRadius = String(b.p.linkShape) === 'round' ? 12 : 16;
       var def = ASSET_MAP[b.type].d || {};
       Object.keys(def).forEach(function (k) { if (b.p[k] === undefined) b.p[k] = def[k]; });
       Object.keys(COMMON_DEFAULTS).forEach(function (k) { if (b.p[k] === undefined) b.p[k] = COMMON_DEFAULTS[k]; });
@@ -1875,6 +1938,131 @@
   }
 
   /* ---------- 渲染：单个模块（导出与画布共用） ---------- */
+  /* 独立按钮：把按钮的样式设置折算成一组 CSS 声明。
+     o 是该组件的默认值（底色 / 文字色 / 圆角 / 内边距 / 字号 / 字重 / 阴影），
+     用户在右侧改了任意一项就覆盖默认值，没改就保持组件原来的样子。 */
+  function pnum(p, k, fb, min, max) {
+    var v = p ? p[k] : undefined;
+    if (v == null || v === '') return fb;
+    var n = Number(v);
+    if (!isFinite(n)) return fb;
+    if (min != null && n < min) n = min;
+    if (max != null && n > max) n = max;
+    return n;
+  }
+  function alphaColor(color, a) {
+    var h = toHexColor(color).slice(1);
+    var r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+  function btnSkin(p, o) {
+    o = o || {};
+    var style = String(p.btnStyle || 'auto');
+    if (['auto', 'solid', 'outline', 'soft', 'ghost', 'link'].indexOf(style) < 0) style = 'auto';
+    if (style === 'auto') style = o.auto || 'solid';
+    var page = state.page || {};
+    var accent = safeCssColor(page.accent, '#3b82f6');
+    var base = paint(p.btnBg, '') || o.bg || accent;
+    var ink = safeCssColor(p.btnColor, o.color || '#ffffff');
+    var r = pnum(p, 'btnRadius', o.radius == null ? 10 : o.radius, 0, 120);
+    var px = pnum(p, 'btnPadX', o.padX == null ? 22 : o.padX, 0, 80);
+    var py = pnum(p, 'btnPadY', o.padY == null ? 11 : o.padY, 0, 60);
+    var fs = pnum(p, 'btnFontSize', o.fontSize == null ? 14 : o.fontSize, 8, 40);
+    var fw = String(p.btnWeight || o.weight || '600');
+    if (['400', '500', '600', '700', '800', '900'].indexOf(fw) < 0) fw = '600';
+    var shadow = String(p.btnShadow || o.shadow || 'none');
+    var bw = pnum(p, 'btnBorderWidth', o.borderWidth == null ? 1 : o.borderWidth, 0, 8);
+    var full = String(p.btnFull) === '1' || !!o.full;
+    var decl = {
+      display: full ? 'block' : 'inline-block',
+      'border-radius': r + 'px',
+      'font-size': fs + 'px',
+      'font-weight': fw,
+      'text-decoration': 'none',
+      'text-align': 'center',
+      'line-height': '1.35',
+      'box-sizing': 'border-box',
+      'white-space': 'normal'
+    };
+    if (full) decl.width = '100%';
+    if (style === 'link') {
+      decl.background = 'transparent';
+      decl.color = p.btnColor || o.linkColor || ink;
+      decl.padding = '0';
+      decl['text-decoration'] = 'underline';
+      decl['text-underline-offset'] = '3px';
+      decl.border = '0';
+    } else {
+      decl.padding = py + 'px ' + px + 'px';
+      if (style === 'outline') {
+        decl.background = 'transparent';
+        decl.color = base;
+        decl.border = Math.max(1, bw) + 'px solid ' + base;
+      } else if (style === 'soft') {
+        decl.background = alphaColor(base, 0.14);
+        decl.color = base;
+        decl.border = bw > 0 ? bw + 'px solid ' + alphaColor(base, 0.28) : '0';
+      } else if (style === 'ghost') {
+        decl.background = 'transparent';
+        decl.color = ink;
+        decl.border = '1px solid ' + alphaColor(ink, 0.42);
+      } else {
+        decl.background = base;
+        decl.color = ink;
+        decl.border = bw > 0 ? bw + 'px solid ' + alphaColor(base, 0.45) : '0';
+      }
+      if (style === 'solid' || style === 'soft') {
+        if (shadow === 'soft') decl['box-shadow'] = '0 8px 22px -10px rgba(20,40,80,.42)';
+        else if (shadow === 'strong') decl['box-shadow'] = '0 14px 34px -12px rgba(20,40,80,.58)';
+        else if (shadow === 'glow') decl['box-shadow'] = '0 0 0 4px ' + alphaColor(base, 0.16) + ',0 10px 28px -10px ' + alphaColor(base, 0.5);
+      }
+    }
+    if (o.extra) Object.assign(decl, o.extra);
+    return decl;
+  }
+  function inputSkin(p, o) {
+    o = o || {};
+    var page = state.page || {};
+    var decl = {
+      background: paint(p.inputBg, '') || o.bg || '#ffffff',
+      color: p.inputColor || o.color || page.text || '#16233a',
+      border: (pnum(p, 'inputBorderWidth', o.borderWidth == null ? 1 : o.borderWidth, 0, 5)) + 'px solid ' +
+        safeCssColor(p.inputBorderColor, o.borderColor || 'rgba(0,0,0,.12)'),
+      'border-radius': pnum(p, 'inputRadius', o.radius == null ? 10 : o.radius, 0, 60) + 'px',
+      padding: pnum(p, 'inputPadY', o.padY == null ? 12 : o.padY, 0, 40) + 'px ' +
+        pnum(p, 'inputPadX', o.padX == null ? 14 : o.padX, 0, 60) + 'px',
+      'font-size': (o.fontSize || 14) + 'px',
+      outline: 'none',
+      'box-sizing': 'border-box'
+    };
+    if (o.full) decl.width = '100%';
+    if (o.flex != null) decl.flex = o.flex;
+    return decl;
+  }
+  /* 输入框占位色只能走 CSS 变量 */
+  function phVars(p) {
+    return p.inputPhColor ? '--wr-ph:' + safeCssColor(p.inputPhColor) + ';' : '';
+  }
+  /* 导航 / 页脚的文字变量：用 CSS 变量交给样式表，避免给每个链接单独写行内样式 */
+  function navVars(p) {
+    var d = { '--wr-nav-gap': pnum(p, 'navLinkGap', 20, 0, 80) + 'px' };
+    d['--wr-nav-link-size'] = pnum(p, 'navLinkSize', 14, 8, 30) + 'px';
+    if (safeColor(p.navLinkColor)) d['--wr-nav-link'] = safeColor(p.navLinkColor);
+    if (safeColor(p.navLinkHover)) d['--wr-nav-link-hover'] = safeColor(p.navLinkHover);
+    return d;
+  }
+  function brandStyle(p, fb) {
+    return { 'font-size': pnum(p, 'navBrandSize', fb == null ? 17 : fb, 10, 40) + 'px' };
+  }
+  function footVars(p) {
+    var d = {};
+    d['--wr-foot-link-size'] = pnum(p, 'footLinkSize', 13, 8, 24) + 'px';
+    d['--wr-foot-gap'] = pnum(p, 'footLinkGap', 7, 0, 40) + 'px';
+    d['--wr-foot-title-size'] = pnum(p, 'footTitleSize', 14, 8, 30) + 'px';
+    d['--wr-foot-bottom-size'] = pnum(p, 'footBottomSize', 12, 8, 24) + 'px';
+    if (safeColor(p.footLinkColor)) d['--wr-foot-link'] = safeColor(p.footLinkColor);
+    return d;
+  }
   function wrapStyle(b, editor, parentBlock, skipCol) {
     var p = b.p;
     // 通用背景 / 圆角覆盖：设了就用它替代组件自带值（boxBg 支持渐变）
@@ -2761,6 +2949,8 @@
       '.wr-sub-form input{flex:1;min-width:0;padding:13px 16px;border:1px solid rgba(0,0,0,.12);border-radius:10px;font-size:14px;outline:none}',
       '.wr-sub-form input:focus{border-color:var(--wr-accent,#3b82f6);box-shadow:0 0 0 3px color-mix(in srgb,var(--wr-accent,#3b82f6) 18%,transparent)}',
       '.wr-sub-form button{padding:13px 22px;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}',
+      /* 输入框占位色：由每个模块自己的 --wr-ph 控制 */
+      '.wr-form input::placeholder,.wr-form textarea::placeholder,.wr-sub-form input::placeholder,.wr-search-form input::placeholder{color:var(--wr-ph,currentColor);opacity:.55}',
       '.wr-sub-msg{margin-top:16px;font-size:14px;color:#16a34a;font-weight:600}',
       /* 商品卡片 */
       '.wr-product{max-width:420px;margin:0 auto;overflow:hidden;position:relative;border:1px solid rgba(0,0,0,.06)}',
@@ -2866,9 +3056,9 @@
       /* --- 拓展组件：二级导航 / 多功能导航 / 下拉栏 / 多选框 --- */
       '.wr-subnav,.wr-smartnav{border-bottom:1px solid rgba(0,0,0,.07)}',
       '.wr-subnav-inner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:relative}',
-      '.wr-subnav-links{display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
-      '.wr-sub-link{color:inherit;text-decoration:none;font-size:14px;opacity:.85;padding:8px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}',
-      '.wr-sub-link:hover{opacity:1;background:rgba(120,140,180,.1)}',
+      '.wr-subnav-links{display:flex;align-items:center;gap:var(--wr-nav-gap,6px);flex-wrap:wrap}',
+      '.wr-sub-link{color:var(--wr-nav-link,inherit);text-decoration:none;font-size:var(--wr-nav-link-size,14px);opacity:.85;padding:8px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}',
+      '.wr-sub-link:hover{color:var(--wr-nav-link-hover,inherit);opacity:1;background:rgba(120,140,180,.1)}',
       '.wr-sub-item{position:relative}',
       '.wr-sub-caret{font-size:12px;transition:transform .2s}',
       '.wr-sub-item:hover .wr-sub-caret,.wr-sub-item:focus-within .wr-sub-caret{transform:rotate(180deg)}',
@@ -2877,8 +3067,9 @@
       '.wr-sub-item:hover .wr-sub-menu,.wr-sub-item:focus-within .wr-sub-menu{display:grid;gap:2px}',
       '.wr-sub-menu a{display:block;padding:9px 12px;border-radius:8px;color:inherit;text-decoration:none;font-size:13.5px;white-space:nowrap}',
       '.wr-sub-menu a:hover{background:rgba(59,130,246,.1);color:var(--wr-accent,#3b82f6)}',
-      '.wr-smartnav-links{display:flex;align-items:center;gap:16px;flex-wrap:wrap}',
-      '.wr-smartnav-links a{color:inherit;text-decoration:none;font-size:14px;opacity:.85}',
+      '.wr-smartnav-links{display:flex;align-items:center;gap:var(--wr-nav-gap,16px);flex-wrap:wrap}',
+      '.wr-smartnav-links a{color:var(--wr-nav-link,inherit);text-decoration:none;font-size:var(--wr-nav-link-size,14px);opacity:.85}',
+      '.wr-smartnav-links a:hover{color:var(--wr-nav-link-hover,inherit);opacity:1}',
       '.wr-smart-search{display:flex;align-items:center;border:1px solid rgba(30,50,90,.14);border-radius:999px;overflow:hidden;background:rgba(120,140,180,.07)}',
       '.wr-smart-search input{border:0;background:transparent;padding:8px 12px;font-size:13px;color:inherit;outline:none;width:110px}',
       '.wr-smart-search button{border:0;background:transparent;color:inherit;padding:7px 11px;cursor:pointer;font-size:16px;opacity:.7}',
@@ -2910,12 +3101,13 @@
       '.wr-chk-result[hidden]{display:none}',
       '.wr-nav{border-bottom:1px solid rgba(0,0,0,.07)}',
       '.wr-nav-inner{display:flex;align-items:center;gap:20px;flex-wrap:wrap}',
-      '.wr-nav-brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;text-decoration:none;color:inherit;white-space:nowrap}',
+      '.wr-nav-brand{display:flex;align-items:center;gap:10px;font-size:var(--wr-nav-brand-size,17px);font-weight:800;text-decoration:none;color:inherit;white-space:nowrap}',
       '.wr-nav-mark{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--wr-accent,#3b82f6);color:#fff;font-size:15px;flex-shrink:0}',
-      '.wr-nav-links{display:flex;align-items:center;gap:20px;margin-left:auto;flex-wrap:wrap}',
-      '.wr-nav-links a{color:inherit;text-decoration:none;font-size:14px;opacity:.82}',
-      '.wr-nav-links a:hover{opacity:1}',
-      '.wr-nav-cta{padding:9px 18px!important;border-radius:9px;background:var(--wr-accent,#3b82f6);color:#fff!important;opacity:1!important;font-weight:600}',
+      '.wr-nav-links{display:flex;align-items:center;gap:var(--wr-nav-gap,20px);margin-left:auto;flex-wrap:wrap}',
+      '.wr-nav-links a{color:var(--wr-nav-link,inherit);text-decoration:none;font-size:var(--wr-nav-link-size,14px);opacity:.82}',
+      '.wr-nav-links a:hover{color:var(--wr-nav-link-hover,inherit);opacity:1}',
+      '.wr-nav-cta{padding:9px 18px;border-radius:9px;background:var(--wr-accent,#3b82f6);color:#fff;opacity:1!important;font-weight:600}',
+      '.wr-nav-cta:hover{opacity:1!important}',
       '.wr-nav-burger{display:none;margin-left:auto;font-size:22px;cursor:pointer;line-height:1;user-select:none;color:inherit;padding:4px 6px}',
       '.wr-nav-cb{display:none}',
       '.wr-announce-inner{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:13px}',
@@ -2926,11 +3118,11 @@
       '.wr-crumb .wr-sep{opacity:.4}',
       '.wr-crumb .wr-cur{font-weight:600}',
       '.wr-footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}',
-      '.wr-footer-grid h4{margin:0 0 12px;font-size:14px;color:inherit}',
-      '.wr-footer-grid a{display:block;color:inherit;text-decoration:none;opacity:.72;font-size:13px;margin-bottom:7px}',
+      '.wr-footer-grid h4{margin:0 0 12px;font-size:var(--wr-foot-title-size,14px);color:inherit}',
+      '.wr-footer-grid a{display:block;color:var(--wr-foot-link,inherit);text-decoration:none;opacity:.72;font-size:var(--wr-foot-link-size,13px);margin-bottom:var(--wr-foot-gap,7px)}',
       '.wr-footer-grid a:hover{opacity:1;text-decoration:underline}',
       '.wr-footer-grid p{margin:0;font-size:13px;line-height:1.9;opacity:.72}',
-      '.wr-footer-bottom{margin-top:28px;padding-top:18px;border-top:1px solid rgba(255,255,255,.13);font-size:12px;opacity:.6}',
+      '.wr-footer-bottom{margin-top:28px;padding-top:18px;border-top:1px solid rgba(255,255,255,.13);font-size:var(--wr-foot-bottom-size,12px);opacity:.6}',
       '.wr-features{display:grid;gap:14px}',
       '.wr-feature{display:flex;gap:14px;align-items:flex-start}',
       '.wr-feature-ico{flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:rgba(59,130,246,.1);font-size:19px}',
@@ -3354,7 +3546,7 @@
       ['.wr-nav-inner', 'padding-top:10px;padding-bottom:10px'],
       ['.wr-nav-links', 'display:none;width:100%;flex-direction:column;align-items:stretch;gap:0;margin-left:0;border-top:1px solid rgba(0,0,0,.08);padding-top:6px'],
       ['.wr-nav-links a', 'display:block;width:100%;padding:11px 0;border-bottom:1px solid rgba(0,0,0,.06)'],
-      ['.wr-nav-cta', 'text-align:center;margin:8px 0;padding:11px 18px!important'],
+      ['.wr-nav-cta', 'text-align:center;margin:8px 0'],
       ['.wr-nav-burger', 'display:block'],
       ['.wr-nav-cb:checked ~ .wr-nav-links', 'display:flex'],
       ['.wr-subnav-links,.wr-smartnav-links', 'display:none;width:100%;flex-direction:column;align-items:stretch;gap:0;margin-left:0;border-top:1px solid rgba(0,0,0,.08);padding-top:6px'],
@@ -3501,7 +3693,9 @@
           (p.kicker ? '<div style="' + css({ 'font-size': '12px', 'letter-spacing': '.2em', opacity: '.75', 'margin-bottom': '16px', color: p.color || '#fff' }) + '">' + esc(p.kicker) + '</div>' : '') +
           '<h1 style="' + css({ 'font-size': clampFont(52), margin: '0 0 18px', 'line-height': '1.25', color: p.color || '#fff', 'font-weight': '800' }) + '">' + nl(p.title) + '</h1>' +
           (p.desc ? '<p style="' + css({ 'font-size': 'clamp(14px,2vw,18px)', margin: '0 auto 30px', 'max-width': '640px', 'line-height': '1.8', color: p.color || '#fff', opacity: '.82' }) + '">' + nl(p.desc) + '</p>' : '') +
-          (p.btnText ? '<a href="' + esc(safeUrl(p.href, '#')) + '" style="' + css({ display: 'inline-block', padding: '13px 28px', 'border-radius': '10px', background: paint(page.accent, '#3b82f6'), color: '#fff', 'text-decoration': 'none', 'font-weight': '600', 'font-size': '15px' }) + '">' + esc(p.btnText) + '</a>' : '');
+          (p.btnText ? '<a href="' + esc(safeUrl(p.href, '#')) + '" style="' + css(btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 10, padX: 28, padY: 13, fontSize: 15, weight: '600', shadow: 'soft'
+          })) + '">' + esc(p.btnText) + '</a>' : '');
         break;
       case 'heading': {
         var tag = 'h' + (p.level || '2');
@@ -3511,9 +3705,15 @@
       case 'text':
         inner = '<p style="' + css({ 'font-size': (p.fontSize || 16) + 'px', margin: '0', 'line-height': '1.9', color: p.color || page.text, 'white-space': 'normal' }) + '">' + nl(p.text) + '</p>';
         break;
-      case 'button':
-        inner = '<a href="' + esc(safeUrl(p.href, '#')) + '" style="' + css({ display: 'inline-block', padding: '13px 30px', 'border-radius': (p.radius || 0) + 'px', background: paint(p.btnBg, page.accent), color: p.btnColor || '#fff', 'text-decoration': 'none', 'font-weight': '600', 'font-size': '15px', 'box-shadow': '0 8px 22px rgba(30,80,180,.18)' }) + '">' + esc(p.text) + '</a>';
+      case 'button': {
+        var oneBtn = css(btnSkin(p, {
+          bg: p.btnBg || page.accent, color: p.btnColor || '#ffffff',
+          radius: p.radius == null ? 10 : p.radius,
+          padX: 30, padY: 13, fontSize: 15, weight: '600', shadow: 'soft'
+        }));
+        inner = '<a href="' + esc(safeUrl(p.href, '#')) + '" style="' + oneBtn + '">' + esc(p.text) + '</a>';
         break;
+      }
       case 'image': {
         // 与画廊一致走 resolveMedia：把 asset:<id> 展开成真实地址，导出页才不会破图
         var src = resolveMedia(p.src) || PLACEHOLDER_IMG;
@@ -3537,34 +3737,43 @@
       case 'card': {
         var cardIconMargin = p.align === 'center' ? '0 auto 14px'
           : (p.align === 'right' ? '0 0 14px auto' : '0 0 14px 0');
-        inner = '<div style="' + css({ background: paint(p.cardBg, '#f3f7ff'), 'border-radius': (p.radius || 0) + 'px', padding: '28px', 'text-align': p.align || 'left', color: p.color || page.text }) + '">' +
-          mediaHTML(p.emoji, { size: 48, font: 30, fit: 'contain', margin: cardIconMargin, alt: p.title }) +
-          '<h3 style="' + css({ margin: '0 0 10px', 'font-size': '20px', color: p.color || page.text }) + '">' + esc(p.title) + '</h3>' +
-          '<p style="' + css({ margin: '0', 'font-size': '14px', 'line-height': '1.8', color: p.color || page.text, opacity: '.78' }) + '">' + nl(p.desc) + '</p></div>';
+        var cPadX = pnum(p, 'cardPadX', 28, 0, 80), cPadY = pnum(p, 'cardPadY', 28, 0, 80);
+        var cTitle = pnum(p, 'cardTitleSize', 20, 8, 40), cText = pnum(p, 'cardTextSize', 14, 8, 40);
+        var cIcon = pnum(p, 'cardIconSize', 48, 12, 160);
+        inner = '<div style="' + css({ background: paint(p.cardBg, '#f3f7ff'), 'border-radius': (p.radius || 0) + 'px', padding: cPadY + 'px ' + cPadX + 'px', 'text-align': p.align || 'left', color: p.color || page.text }) + '">' +
+          mediaHTML(p.emoji, { size: cIcon, font: Math.round(cIcon * 0.62), fit: 'contain', margin: cardIconMargin, alt: p.title }) +
+          '<h3 style="' + css({ margin: '0 0 10px', 'font-size': cTitle + 'px', color: p.color || page.text }) + '">' + esc(p.title) + '</h3>' +
+          '<p style="' + css({ margin: '0', 'font-size': cText + 'px', 'line-height': '1.8', color: p.color || page.text, opacity: '.78' }) + '">' + nl(p.desc) + '</p></div>';
         break;
       }
       case 'grid': {
         var rowsG = itemRows(p.items);
         var gIconMargin = p.align === 'right' ? '0 0 12px auto'
           : (p.align === 'left' ? '0 0 12px 0' : '0 auto 12px');
+        var gPadX = pnum(p, 'cardPadX', 20, 0, 80), gPadY = pnum(p, 'cardPadY', 26, 0, 80);
+        var gTitle = pnum(p, 'cardTitleSize', 17, 8, 40), gText = pnum(p, 'cardTextSize', 13, 8, 40);
+        var gIcon = pnum(p, 'cardIconSize', 42, 12, 160);
         inner = (p.title ? '<h2 style="' + css({ 'font-size': clampFont(30), margin: '0 0 24px', color: p.color || page.text }) + '">' + esc(p.title) + '</h2>' : '') +
           '<div class="wr-cols" style="display:grid;grid-template-columns:repeat(' + Math.max(1, Math.min(6, Number(p.cols) || 3)) + ',1fr);gap:16px;text-align:' + (p.align || 'center') + '">' +
           rowsG.map(function (r) {
-            return '<div style="' + css({ background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px', padding: '26px 20px', color: p.color || page.text }) + '">' +
-              mediaHTML(r.a, { size: 42, font: 28, fit: 'contain', margin: gIconMargin, alt: r.b }) +
-              '<h3 style="' + css({ margin: '0 0 8px', 'font-size': '17px', color: p.color || page.text }) + '">' + esc(r.b) + '</h3>' +
-              '<p style="' + css({ margin: '0', 'font-size': '13px', 'line-height': '1.7', opacity: '.75' }) + '">' + esc(r.c) + '</p></div>';
+            return '<div style="' + css({ background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px', padding: gPadY + 'px ' + gPadX + 'px', color: p.color || page.text }) + '">' +
+              mediaHTML(r.a, { size: gIcon, font: Math.round(gIcon * 0.66), fit: 'contain', margin: gIconMargin, alt: r.b }) +
+              '<h3 style="' + css({ margin: '0 0 8px', 'font-size': gTitle + 'px', color: p.color || page.text }) + '">' + esc(r.b) + '</h3>' +
+              '<p style="' + css({ margin: '0', 'font-size': gText + 'px', 'line-height': '1.7', opacity: '.75' }) + '">' + esc(r.c) + '</p></div>';
           }).join('') + '</div>';
         break;
       }
-      case 'twocol':
+      case 'twocol': {
+        var tcPadX = pnum(p, 'cardPadX', 26, 0, 80), tcPadY = pnum(p, 'cardPadY', 26, 0, 80);
+        var tcTitle = pnum(p, 'cardTitleSize', 19, 8, 40), tcText = pnum(p, 'cardTextSize', 14, 8, 40);
         inner = '<div class="wr-cols" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">' +
           [['leftTitle', 'leftText'], ['rightTitle', 'rightText']].map(function (pair) {
-            return '<div style="' + css({ background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px', padding: '26px', color: p.color || page.text }) + '">' +
-              '<h3 style="' + css({ margin: '0 0 10px', 'font-size': '19px', color: p.color || page.text }) + '">' + esc(p[pair[0]]) + '</h3>' +
-              '<p style="' + css({ margin: '0', 'font-size': '14px', 'line-height': '1.8', opacity: '.78' }) + '">' + nl(p[pair[1]]) + '</p></div>';
+            return '<div style="' + css({ background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px', padding: tcPadY + 'px ' + tcPadX + 'px', color: p.color || page.text }) + '">' +
+              '<h3 style="' + css({ margin: '0 0 10px', 'font-size': tcTitle + 'px', color: p.color || page.text }) + '">' + esc(p[pair[0]]) + '</h3>' +
+              '<p style="' + css({ margin: '0', 'font-size': tcText + 'px', 'line-height': '1.8', opacity: '.78' }) + '">' + nl(p[pair[1]]) + '</p></div>';
           }).join('') + '</div>';
         break;
+      }
       case 'stats': {
         var rowsS = itemRows(p.items);
         inner = (p.title ? '<h2 style="' + css({ 'font-size': clampFont(30), margin: '0 0 24px', 'text-align': 'center', color: p.color || page.text }) + '">' + esc(p.title) + '</h2>' : '') +
@@ -3598,7 +3807,9 @@
           '<div style="' + css({ width: '58px', height: '58px', margin: '0 auto 18px', 'border-radius': '50%', background: 'rgba(255,255,255,.14)', display: 'grid', 'place-items': 'center', 'font-size': '22px' }) + '">▶</div>' +
           '<h3 style="margin:0 0 10px;font-size:22px">' + esc(p.title) + '</h3>' +
           '<p style="margin:0 0 24px;font-size:14px;opacity:.72">' + nl(p.desc) + '</p>' +
-          '<a href="' + esc(safeUrl(p.url, '#')) + '" style="' + css({ display: 'inline-block', padding: '11px 26px', 'border-radius': '9px', background: paint(p.btnBg, page.accent), color: '#fff', 'text-decoration': 'none', 'font-size': '14px', 'font-weight': '600' }) + '">' + esc(p.btnText || '播放') + '</a></div>';
+          '<a href="' + esc(safeUrl(p.url, '#')) + '" style="' + css(btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 9, padX: 26, padY: 11, fontSize: 14, weight: '600', shadow: 'none'
+          })) + '">' + esc(p.btnText || '播放') + '</a></div>';
         break;
       /* 滚动视频：编辑态只挂封面（避免画布反复解码视频卡顿），导出/预览才真正加载 src */
       case 'film': {
@@ -3632,11 +3843,14 @@
           '<h3 style="margin:0 0 8px;font-size:24px">' + esc(p.title) + '</h3>' +
           '<p style="margin:0 0 22px;font-size:14px;opacity:.72">' + nl(p.desc) + '</p>' +
           // 纯静态演示：不用 <form>，避免点提交把字段拼进 URL 并刷新页面
-          '<div class="wr-form" role="group" aria-label="联系表单（演示）" style="display:grid;gap:12px">' +
-          '<input type="text" aria-label="你的称呼" placeholder="你的称呼" style="' + css({ padding: '11px 13px', border: '1px solid #d8e2f0', 'border-radius': '8px', 'font-size': '14px', width: '100%' }) + '">' +
-          '<input type="email" aria-label="邮箱地址" placeholder="邮箱地址" style="' + css({ padding: '11px 13px', border: '1px solid #d8e2f0', 'border-radius': '8px', 'font-size': '14px', width: '100%' }) + '">' +
-          '<textarea aria-label="想说的话" placeholder="想说的话" rows="3" style="' + css({ padding: '11px 13px', border: '1px solid #d8e2f0', 'border-radius': '8px', 'font-size': '14px', width: '100%', resize: 'vertical' }) + '"></textarea>' +
-          '<button type="button" style="' + css({ padding: '12px', border: '0', 'border-radius': '8px', background: paint(p.btnBg, page.accent), color: '#fff', 'font-size': '14px', 'font-weight': '600', cursor: 'pointer' }) + '">' + esc(p.btnText || '提交') + '</button>' +
+          '<div class="wr-form" role="group" aria-label="联系表单（演示）" style="display:grid;gap:12px;' + phVars(p) + '">' +
+          '<input type="text" aria-label="你的称呼" placeholder="你的称呼" style="' + css(inputSkin(p, { full: true, radius: 8, padX: 13, padY: 11, borderColor: '#d8e2f0' })) + '">' +
+          '<input type="email" aria-label="邮箱地址" placeholder="邮箱地址" style="' + css(inputSkin(p, { full: true, radius: 8, padX: 13, padY: 11, borderColor: '#d8e2f0' })) + '">' +
+          '<textarea aria-label="想说的话" placeholder="想说的话" rows="3" style="' + css(inputSkin(p, { full: true, radius: 8, padX: 13, padY: 11, borderColor: '#d8e2f0' })) + 'resize:vertical">' + '</textarea>' +
+          '<button type="button" style="' + css(btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 8, padX: 12, padY: 12, fontSize: 14, weight: '600', shadow: 'none',
+            extra: { cursor: 'pointer' }
+          })) + '">' + esc(p.btnText || '提交') + '</button>' +
           '<small style="opacity:.55;font-size:11px">演示表单，未接入后端</small></div></div>';
         break;
       /* ===== 导航与框架 ===== */
@@ -3646,7 +3860,9 @@
         var navLinks = navRows.map(function (r) {
           return '<a href="' + esc(safeUrl(r[1], '#')) + '">' + esc(r[0]) + '</a>';
         }).join('');
-        var navBtn = p.btnText ? '<a class="wr-nav-cta" href="' + esc(safeUrl(p.navCtaHref, '#')) + '">' + esc(p.btnText) + '</a>' : '';
+        var navBtn = p.btnText ? '<a class="wr-nav-cta" href="' + esc(safeUrl(p.navCtaHref, '#')) + '" style="' + css(btnSkin(p, {
+          bg: page.accent, color: '#fff', radius: 9, padX: 18, padY: 9, fontSize: 14, weight: '600', shadow: 'none'
+        })) + '">' + esc(p.btnText) + '</a>' : '';
         var navMargin = p.align === 'left' ? 'margin-left:0' : (p.align === 'center' ? 'margin:0 auto' : 'margin-left:auto');
         inner = '<nav class="wr-nav" aria-label="主导航" style="' + css({
           background: paint(p.bg, '#ffffff'), color: p.color || page.text
@@ -3656,12 +3872,12 @@
           margin: '0 auto',
           padding: '0 ' + (p.padX == null ? 24 : p.padX) + 'px'
         }) + '">' +
-          '<a class="wr-nav-brand" href="#top">' +
+          '<a class="wr-nav-brand" href="#top" style="' + css(brandStyle(p, 17)) + '">' +
           mediaHTML(p.emoji, { size: 30, font: 15, cls: 'wr-nav-mark', inline: true, fit: 'contain', alt: p.title }) +
           esc(p.title || '品牌名称') + '</a>' +
           '<input class="wr-nav-cb" type="checkbox" id="' + navId + '" aria-label="展开菜单" hidden>' +
           '<label class="wr-nav-burger" for="' + navId + '" aria-label="打开菜单">☰</label>' +
-          '<div class="wr-nav-links" style="' + navMargin + '">' + navLinks + navBtn + '</div>' +
+          '<div class="wr-nav-links" style="' + navMargin + ';' + css(navVars(p)) + '">' + navLinks + navBtn + '</div>' +
           '</div></nav>';
         break;
       }
@@ -3669,7 +3885,10 @@
         inner = '<div class="wr-announce-inner" style="color:' + esc(p.color || '#fff') + '">' +
           mediaHTML(p.emoji, { size: 20, font: 15, inline: true, fit: 'contain' }) +
           '<span>' + nl(p.text) + '</span>' +
-          (p.btnText ? '<a href="' + esc(safeUrl(p.href, '#')) + '">' + esc(p.btnText) + ' →</a>' : '') +
+          (p.btnText ? '<a href="' + esc(safeUrl(p.href, '#')) + '" style="' + css(btnSkin(p, {
+            auto: 'link', bg: page.accent, color: p.color || '#fff', linkColor: p.color || '#fff',
+            radius: 999, padX: 12, padY: 6, fontSize: 13, weight: '600', shadow: 'none'
+          })) + '">' + esc(p.btnText) + ' →</a>' : '') +
           '</div>';
         break;
       case 'breadcrumb': {
@@ -3687,7 +3906,7 @@
         var fLinks = rowCells(p.footerLinks).filter(function (r) { return String((r && r[0]) || '').trim(); });
         var hasContact = !!(p.phone || p.email || p.address);
         var fCols = 1 + (fLinks.length ? 1 : 0) + (hasContact ? 1 : 0);
-        inner = '<footer style="color:' + esc(p.color || page.text) + '">' +
+        inner = '<footer style="color:' + esc(p.color || page.text) + ';' + css(footVars(p)) + '">' +
           '<div class="wr-footer-grid wr-cols" style="' + css({ 'grid-template-columns': 'repeat(' + fCols + ',1fr)' }) + '">' +
           '<div><h4>' + esc(p.title || '') + '</h4><p>' + nl(p.desc) + '</p></div>' +
           (fLinks.length ? '<div><h4>快速链接</h4>' + fLinks.map(function (r) {
@@ -3707,14 +3926,17 @@
       /* ===== 内容展示 ===== */
       case 'features': {
         var fRows = rowCells(p.featureItems);
+        var fPadX = pnum(p, 'cardPadX', 20, 0, 80), fPadY = pnum(p, 'cardPadY', 20, 0, 80);
+        var fTitle = pnum(p, 'cardTitleSize', 16, 8, 40), fText = pnum(p, 'cardTextSize', 13, 8, 40);
+        var fIcon = pnum(p, 'cardIconSize', 38, 12, 160);
         inner = head + '<div class="wr-features wr-cols" style="' + css({
           'grid-template-columns': 'repeat(2,1fr)', gap: (p.gap == null ? 14 : p.gap) + 'px', color: p.color || page.text
         }) + '">' + fRows.map(function (r) {
           return '<div class="wr-feature" style="' + css({
-            background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px', padding: '20px'
+            background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px', padding: fPadY + 'px ' + fPadX + 'px'
           }) + '">' + mediaHTML(r[0] || '✓', {
-            size: 38, font: 19, cls: 'wr-feature-ico', radius: 10, fit: 'contain', alt: r[1]
-          }) + '<div><h4>' + esc(r[1] || '') + '</h4><p>' + esc(r.slice(2).join(' | ')) + '</p></div></div>';
+            size: fIcon, font: Math.round(fIcon * 0.5), cls: 'wr-feature-ico', radius: 10, fit: 'contain', alt: r[1]
+          }) + '<div><h4 style="font-size:' + fTitle + 'px">' + esc(r[1] || '') + '</h4><p style="font-size:' + fText + 'px">' + esc(r.slice(2).join(' | ')) + '</p></div></div>';
         }).join('') + '</div>';
         break;
       }
@@ -3739,54 +3961,66 @@
         }) + '">' + prRows.map(function (r) {
           var feats = String(r[2] || '').split(/[；;]/).map(function (s) { return s.trim(); }).filter(Boolean);
           var hot = String(r[4] || '').trim() === '1';
+          var pbtn = btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 9, padX: 11, padY: 11, fontSize: 14,
+            weight: '600', shadow: 'none', full: true
+          });
+          if ((!p.btnStyle || p.btnStyle === 'auto') && !hot) {
+            pbtn.background = 'rgba(59,130,246,.1)';
+            pbtn.color = p.btnColor || p.color || page.text;
+            pbtn.border = '0';
+            pbtn['box-shadow'] = '';
+          }
           return '<div class="wr-price-card" style="' + css({
-            background: paint(p.cardBg, '#fff'), 'border-radius': (p.radius || 0) + 'px', padding: '28px 22px',
+            background: paint(p.cardBg, '#fff'), 'border-radius': (p.radius || 0) + 'px',
+            padding: pnum(p, 'cardPadY', 28, 0, 80) + 'px ' + pnum(p, 'cardPadX', 22, 0, 80) + 'px',
             border: hot ? '2px solid ' + safeCssColor(page.accent) : '1px solid rgba(0,0,0,.08)',
             'box-shadow': hot ? '0 14px 34px rgba(30,80,180,.13)' : ''
           }) + '">' +
             (hot ? '<span class="wr-price-badge">推荐</span>' : '') +
-            '<h3 style="margin:0;font-size:17px">' + esc(r[0] || '') + '</h3>' +
+            '<h3 style="margin:0;font-size:' + pnum(p, 'cardTitleSize', 17, 8, 40) + 'px">' + esc(r[0] || '') + '</h3>' +
             '<div class="wr-price-num">' + esc(r[1] || '') + '</div>' +
-            '<ul>' + feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>' +
-            '<a class="wr-price-btn" href="' + esc(safeUrl(p.href, '#')) + '" style="' + css({
-              display: 'block', 'text-align': 'center', padding: '11px', 'border-radius': '9px',
-              'text-decoration': 'none', 'font-weight': '600', 'font-size': '14px',
-              background: hot ? paint(page.accent, '#3b82f6') : 'rgba(59,130,246,.1)',
-              color: hot ? '#fff' : p.color || page.text
-            }) + '">' + esc(r[3] || '了解更多') + '</a></div>';
+            '<ul style="font-size:' + pnum(p, 'cardTextSize', 13, 8, 40) + 'px">' + feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>' +
+            '<a class="wr-price-btn" href="' + esc(safeUrl(p.href, '#')) + '" style="' + css(pbtn) + '">' +
+            esc(r[3] || '了解更多') + '</a></div>';
         }).join('') + '</div>';
         break;
       }
       case 'team': {
         var tRows = rowCells(p.teamItems);
+        var tPadX = pnum(p, 'cardPadX', 18, 0, 80), tPadY = pnum(p, 'cardPadY', 26, 0, 80);
+        var tTitle = pnum(p, 'cardTitleSize', 16, 8, 40), tText = pnum(p, 'cardTextSize', 13, 8, 40);
+        var tIcon = pnum(p, 'cardIconSize', 62, 16, 160);
         inner = head + '<div class="wr-team wr-cols" style="' + css({
           'grid-template-columns': gridCols(Math.min(3, Math.max(1, tRows.length)), 3),
           gap: (p.gap || 16) + 'px', color: p.color || page.text
         }) + '">' + tRows.map(function (r) {
           return '<div style="' + css({
             background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px',
-            padding: '26px 18px', 'text-align': 'center'
+            padding: tPadY + 'px ' + tPadX + 'px', 'text-align': 'center'
           }) + '">' + mediaHTML(r[0] || '🙂', {
-            size: 62, font: 28, cls: 'wr-team-avatar', round: true, alt: r[1]
+            size: tIcon, font: Math.round(tIcon * 0.45), cls: 'wr-team-avatar', round: true, alt: r[1]
           }) +
-            '<h4 style="margin:0 0 4px;font-size:16px">' + esc(r[1] || '') + '</h4>' +
+            '<h4 style="margin:0 0 4px;font-size:' + tTitle + 'px">' + esc(r[1] || '') + '</h4>' +
             '<div style="font-size:12px;opacity:.65;margin-bottom:8px">' + esc(r[2] || '') + '</div>' +
-            '<p style="margin:0;font-size:12.5px;line-height:1.7;opacity:.75">' + esc(r.slice(3).join(' | ')) + '</p></div>';
+            '<p style="margin:0;font-size:' + tText + 'px;line-height:1.7;opacity:.75">' + esc(r.slice(3).join(' | ')) + '</p></div>';
         }).join('') + '</div>';
         break;
       }
       case 'testimonial': {
         var starN = Math.max(0, Math.min(5, Number(p.stars) || 0));
+        var tmPadX = pnum(p, 'cardPadX', 30, 0, 80), tmPadY = pnum(p, 'cardPadY', 34, 0, 80);
+        var tmText = pnum(p, 'cardTextSize', 19, 8, 40), tmAvatar = pnum(p, 'cardIconSize', 46, 16, 160);
         inner = '<div class="wr-testimonial" style="' + css({
-          'max-width': '680px', margin: '0 auto', padding: '34px 30px',
+          'max-width': '680px', margin: '0 auto', padding: tmPadY + 'px ' + tmPadX + 'px',
           background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px',
           'text-align': 'center', color: p.color || page.text
         }) + '">' +
           (starN ? '<div class="wr-stars">' + Array(starN + 1).join('★') +
             '<span style="opacity:.22">' + Array(6 - starN).join('★') + '</span></div>' : '') +
-          '<blockquote>“' + nl(p.text) + '”</blockquote>' +
+          '<blockquote style="font-size:' + tmText + 'px">“' + nl(p.text) + '”</blockquote>' +
           mediaHTML(p.avatar, {
-            size: 46, font: 26, round: true, margin: '0 auto', bg: 'rgba(59,130,246,.1)', alt: p.author
+            size: tmAvatar, font: Math.round(tmAvatar * 0.56), round: true, margin: '0 auto', bg: 'rgba(59,130,246,.1)', alt: p.author
           }) +
           '<div style="font-weight:700;font-size:14px;margin-top:6px">' + esc(p.author || '') + '</div>' +
           (p.role ? '<div style="font-size:12px;opacity:.65;margin-top:2px">' + esc(p.role) + '</div>' : '') +
@@ -3864,11 +4098,9 @@
           padding: '44px 30px', color: p.color || '#fff', 'text-align': p.align || 'center'
         }) + '"><h2 style="' + css({ 'font-size': clampFont(32), margin: '0 0 12px' }) + '">' + nl(p.title) + '</h2>' +
           (p.desc ? '<p style="' + css({ 'font-size': '15px', margin: '0 0 26px', opacity: '.85' }) + '">' + nl(p.desc) + '</p>' : '') +
-          (p.btnText ? '<a href="' + esc(safeUrl(p.href, '#')) + '" style="' + css({
-            display: 'inline-block', padding: '12px 28px', 'border-radius': '10px',
-            background: paint(p.btnBg, '#fff'), color: '#1b3b6f', 'text-decoration': 'none',
-            'font-weight': '700', 'font-size': '15px'
-          }) + '">' + esc(p.btnText) + '</a>' : '') + '</div>';
+          (p.btnText ? '<a href="' + esc(safeUrl(p.href, '#')) + '" style="' + css(btnSkin(p, {
+            bg: '#ffffff', color: '#1b3b6f', radius: 10, padX: 28, padY: 12, fontSize: 15, weight: '700', shadow: 'none'
+          })) + '">' + esc(p.btnText) + '</a>' : '') + '</div>';
         break;
       case 'buttongroup': {
         var bgRows = rowCells(p.btnItems);
@@ -3877,13 +4109,10 @@
           display: 'flex', 'flex-wrap': 'wrap', gap: (p.gap || 12) + 'px', 'justify-content': bgJustify
         }) + '">' + bgRows.map(function (r) {
           var primary = String(r[2] || '').trim() === '1';
-          return '<a href="' + esc(safeUrl(r[1], '#')) + '" style="' + css({
-            padding: '11px 24px', 'border-radius': (p.radius || 0) + 'px', 'text-decoration': 'none',
-            'font-size': '14px', 'font-weight': '600',
-            background: primary ? (p.btnBg || page.accent) : 'transparent',
-            color: primary ? '#fff' : (p.btnBg || page.accent),
-            border: '1px solid ' + (p.btnBg || page.accent)
-          }) + '">' + esc(r[0] || '按钮') + '</a>';
+          return '<a href="' + esc(safeUrl(r[1], '#')) + '" style="' + css(btnSkin(p, {
+            auto: primary ? 'solid' : 'outline', bg: page.accent, color: '#fff',
+            radius: 10, padX: 24, padY: 11, fontSize: 14, weight: '600', shadow: 'none'
+          })) + '">' + esc(r[0] || '按钮') + '</a>';
         }).join('') + '</div>';
         break;
       }
@@ -4027,10 +4256,13 @@
             display: 'flex', gap: '10px', 'max-width': '720px', margin: '26px auto 0', padding: '8px',
             background: '#ffffff', 'border-radius': (p.radius == null || p.radius > 48 ? 999 : p.radius) + 'px',
             'box-shadow': '0 18px 50px -24px rgba(20,40,80,.5)'
-          }) + '">' +
+          }) + ';' + phVars(p) + '">' +
           '<input type="search" name="q" placeholder="' + esc(p.searchPlaceholder || '搜索') + '" aria-label="搜索" style="' +
-          css({ flex: '1', border: '0', outline: 'none', padding: '13px 16px', 'font-size': '16px', background: 'transparent', color: '#16233a' }) + '">' +
-          '<button type="submit" style="' + css({ border: '0', cursor: 'pointer', padding: '13px 26px', 'border-radius': '999px', background: paint(p.btnBg, page.accent), color: '#fff', 'font-weight': '600', 'font-size': '15px' }) + '">' + esc(p.searchBtn || '搜索') + '</button></form>' +
+          css(inputSkin(p, { bg: 'transparent', borderWidth: 0, radius: 999, padX: 16, padY: 13, fontSize: 16, flex: '1' })) + '">' +
+          '<button type="submit" style="' + css(btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 999, padX: 26, padY: 13, fontSize: 15, weight: '600', shadow: 'none',
+            extra: { border: '0', cursor: 'pointer' }
+          })) + '">' + esc(p.searchBtn || '搜索') + '</button></form>' +
           (suggest ? '<div class="wr-tags wr-search-tags">' + suggest + '</div>' : '') + '</div>';
         break;
       }
@@ -4278,9 +4510,15 @@
         break;
       }
       case 'linkhub': {
+        var lhBtn = css(btnSkin(p, {
+          bg: p.linkBtnBg || '#ffffff', color: p.linkBtnColor || '#1f2a44',
+          radius: String(p.linkShape) === 'round' ? 12 : 16,
+          padX: 20, padY: 14, fontSize: 15, weight: '700', shadow: 'soft', full: true,
+          extra: { display: 'flex', 'align-items': 'center', gap: '12px', 'text-align': 'left' }
+        }));
         var linkBtns = rowCells(p.linkItems).map(function (r) {
           var ico = r[2] || '↗';
-          return '<a class="wr-lh-btn" href="' + esc(safeUrl(r[1])) + '">' +
+          return '<a class="wr-lh-btn" href="' + esc(safeUrl(r[1])) + '" style="' + lhBtn + '">' +
             '<span class="wr-lh-ico">' + esc(ico) + '</span><span>' + esc(r[0] || '链接') + '</span><b>↗</b></a>';
         }).join('');
         inner = '<div class="wr-linkhub' + (String(p.linkShape) === 'round' ? ' is-round' : '') + '">' +
@@ -4611,15 +4849,23 @@
           background: paint(p.subCardBg, '#fff'), 'border-radius': (p.radius || 0) + 'px', color: p.color || page.text
         }) + '">' + (p.subTitle ? '<h2>' + esc(p.subTitle) + '</h2>' : '') +
           (p.subDesc ? '<p class="wr-sub-desc">' + esc(p.subDesc) + '</p>' : '') +
-          '<form class="wr-sub-form"' + formAttr + '>' +
-          '<input type="email" name="email" required placeholder="' + esc(p.subPlaceholder || '输入你的邮箱地址') + '">' +
-          '<button type="submit" style="' + css({ background: paint(p.subBtnBg, '#3b82f6'), color: '#fff' }) + '">' + esc(p.subBtn || '立即订阅') + '</button></form>' +
+          '<form class="wr-sub-form"' + formAttr + ' style="' + phVars(p) + '">' +
+          '<input type="email" name="email" required placeholder="' + esc(p.subPlaceholder || '输入你的邮箱地址') + '" style="' +
+          css(inputSkin(p, { bg: '#ffffff', radius: 10, padX: 16, padY: 13, fontSize: 14, flex: '1' })) + '">' +
+          '<button type="submit" style="' + css(btnSkin(p, {
+            bg: p.subBtnBg || page.accent, color: '#fff', radius: 10, padX: 22, padY: 13,
+            fontSize: 14, weight: '700', shadow: 'none', extra: { border: '0', cursor: 'pointer' }
+          })) + '">' + esc(p.subBtn || '立即订阅') + '</button></form>' +
           '<div class="wr-sub-msg" hidden>订阅成功，感谢你的关注！</div></div>';
         break;
       }
       case 'product': {
         var pimg = resolveMedia(p.prodImage);
         var pHref = safeUrl(p.prodHref, '');
+        var pbtnStyle = css(btnSkin(p, {
+          bg: page.accent, color: '#fff', radius: 10, padX: 13, padY: 13, fontSize: 15,
+          weight: '700', shadow: 'none', full: true
+        }));
         inner = '<div class="wr-product" style="' + css({
           background: paint(p.prodCardBg, '#fff'), 'border-radius': (p.radius || 0) + 'px', color: p.color || page.text
         }) + '">' + (p.prodBadge ? '<span class="wr-prod-badge">' + esc(p.prodBadge) + '</span>' : '') +
@@ -4631,14 +4877,17 @@
           '<div class="wr-prod-price"><b>' + esc(p.prodPrice || '') + '</b>' +
           (p.prodOldPrice ? '<s>' + esc(p.prodOldPrice) + '</s>' : '') + '</div>' +
           (pHref && pHref !== '#'
-            ? '<a class="wr-prod-btn" href="' + esc(pHref) + '">' + esc(p.prodBtn || '立即购买') + '</a>'
-            : '<span class="wr-prod-btn is-static">' + esc(p.prodBtn || '立即购买') + '</span>') +
+            ? '<a class="wr-prod-btn" href="' + esc(pHref) + '" style="' + pbtnStyle + '">' + esc(p.prodBtn || '立即购买') + '</a>'
+            : '<span class="wr-prod-btn is-static" style="' + pbtnStyle + '">' + esc(p.prodBtn || '立即购买') + '</span>') +
           '</div></div>';
         break;
       }
       case 'coupon': {
         var cpHref = safeUrl(p.cpHref, '');
         var cpAccent = safeCssColor(p.cpAccent, '#f0623c');
+        var cpBtnStyle = css(btnSkin(p, {
+          bg: cpAccent, color: '#fff', radius: 999, padX: 20, padY: 11, fontSize: 14, weight: '700', shadow: 'none'
+        }));
         inner = '<div class="wr-coupon" style="' + css({
           background: paint(p.cpBg, '#fff6f2'), 'border-radius': (p.radius || 0) + 'px', '--wr-cp-accent': cpAccent, color: p.color || page.text
         }) + '"><div class="wr-cp-left"><div class="wr-cp-amount">' + esc(p.cpAmount || '') + '</div>' +
@@ -4646,20 +4895,23 @@
           '<div class="wr-cp-mid">' + (p.cpTitle ? '<h3>' + esc(p.cpTitle) + '</h3>' : '') +
           (p.cpCode ? '<div class="wr-cp-code">优惠码：<b>' + esc(p.cpCode) + '</b></div>' : '') + '</div>' +
           '<div class="wr-cp-right">' + (cpHref && cpHref !== '#'
-            ? '<a href="' + esc(cpHref) + '">' + esc(p.cpBtn || '立即领取') + '</a>'
-            : '<span class="is-static">' + esc(p.cpBtn || '立即领取') + '</span>') + '</div></div>';
+            ? '<a href="' + esc(cpHref) + '" style="' + cpBtnStyle + '">' + esc(p.cpBtn || '立即领取') + '</a>'
+            : '<span class="is-static" style="' + cpBtnStyle + '">' + esc(p.cpBtn || '立即领取') + '</span>') + '</div></div>';
         break;
       }
       case 'download': {
         var dlHref = safeUrl(p.dlHref, '');
+        var dlBtnStyle = css(btnSkin(p, {
+          bg: page.accent, color: '#fff', radius: 9, padX: 18, padY: 10, fontSize: 14, weight: '600', shadow: 'none'
+        }));
         inner = '<div class="wr-download" style="' + css({
           background: paint(p.dlCardBg, '#fff'), 'border-radius': (p.radius || 0) + 'px', color: p.color || page.text
         }) + '"><span class="wr-dl-icon">' + esc(p.dlIcon || '📦') + '</span>' +
           '<div class="wr-dl-info"><div class="wr-dl-name">' + esc(p.dlName || '文件') + '</div>' +
           (p.dlMeta ? '<div class="wr-dl-meta">' + esc(p.dlMeta) + '</div>' : '') + '</div>' +
           (dlHref && dlHref !== '#'
-            ? '<a class="wr-dl-btn" href="' + esc(dlHref) + '" download>' + esc(p.dlBtn || '下载') + '</a>'
-            : '<span class="wr-dl-btn is-static">' + esc(p.dlBtn || '下载') + '</span>') + '</div>';
+            ? '<a class="wr-dl-btn" href="' + esc(dlHref) + '" download style="' + dlBtnStyle + '">' + esc(p.dlBtn || '下载') + '</a>'
+            : '<span class="wr-dl-btn is-static" style="' + dlBtnStyle + '">' + esc(p.dlBtn || '下载') + '</span>') + '</div>';
         break;
       }
       case 'share': {
@@ -4685,12 +4937,17 @@
           (p.mapPhone ? '<li><span>☎</span>' + esc(p.mapPhone) + '</li>' : '') +
           (p.mapHours ? '<li><span>◷</span>' + esc(p.mapHours) + '</li>' : '') + '</ul></div>' +
           (mapHref && mapHref !== '#'
-            ? '<a class="wr-map-btn" href="' + esc(mapHref) + '" target="_blank" rel="noopener noreferrer">' + esc(p.mapBtn || '查看地图') + '</a>'
+            ? '<a class="wr-map-btn" href="' + esc(mapHref) + '" target="_blank" rel="noopener noreferrer" style="' + css(btnSkin(p, {
+              bg: page.accent, color: '#fff', radius: 10, padX: 20, padY: 11, fontSize: 14, weight: '600', shadow: 'none'
+            })) + '">' + esc(p.mapBtn || '查看地图') + '</a>'
             : '') + '</div>';
         break;
       }
       case 'event': {
         var evHref = safeUrl(p.evtHref, '');
+        var evBtnStyle = css(btnSkin(p, {
+          bg: page.accent, color: '#fff', radius: 10, padX: 22, padY: 11, fontSize: 14, weight: '700', shadow: 'none'
+        }));
         inner = '<div class="wr-event" style="' + css({
           background: paint(p.bg, '#ffffff'), 'border-radius': (p.radius || 0) + 'px', color: p.color || page.text,
           border: '1px solid rgba(0,0,0,.07)'
@@ -4700,13 +4957,18 @@
           (p.evtDesc ? '<p>' + esc(p.evtDesc) + '</p>' : '') +
           (p.evtLocation ? '<div class="wr-evt-loc">⌖ ' + esc(p.evtLocation) + '</div>' : '') + '</div>' +
           (evHref && evHref !== '#'
-            ? '<a class="wr-evt-btn" href="' + esc(evHref) + '">' + esc(p.evtBtn || '立即报名') + '</a>'
-            : '<span class="wr-evt-btn is-static">' + esc(p.evtBtn || '立即报名') + '</span>') + '</div>';
+            ? '<a class="wr-evt-btn" href="' + esc(evHref) + '" style="' + evBtnStyle + '">' + esc(p.evtBtn || '立即报名') + '</a>'
+            : '<span class="wr-evt-btn is-static" style="' + evBtnStyle + '">' + esc(p.evtBtn || '立即报名') + '</span>') + '</div>';
         break;
       }
       case 'jobs': {
         var jRows = rowCells(p.jobItems);
-        inner = head + '<div class="wr-jobs" style="' + css({ 'border-radius': (p.radius || 0) + 'px', '--wr-job-accent': safeCssColor(p.jobAccent, '#3b82f6') }) + '">' +
+        var jAccent = safeCssColor(p.jobAccent, '#3b82f6');
+        var jobBtnStyle = css(btnSkin(p, {
+          auto: 'outline', bg: jAccent, color: jAccent, radius: 8, padX: 16, padY: 8,
+          fontSize: 13, weight: '600', shadow: 'none'
+        }));
+        inner = head + '<div class="wr-jobs" style="' + css({ 'border-radius': (p.radius || 0) + 'px', '--wr-job-accent': jAccent }) + '">' +
           jRows.map(function (r) {
             var jh = safeUrl(r[3], '');
             return '<div class="wr-job" style="' + css({ background: paint(p.jobCardBg, '#fff') }) + '">' +
@@ -4714,7 +4976,7 @@
               (r[1] ? '<span class="wr-job-loc">⌖ ' + esc(r[1]) + '</span>' : '') + '</div>' +
               (r[2] ? '<span class="wr-job-salary">' + esc(r[2]) + '</span>' : '') +
               (jh && jh !== '#'
-                ? '<a class="wr-job-btn" href="' + esc(jh) + '">查看详情 →</a>'
+                ? '<a class="wr-job-btn" href="' + esc(jh) + '" style="' + jobBtnStyle + '">查看详情 →</a>'
                 : '') + '</div>';
           }).join('') + '</div>';
         break;
@@ -4777,13 +5039,15 @@
           'max-width': (page.maxWidth || 960) + 'px', margin: '0 auto',
           padding: '0 ' + (p.padX == null ? 24 : p.padX) + 'px'
         }) + '">' +
-          '<a class="wr-nav-brand" href="#top">' +
+          '<a class="wr-nav-brand" href="#top" style="' + css(brandStyle(p, 17)) + '">' +
           mediaHTML(p.emoji, { size: 30, font: 15, cls: 'wr-nav-mark', inline: true, fit: 'contain', alt: p.title }) +
           esc(p.title || '品牌名称') + '</a>' +
           '<input class="wr-nav-cb" type="checkbox" id="' + subId + '" aria-label="展开菜单" hidden>' +
           '<label class="wr-nav-burger" for="' + subId + '" aria-label="打开菜单">☰</label>' +
-          '<div class="wr-subnav-links" style="' + (p.align === 'left' ? 'margin-right:auto' : 'margin-left:auto') + '">' +
-          subLinks + (p.btnText ? '<a class="wr-nav-cta" href="' + esc(safeUrl(p.navCtaHref, '#')) + '">' + esc(p.btnText) + '</a>' : '') +
+          '<div class="wr-subnav-links" style="' + (p.align === 'left' ? 'margin-right:auto' : 'margin-left:auto') + ';' + css(navVars(p)) + '">' +
+          subLinks + (p.btnText ? '<a class="wr-nav-cta" href="' + esc(safeUrl(p.navCtaHref, '#')) + '" style="' + css(btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 9, padX: 18, padY: 9, fontSize: 14, weight: '600', shadow: 'none'
+          })) + '">' + esc(p.btnText) + '</a>' : '') +
           '</div></div></nav>';
         break;
       }
@@ -4800,16 +5064,18 @@
           'max-width': (page.maxWidth || 960) + 'px', margin: '0 auto',
           padding: '0 ' + (p.padX == null ? 24 : p.padX) + 'px'
         }) + '">' +
-          '<a class="wr-nav-brand" href="#top">' +
+          '<a class="wr-nav-brand" href="#top" style="' + css(brandStyle(p, 17)) + '">' +
           mediaHTML(p.emoji, { size: 30, font: 15, cls: 'wr-nav-mark', inline: true, fit: 'contain', alt: p.title }) +
           esc(p.title || '品牌名称') + '</a>' +
           '<input class="wr-nav-cb" type="checkbox" id="' + smId + '" aria-label="展开菜单" hidden>' +
           '<label class="wr-nav-burger" for="' + smId + '" aria-label="打开菜单">☰</label>' +
-          '<div class="wr-smartnav-links">' + smLinks + '</div>' +
+          '<div class="wr-smartnav-links" style="' + css(navVars(p)) + '">' + smLinks + '</div>' +
           (p.searchPlaceholder ? '<div class="wr-smart-search"><input type="search" placeholder="' + esc(p.searchPlaceholder) + '" aria-label="' + esc(p.searchPlaceholder) + '"><button type="button" aria-label="搜索">⌕</button></div>' : '') +
           '<button type="button" class="wr-smart-theme" data-wr-darkmode="1" aria-pressed="false" title="' + esc(p.themeBtnText || '切换主题') + '">' +
           '<span data-on="☀" data-off="☾">☾</span><em>' + esc(p.themeBtnText || '主题') + '</em></button>' +
-          (p.btnText ? '<a class="wr-nav-cta" href="' + esc(safeUrl(p.navCtaHref, '#')) + '">' + esc(p.btnText) + '</a>' : '') +
+          (p.btnText ? '<a class="wr-nav-cta" href="' + esc(safeUrl(p.navCtaHref, '#')) + '" style="' + css(btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 9, padX: 18, padY: 9, fontSize: 14, weight: '600', shadow: 'none'
+          })) + '">' + esc(p.btnText) + '</a>' : '') +
           '</div></nav>';
         break;
       }
@@ -4850,7 +5116,10 @@
             return '<label class="wr-chk"><input type="checkbox" value="' + esc(val) + '"' + (on ? ' checked' : '') +
               '><span>' + esc(label) + '</span></label>';
           }).join('') + '</div>' +
-          (p.chkBtn ? '<div class="wr-chk-actions"><button type="button" class="wr-chk-btn">' + esc(p.chkBtn) + '</button>' +
+          (p.chkBtn ? '<div class="wr-chk-actions"><button type="button" class="wr-chk-btn" style="' + css(btnSkin(p, {
+            bg: page.accent, color: '#fff', radius: 9, padX: 22, padY: 10, fontSize: 14, weight: '600',
+            shadow: 'none', extra: { border: '0', cursor: 'pointer', 'font-family': 'inherit' }
+          })) + '">' + esc(p.chkBtn) + '</button>' +
             '<span class="wr-chk-result" hidden></span></div>' : '') +
           '</div>';
         break;
@@ -5670,6 +5939,23 @@
       timer = setTimeout(finish, c.style === 'none' ? 1500 : c.dur);
     }
   }
+  /* 这几组字段不按「内容 / 外观 / 布局」拆散，统一放在独立的子元素设置里 */
+  var BTN_KEYS = ['btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnPadX', 'btnPadY', 'btnFontSize', 'btnWeight', 'btnShadow', 'btnFull', 'btnBorderWidth'];
+  var NAV_KEYS = ['navLinkColor', 'navLinkHover', 'navLinkSize', 'navLinkGap', 'navBrandSize'];
+  var FOOT_KEYS = ['footLinkColor', 'footLinkSize', 'footLinkGap', 'footTitleSize', 'footBottomSize'];
+  var INPUT_KEYS = ['inputBg', 'inputColor', 'inputPhColor', 'inputBorderColor', 'inputBorderWidth', 'inputRadius', 'inputPadX', 'inputPadY'];
+  var CARD_KEYS = ['cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'cardIconSize'];
+  var SUB_KEYS = BTN_KEYS.concat(NAV_KEYS, FOOT_KEYS, INPUT_KEYS, CARD_KEYS);
+  function extraFields(a, keys) {
+    return keys.filter(function (k) { return a.fields.indexOf(k) >= 0 && FIELD_MAP[k]; });
+  }
+  function extraGroupHTML(title, keys, hint) {
+    if (!keys.length) return '';
+    return '<div class="prop-group prop-subgroup"><h3>' + title + '</h3>' +
+      (hint ? '<p class="prop-subnote">' + hint + '</p>' : '') +
+      keys.map(function (k) { return fieldHTML(FIELD_MAP[k], getBlock(selectedId).p[k]); }).join('') +
+      '</div>';
+  }
   function renderProps() {
     var box = $('#propPanel');
     refreshLayerTargetOpts();
@@ -5693,10 +5979,11 @@
       return;
     }
     var a = ASSET_MAP[b.type];
+    var normalFields = a.fields.filter(function (k) { return SUB_KEYS.indexOf(k) < 0; });
     var groups = [
-      { title: '内容', fields: a.fields.filter(function (k) { return FIELD_MAP[k] && ['textarea', 'text', 'code', 'select', 'media', 'film'].indexOf(FIELD_MAP[k].type) >= 0; }) },
-      { title: '外观', fields: a.fields.filter(function (k) { return FIELD_MAP[k] && FIELD_MAP[k].type === 'color'; }) },
-      { title: '布局', fields: a.fields.filter(function (k) { return FIELD_MAP[k] && ['range', 'seg'].indexOf(FIELD_MAP[k].type) >= 0; }) }
+      { title: '内容', fields: normalFields.filter(function (k) { return FIELD_MAP[k] && ['textarea', 'text', 'code', 'select', 'media', 'film'].indexOf(FIELD_MAP[k].type) >= 0; }) },
+      { title: '外观', fields: normalFields.filter(function (k) { return FIELD_MAP[k] && FIELD_MAP[k].type === 'color'; }) },
+      { title: '布局', fields: normalFields.filter(function (k) { return FIELD_MAP[k] && ['range', 'seg'].indexOf(FIELD_MAP[k].type) >= 0; }) }
     ];
     var loc = findBlock(selectedId, state.blocks, null);
     var html = '<div class="prop-head"><h2>' + esc(a.label) + '</h2><p>模块 ID · ' + esc(b.id.slice(-6)) +
@@ -5712,11 +5999,25 @@
         '<button type="button" data-pact="stackify">↕ 纵向堆叠</button></div>' +
         '<p class="prop-hint">一行均分可设「一行放几个」（1–6 个），子模块还能单独设占几列；自动横排按子模块宽度排，放不下自动换行。手机端都会变成单列。</p></div>';
     }
-    groups.forEach(function (g) {
-      if (!g.fields.length) return;
-      html += '<div class="prop-group"><h3>' + g.title + '</h3>' +
+    function groupHTML(g) {
+      if (!g || !g.fields.length) return '';
+      return '<div class="prop-group"><h3>' + g.title + '</h3>' +
         g.fields.map(function (k) { return fieldHTML(FIELD_MAP[k], b.p[k]); }).join('') + '</div>';
-    });
+    }
+    // 先放文字内容，紧接着放按钮 / 输入框 / 导航 / 页脚这些「组件里的组件」，
+    // 最后才是外观与布局，避免改按钮颜色时要一路滚到底。
+    html += groupHTML(groups[0]);
+    html += extraGroupHTML('按钮 · 独立设置', extraFields(a, BTN_KEYS),
+      '这里只改当前模块里的按钮，不影响其他模块。留空 / 跟随组件时保持原来的样子。');
+    html += extraGroupHTML('输入框 · 独立设置', extraFields(a, INPUT_KEYS),
+      '只改当前表单 / 搜索框里的输入框。');
+    html += extraGroupHTML('卡片 / 子项 · 独立设置', extraFields(a, CARD_KEYS),
+      '只改当前模块里每张卡片的内边距、标题与正文大小。');
+    html += extraGroupHTML('导航文字 · 独立设置', extraFields(a, NAV_KEYS),
+      '只改当前导航的菜单文字、悬停色与间距。');
+    html += extraGroupHTML('页脚文字 · 独立设置', extraFields(a, FOOT_KEYS),
+      '只改当前页脚的链接与栏目标题。');
+    html += groupHTML(groups[1]) + groupHTML(groups[2]);
     var parent = loc && loc.parentId ? getBlock(loc.parentId) : null;
     var parentLayout = parent && isContainer(parent) ? (parent.p.layout || 'stack') : '';
     if (isStickyNav(b) && loc && loc.parentId) {
