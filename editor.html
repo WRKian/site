@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>编辑器 · 建站工坊</title>
   <meta name="description" content="零依赖的可视化网页制作工具：拖拽素材、实时编辑、一键导出独立 HTML。">
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css?v=20261125e">
-  <link rel="stylesheet" href="portal.css?v=20261123">
+  <link rel="icon" id="wrFavicon" href="favicon-32.png?v=20261125g">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261125g">
+  <link rel="stylesheet" href="style.css?v=20261125g">
+  <link rel="stylesheet" href="portal.css?v=20261125g">
   <style>
     /* 顶栏里的门户入口微调，兼容编辑器原有 topbar */
     .topbar .pt-editor-bar{margin-left:2px}
@@ -23,7 +24,7 @@
   <header class="topbar">
     <div class="brand">
       <a href="index.html" title="返回建站工坊首页" style="display:flex;align-items:center;gap:9px;color:inherit">
-        <span class="brand-mark">W</span>
+        <img class="brand-mark" src="logo-mark.svg?v=20261125g" alt="" width="34" height="34">
         <span class="brand-txt"><b>建站工坊</b><small>← 返回首页</small></span>
       </a>
     </div>
@@ -220,6 +221,7 @@
       <li>上传的大图会自动等比压缩到 1600px 以内，页面里只保存素材引用，避免同一张图在项目 / 历史 / 导出文件里重复占用空间</li>
       <li>右侧设置项可用顶部搜索框直接定位；窗口较窄时「☰ 素材」和「⚙ 属性」会变成抽屉，点击画布上的模块会自动展开属性</li>
       <li>页面设置里可填写「网站描述（SEO）」，导出的 HTML 会带上分享信息、打印样式，并尊重系统的「减少动效」设置</li>
+      <li>页面设置里的<b>标签页图标</b>决定浏览器标签上那个小图标：默认按站点名首字自动生成，也可以上传自己的方形图片（会压成 128px 内嵌进导出文件），或干脆不显示</li>
     </ul>
     <h3>导入现有网页</h3>
     <ul class="key-list">
@@ -395,7 +397,7 @@
 
 <script src="media.js"></script>
 <script src="templates.js"></script>
-<script src="app.js?v=20261125e"></script>
+<script src="app.js?v=20261125g"></script>
 <script src="portal.js?v=20261123"></script>
 <script>
 (function () {

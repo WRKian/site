@@ -27,6 +27,7 @@ body.pt-body{
 .pt-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.02em}
 .pt-logo-mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
   background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-size:15px;box-shadow:0 6px 14px rgba(37,99,235,.3)}
+img.pt-logo-mark{background:none;border-radius:8px;display:block;flex:0 0 34px;object-fit:contain}
 .pt-logo small{display:block;font-size:10px;font-weight:600;color:var(--pt-sub);letter-spacing:.06em}
 .pt-nav-links{display:flex;gap:24px;margin-left:12px}
 .pt-nav-links a{color:#475569;font-size:14px;font-weight:600;transition:color .2s}

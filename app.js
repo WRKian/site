@@ -1429,6 +1429,8 @@
       name: '未命名页面',
       page: {
         bg: '#ffffff', text: '#16233a', accent: '#3b82f6', maxWidth: 960, font: 'system', description: '',
+        // 标签页图标：auto=按站点名生成，custom=自有图片，none=不显示
+        favicon: '', faviconMode: 'auto', faviconFit: 'contain', faviconBg: '',
         fxLevel: '2', cursorGlow: '0', cursorStyle: 'none', magnet: '1',
         scrollBar: '1', backTop: '1', reduceMotion: '1',
         spotlight: '0', parallax: '0', ripple: '0', scrollShadow: '0', countUp: '0', trail: '0', pageVeil: '0',
@@ -1460,6 +1462,15 @@
       if (typeof s.page.introPoster === 'string' && s.page.introPoster.length < 700000) {
         page.introPoster = safeImg(s.page.introPoster.trim().slice(0, 700000));
       }
+      // 标签页图标：可能是上传后的 data URI，也可能是外链
+      if (typeof s.page.favicon === 'string' && s.page.favicon.length < 700000) {
+        page.favicon = safeImg(s.page.favicon.trim().slice(0, 700000));
+      }
+      [['faviconMode', ['auto', 'custom', 'none']], ['faviconFit', ['contain', 'cover']]].forEach(function (t) {
+        var fv = String(s.page[t[0]] == null ? '' : s.page[t[0]]);
+        if (t[1].indexOf(fv) >= 0) page[t[0]] = fv;
+      });
+      if (typeof s.page.faviconBg === 'string') page.faviconBg = s.page.faviconBg.slice(0, 60);
       if (s.page.introDur != null) {
         var idur = Number(s.page.introDur);
         page.introDur = isFinite(idur) && idur > 0 ? Math.max(600, Math.min(5000, Math.round(idur))) : d.page.introDur;
@@ -6317,6 +6328,154 @@
     var dq = f.type === 'rows' ? rowsOf(v).map(function (r) { return r.join(' '); }).join(' ').slice(0, 400) : '';
     return '<div class="prop-field"' + (dq ? ' data-q="' + esc(dq) + '"' : '') + '><label>' + esc(f.label) + hint + '</label>' + ctrl + '</div>';
   }
+  /* ---------- 标签页图标（favicon） ---------- */
+  var FAVICON_MAX = 480000;          // 图标 data URI 上限：128px PNG 一般在 30KB 内，留足余量
+  var FAVICON_MAX_BYTES = 8 * 1024 * 1024;
+  function faviconLetter() {
+    var n = String(state.name || '').trim();
+    var m = n.match(/[A-Za-z0-9]/);
+    if (m) return m[0].toUpperCase();
+    var c = n.match(/[\u4e00-\u9fa5\u3400-\u4dbf\u3040-\u30ff\uac00-\ud7af]/);
+    return c ? c[0] : 'W';
+  }
+  function faviconRoundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+  var autoFavCache = { key: '', val: '' };
+  /* 站点名首字 + 深色圆角底：和品牌图标同一套视觉，任何站点开箱就有个像样的标签页图标 */
+  function faviconAutoData() {
+    var cacheKey = faviconLetter() + '|' + String(state.name || '');
+    if (autoFavCache.key === cacheKey) return autoFavCache.val;
+    try {
+      var S = 128;
+      var cv = document.createElement('canvas');
+      cv.width = cv.height = S;
+      var ctx = cv.getContext('2d');
+      if (!ctx) return '';
+      var g = ctx.createLinearGradient(0, 0, 0, S);
+      g.addColorStop(0, '#182a44'); g.addColorStop(1, '#080f1b');
+      faviconRoundRect(ctx, 0, 0, S, S, S * 0.22);
+      ctx.fillStyle = g; ctx.fill();
+      var ch = faviconLetter();
+      var cjk = /[^\x00-\xff]/.test(ch);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '700 ' + Math.round(S * (cjk ? 0.50 : 0.56)) +
+        'px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillText(ch, S / 2, S / 2 + S * 0.035);
+      autoFavCache = { key: cacheKey, val: cv.toDataURL('image/png') };
+      return autoFavCache.val;
+    } catch (e) { return ''; }
+  }
+  /* 当前真正要用的图标地址；空字符串表示这个站点不显示图标 */
+  function faviconHref() {
+    var p = state.page || {};
+    var mode = p.faviconMode || 'auto';
+    if (mode === 'none') return '';
+    if (mode === 'custom' && p.favicon) return String(p.favicon).trim();
+    return faviconAutoData();
+  }
+  var lastEditorFavicon = null;
+  /* 编辑器自己的标签页跟着变，改完一眼就能看到效果 */
+  function applyEditorFavicon() {
+    var link = document.getElementById('wrFavicon');
+    if (!link) return;
+    var href = faviconHref() || 'favicon-32.png?v=20261125f';
+    if (href === lastEditorFavicon) return;
+    lastEditorFavicon = href;
+    link.href = href;
+  }
+  function faviconSizeText(u) {
+    var kb = Math.round(String(u || '').length * 0.75 / 1024);
+    return kb >= 1 ? '约 ' + kb + ' KB · 已内嵌进页面' : '已内嵌进页面';
+  }
+  function drawFaviconCanvas(img, S, fit, bg) {
+    var cv = document.createElement('canvas');
+    cv.width = cv.height = S;
+    var ctx = cv.getContext('2d');
+    if (!ctx) return '';
+    if (bg) { ctx.fillStyle = safeCssColor(bg, '#ffffff'); ctx.fillRect(0, 0, S, S); }
+    var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+    if (!w || !h) return '';
+    var scale = fit === 'cover' ? Math.max(S / w, S / h) : Math.min(S / w, S / h);
+    ctx.drawImage(img, (S - w * scale) / 2, (S - h * scale) / 2, w * scale, h * scale);
+    return cv.toDataURL('image/png');
+  }
+  /* 上传的图片统一压成 128×128 PNG：标签页最多显示 64px，2 倍图够清晰又不撑大页面 */
+  function renderFaviconImage(img, fit, bg) {
+    var out = drawFaviconCanvas(img, 128, fit, bg);
+    if (out && out.length > FAVICON_MAX) out = drawFaviconCanvas(img, 64, fit, bg);
+    return out;
+  }
+  function faviconFilePicked(input) {
+    var f = input.files && input.files[0];
+    input.value = '';
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { toast('请选择图片文件', true); return; }
+    if (f.size > FAVICON_MAX_BYTES) { toast('图片超过 8 MB，请先压缩', true); return; }
+    var reader = new FileReader();
+    reader.onerror = function () { toast('图片读取失败', true); };
+    reader.onload = function (ev) {
+      var raw = String(ev.target.result || '');
+      if (!raw) { toast('图片读取失败', true); return; }
+      var img = new Image();
+      img.onerror = function () { toast('这张图片浏览器读不了，换一张试试', true); };
+      img.onload = function () {
+        var out = renderFaviconImage(img, state.page.faviconFit || 'contain', state.page.faviconBg || '');
+        if (!out) { toast('图标生成失败，换一张试试', true); return; }
+        state.page.favicon = out;
+        state.page.faviconMode = 'custom';
+        pushHistory(); renderAll(); scheduleSave();
+        toast('✓ 标签页图标已更新，看浏览器标签');
+      };
+      img.src = raw;
+    };
+    reader.readAsDataURL(f);
+  }
+  function faviconFieldsHTML() {
+    var p = state.page;
+    var mode = p.faviconMode || 'auto';
+    var href = faviconHref();
+    var letter = faviconLetter();
+    var html = '<div class="prop-group"><h3>标签页图标</h3>' +
+      '<p class="prop-hint">浏览器标签、收藏夹、手机桌面快捷方式上显示的小图标；导出时一起内嵌进 HTML，不用另外传文件。</p>' +
+      fieldHTML({
+        k: '__faviconMode', label: '图标来源', type: 'seg',
+        opts: [['auto', '自动'], ['custom', '上传'], ['none', '不显示']]
+      }, mode);
+    if (mode === 'auto') {
+      html += '<div class="fav-preview"><span class="fav-chip">' +
+        (href ? '<img src="' + esc(href) + '" alt="">' : '') + '</span>' +
+        '<div class="fav-meta"><b>自动生成 ·「' + esc(letter) + '」</b>' +
+        '<span>取站点名的第一个字，配深色圆角底；改站点名会自动跟着变</span></div></div>';
+    } else if (mode === 'custom') {
+      html += '<div class="fav-preview"><span class="fav-chip is-checker">' +
+        (p.favicon ? '<img src="' + esc(p.favicon) + '" alt="">' : '<i>空</i>') + '</span>' +
+        '<div class="fav-meta"><b>' + (p.favicon ? '已设置自定义图标' : '还没选图片') + '</b><span>' +
+        (p.favicon ? esc(faviconSizeText(p.favicon)) : '正方形图片效果最好，建议 128×128 以上') +
+        '</span></div></div>' +
+        '<div class="media-row"><input class="prop-input" data-key="__favicon" value="' + esc(p.favicon || '') +
+        '" placeholder="填图片网址，或点下面上传" spellcheck="false"></div>' +
+        '<div class="media-tools">' +
+        '<button type="button" data-fav-act="upload">＋ 上传图片</button>' +
+        '<button type="button" class="media-clear" data-fav-act="clear" title="清空">✕</button>' +
+        '<input type="file" class="fav-file" accept="image/*" hidden>' +
+        '</div>' +
+        fieldHTML({ k: '__faviconFit', label: '图片适配', type: 'seg', opts: [['contain', '完整放入'], ['cover', '铺满裁切']] }, p.faviconFit || 'contain') +
+        fieldHTML({ k: '__faviconBg', label: '图标底色', type: 'color', ph: '留空透明' }, p.faviconBg || '') +
+        '<p class="prop-hint">适配方式和底色在上传那一刻套用；想换效果，改完再传一次同一张图。直接填网址的图片按原样引用。</p>';
+    } else {
+      html += '<p class="prop-hint">导出后浏览器标签上不显示图标（少数浏览器会补一个默认图标）。</p>';
+    }
+    return html + '</div>';
+  }
   function pageFieldsHTML() {
     var p = state.page;
     var rows = [
@@ -6702,6 +6861,7 @@
       box.innerHTML =
         '<div class="prop-head"><h2>页面设置</h2><p>未选中模块 · 这里设置整页样式</p></div>' +
         '<div class="prop-group"><h3>全局样式</h3>' + pageFieldsHTML() + '</div>' +
+        faviconFieldsHTML() +
         pageIntroHTML() +
         pageFxHTML() +
         '<div class="prop-group"><h3>页面信息</h3>' +
@@ -6779,6 +6939,7 @@
     renderAssets(); renderMyAssets(); renderComponents(); renderCanvas(); renderLayers(); renderProps();
     $('#stageTitle').textContent = state.name || '未命名页面';
     $('#projectName').value = state.name || '';
+    applyEditorFavicon();
     updateHistoryButtons();
   }
 
@@ -7171,6 +7332,7 @@
     if (key.indexOf('__') === 0) {
       var map = {
         __bg: 'bg', __text: 'text', __accent: 'accent', __maxWidth: 'maxWidth', __desc: 'description',
+        __favicon: 'favicon', __faviconMode: 'faviconMode', __faviconFit: 'faviconFit', __faviconBg: 'faviconBg',
         __fxLevel: 'fxLevel', __cursorGlow: 'cursorGlow', __cursorStyle: 'cursorStyle',
         __magnet: 'magnet', __scrollBar: 'scrollBar', __backTop: 'backTop', __reduceMotion: 'reduceMotion',
         __introStyle: 'introStyle', __introFilm: 'introFilm', __introDrive: 'introDrive',
@@ -7185,6 +7347,11 @@
       if (pk === 'introFilm' && String(value || '').indexOf('builtin:') !== 0) state.page.introPoster = '';
       if (pk === 'accent') syncComponentCSS();
       if (pk === 'introStyle' || pk === 'introDrive') renderProps();
+      // 标签页图标：立刻同步到编辑器自己的标签上，切来源时要重绘面板
+      if (pk === 'favicon' || pk === 'faviconMode' || pk === 'faviconFit' || pk === 'faviconBg') {
+        applyEditorFavicon();
+        if (pk === 'faviconMode') renderProps();
+      }
       scheduleCanvasRender(); scheduleHistory(); scheduleSave();
       return;
     }
@@ -9505,6 +9672,7 @@
       if (el.getAttribute && el.getAttribute('data-rs')) return;
       if (el.matches && el.matches('input[data-media-file]')) { mediaFilePicked(el); return; }
       if (el.matches && el.matches('input[data-film-file]')) { filmFilePicked(el); return; }
+      if (el.matches && el.matches('input.fav-file')) { faviconFilePicked(el); return; }
       if (el.classList && el.classList.contains('media-pick')) {
         var val = el.value;
         if (!val) return;
@@ -9519,6 +9687,21 @@
       if (el.tagName === 'SELECT' || el.type === 'color') applyProp(key, el.value, el);
     });
     box.addEventListener('click', function (e) {
+      // 标签页图标：上传 / 清空
+      var favBtn = e.target.closest ? e.target.closest('[data-fav-act]') : null;
+      if (favBtn) {
+        var fact = favBtn.getAttribute('data-fav-act');
+        if (fact === 'upload') {
+          var fin = $('.fav-file', box);
+          if (fin) fin.click();
+        } else if (fact === 'clear') {
+          state.page.favicon = '';
+          state.page.faviconMode = 'auto';
+          pushHistory(); renderAll(); scheduleSave();
+          toast('已清空自定义图标，回到按站点名生成');
+        }
+        return;
+      }
       // 多行内容：加行 / 删行 / 上下移 / 加列
       var rbtn = e.target.closest ? e.target.closest('[data-row-act]') : null;
       if (rbtn) {
@@ -10541,11 +10724,15 @@
     if (fx.intro.style !== 'none') headJs.push(introGateJS(fx.intro));
     var hasAppearance = appearanceFlags() > 0;
     if (hasAppearance) headJs.push(appearanceRestoreJS());
+    // 标签页图标：没设就用站点名首字生成的图标，导出的单文件 HTML 也有自己的标签页图标
+    var favHref = faviconHref();
+    var favTags = '<link rel="icon" href="' + esc(favHref || 'data:,') + '">\n' +
+      (favHref ? '<link rel="apple-touch-icon" href="' + esc(favHref) + '">\n' : '');
     return '<!doctype html>\n' +
       '<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
       '<title>' + title + '</title>\n' +
-      '<link rel="icon" href="data:,">\n' +
+      favTags +
       '<meta name="description" content="' + desc + '">\n' +
       '<meta name="theme-color" content="' + accent + '">\n' +
       '<meta property="og:type" content="website">\n' +
@@ -11018,6 +11205,7 @@
     $('#projectName').addEventListener('input', function (e) {
       state.name = e.target.value;
       $('#stageTitle').textContent = state.name || '未命名页面';
+      applyEditorFavicon();
       scheduleHistory(); scheduleSave();
     });
 
