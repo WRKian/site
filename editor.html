@@ -6,7 +6,7 @@
   <title>编辑器 · 建站工坊</title>
   <meta name="description" content="零依赖的可视化网页制作工具：拖拽素材、实时编辑、一键导出独立 HTML。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css?v=20261123d">
+  <link rel="stylesheet" href="style.css?v=20261125e">
   <link rel="stylesheet" href="portal.css?v=20261123">
   <style>
     /* 顶栏里的门户入口微调，兼容编辑器原有 topbar */
@@ -46,6 +46,7 @@
       <button class="dev-btn" data-device="mobile" title="手机">▯</button>
     </div>
     <span class="device-label" id="deviceLabel">桌面 · 960px</span>
+    <button class="tb-btn icon-only" id="darkPreviewBtn" title="深色预览：只看画布，不影响导出" aria-label="深色预览" aria-pressed="false">☾</button>
 
     <div class="tb-spacer"></div>
 
@@ -252,6 +253,7 @@
     <ul class="key-list">
       <li>每个模块的属性面板底部都有「通用设置」，对所有组件生效，分 8 组：链接与标识、模块配色、尺寸与位置、层叠 / 浮层、边框与效果、文字排版、进入动画、显示与高级</li>
       <li><b>整块链接</b>：给任何模块填一个地址，整个模块就变成可点击的（预览和导出的页面里生效，内部原有的按钮 / 链接仍可单独点击）；<b>链接打开方式</b>可设当前窗口 / 全部新标签页 / 仅外部链接新标签页，新窗口自动带安全属性</li>
+      <li><b>主题样式</b>（属性面板靠前的位置）：决定这个模块在浅色 / 深色主题下长什么样——跟随主题、页面底色、卡片底色、主题浅底、强调色块、反色块、主题描边、透明无底色，或自定义两套颜色（浅色 / 深色各设底色 / 文字色 / 强调色 / 链接色）。强调色块和主题浅底会跟着主题切换器换色；顶栏 ☾ 可在画布里直接预览深色效果，不影响导出</li>
       <li><b>模块配色</b>：模块背景（支持渐变）、模块背景图（可上传，选铺满 / 完整 / 原始大小与是否平铺）、模块文字色（统一覆盖整块文字，按钮 / 链接保持自己的颜色）、模块强调色（只改本模块的按钮 / 图标 / 进度条 / 链接）、链接颜色，以及边框色 / 粗细 / 样式（实线 / 虚线 / 点线 / 双线）/ 圆角</li>
       <li><b>独立配色（不受模式影响）</b>：默认「跟随主题」，切到「锁定自身」后，本模块的颜色始终用上面设置的自身颜色；整页切换深色 / 浅色模式、或用主题切换器换色时，这个模块都保持原样不被覆盖。适合品牌区、固定配色的卡片等需要颜色恒定的模块</li>
       <li><b>文字排版</b>：字体、基础字号、行高、字间距、文字粗细、英文大小写、文字装饰（下划线 / 删除线 / 上划线）、文字阴影，按需微调整块模块的文字风格</li>
@@ -393,7 +395,7 @@
 
 <script src="media.js"></script>
 <script src="templates.js"></script>
-<script src="app.js?v=20261123d"></script>
+<script src="app.js?v=20261125e"></script>
 <script src="portal.js?v=20261123"></script>
 <script>
 (function () {

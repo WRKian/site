@@ -180,6 +180,9 @@
     noticeIcon: { k: 'noticeIcon', label: '自定义图标', type: 'media', hint: '留空则按提示类型显示默认符号' },
     contactIcons: { k: 'contactIcons', label: '三个图标（用 | 分隔）', type: 'media', multi: true, hint: '可填 emoji 或图片；留空用默认符号' },
     role: { k: 'role', label: '身份 / 职位', type: 'text' },
+    dateText: { k: 'dateText', label: '日期 / 时间', type: 'text', hint: '如 2026 年 3 月 / Q2' },
+    percent: { k: 'percent', label: '进度', type: 'range', min: 0, max: 100, unit: '%' },
+    hot: { k: 'hot', label: '推荐标记', type: 'seg', opts: [['1', '推荐'], ['0', '普通']] },
     barColor: { k: 'barColor', label: '进度条颜色', type: 'color' },
 
     /* --- 参考国内外知名站点的内容字段 --- */
@@ -386,6 +389,19 @@
     boxHoverTip: { k: 'boxHoverTip', label: '悬停提示文字', type: 'text', hint: '鼠标停在模块上时显示的 title 提示' },
     /* --- 模块配色 --- */
     boxColorLock: { k: 'boxColorLock', label: '独立配色（不受模式影响）', type: 'seg', opts: [['0', '跟随主题'], ['1', '锁定自身']], hint: '锁定后本模块的背景 / 文字 / 链接 / 强调色始终用下方设置的值，切换深色 / 浅色模式也不会被覆盖' },
+    /* --- 主题样式：每个模块决定自己在浅色 / 深色主题下长什么样 --- */
+    boxThemeRole: { k: 'boxThemeRole', label: '在主题下的样子', type: 'select',
+      opts: [['auto', '跟随主题（默认）'], ['base', '页面底色'], ['card', '卡片底色'], ['soft', '主题浅底'],
+        ['accent', '强调色块'], ['inverse', '反色块'], ['outline', '主题描边'], ['plain', '透明无底色'], ['custom', '自定义（分浅色 / 深色）']],
+      hint: '决定这个模块在浅色 / 深色主题下的底色、文字与链接；换主题色时选「强调色块 / 主题浅底」会跟着变' },
+    boxThemeLightBg: { k: 'boxThemeLightBg', label: '浅色模式 · 底色', type: 'color', hint: '留空保持透明' },
+    boxThemeLightText: { k: 'boxThemeLightText', label: '浅色模式 · 文字色', type: 'color' },
+    boxThemeLightAccent: { k: 'boxThemeLightAccent', label: '浅色模式 · 强调色', type: 'color' },
+    boxThemeLightLink: { k: 'boxThemeLightLink', label: '浅色模式 · 链接色', type: 'color' },
+    boxThemeDarkBg: { k: 'boxThemeDarkBg', label: '深色模式 · 底色', type: 'color', hint: '留空沿用上面的浅色设置' },
+    boxThemeDarkText: { k: 'boxThemeDarkText', label: '深色模式 · 文字色', type: 'color' },
+    boxThemeDarkAccent: { k: 'boxThemeDarkAccent', label: '深色模式 · 强调色', type: 'color' },
+    boxThemeDarkLink: { k: 'boxThemeDarkLink', label: '深色模式 · 链接色', type: 'color' },
     boxTextColor: { k: 'boxTextColor', label: '模块文字色', type: 'color', hint: '统一覆盖模块内所有文字颜色（按钮 / 链接可单独设）' },
     boxBg: { k: 'boxBg', label: '模块背景', type: 'color', hint: '覆盖或叠加在模块背景上，支持渐变；留空用组件自带背景' },
     boxAccent: { k: 'boxAccent', label: '模块强调色', type: 'color', hint: '只改本模块的按钮 / 图标 / 进度条 / 链接色' },
@@ -586,6 +602,8 @@
     animEase: 'out', animDist: 28, animOnce: '1', animStagger: 0,
     /* 通用增强属性 */
     boxHref: '', boxHoverTip: '', boxColorLock: '0', boxTextColor: '', boxBg: '', boxAccent: '', boxLinkColor: '',
+    boxThemeRole: 'auto', boxThemeLightBg: '', boxThemeLightText: '', boxThemeLightAccent: '', boxThemeLightLink: '',
+    boxThemeDarkBg: '', boxThemeDarkText: '', boxThemeDarkAccent: '', boxThemeDarkLink: '',
     boxRadius: 0, boxFont: '', boxFontSize: 0, boxLineHeight: 0,
     boxLetterSpacing: 0, boxFontWeight: '', boxTextTransform: 'none', boxTextShadow: 'none',
     boxFilter: 'none', boxBlend: 'normal', boxBackdrop: '0', boxRotate: 0, boxScale: 100,
@@ -894,6 +912,7 @@
     { key: 'basic', label: '基础内容', ico: '◆' },
     { key: 'nav', label: '导航与框架', ico: '▤' },
     { key: 'show', label: '内容展示', ico: '▦' },
+    { key: 'singles', label: '单条组件', ico: '◫' },
     { key: 'convert', label: '转化与互动', ico: '✦' },
     { key: 'social', label: '社区与产品', ico: '◍' },
     { key: 'visual', label: '视觉实验', ico: '✧' },
@@ -1252,6 +1271,64 @@
         radius: 14, align: 'left', padY: 36, padX: 24, bg: '' } }
   ]);
 
+  /* ---------- 单条组件 ----------
+     从列表型组件里拆出来的「一条」：内容只有一条，样式字段和列表里的那一张卡完全一样。
+     想排成三栏就并排放三个，想只让其中一个变样就单独改它，互不影响。 */
+  var SINGLE_CARD_FIELDS = ['cardBg', 'color', 'radius', 'cardPadX', 'cardPadY', 'cardTitleSize', 'cardTextSize', 'cardIconSize', 'align', 'padY', 'padX', 'bg'];
+  function sCard(extra) { return extra.concat(SINGLE_CARD_FIELDS); }
+  var SINGLES = [
+    { type: 'feat1', label: '单条特性', ico: '◫', tone: 'violet', g: 'singles',
+      fields: sCard(['emoji', 'title', 'desc']),
+      d: { emoji: '⚡', title: '快速上手', desc: '拖一拖就能搭出页面，改完立刻看到效果。',
+        cardBg: '#f5f8ff', color: '#16233a', radius: 14, cardPadX: 20, cardPadY: 26,
+        cardTitleSize: 17, cardTextSize: 13, cardIconSize: 42, align: 'left', padY: 20, padX: 24, bg: '' } },
+    { type: 'member1', label: '单个成员', ico: '☺', tone: '', g: 'singles',
+      fields: sCard(['emoji', 'title', 'role', 'desc']),
+      d: { emoji: '👩‍💻', title: '林晓', role: '前端工程师', desc: '负责交互与可视化编辑器。',
+        cardBg: '#f5f8ff', color: '#16233a', radius: 16, cardPadX: 18, cardPadY: 26,
+        cardTitleSize: 16, cardTextSize: 13, cardIconSize: 62, align: 'center', padY: 20, padX: 24, bg: '' } },
+    { type: 'plan1', label: '单条价格卡', ico: '▤', tone: 'gold', g: 'singles',
+      fields: sCard(['title', 'prodPrice', 'desc', 'btnText', 'href', 'hot',
+        'btnStyle', 'btnBg', 'btnColor', 'btnRadius', 'btnFontSize']),
+      d: { title: '专业版', prodPrice: '¥299', desc: '适合个人与小团队\n无限页面\n全部组件\n导出 HTML', btnText: '立即开始', href: '#', hot: '1',
+        btnStyle: 'auto', btnBg: '', btnColor: '', btnRadius: 9, btnFontSize: 14,
+        cardBg: '#ffffff', color: '#16233a', radius: 16, cardPadX: 22, cardPadY: 28,
+        cardTitleSize: 17, cardTextSize: 13, cardIconSize: 42, align: 'left', padY: 20, padX: 24, bg: '' } },
+    { type: 'milestone1', label: '单个时间节点', ico: '◷', tone: '', g: 'singles',
+      fields: sCard(['dateText', 'title', 'desc', 'tlDotColor', 'tlLineColor']),
+      d: { dateText: '2026 年 3 月', title: '项目启动', desc: '完成需求梳理与技术选型，第一版原型上线。',
+        tlDotColor: '#3b82f6', tlLineColor: '#dbe6f6',
+        cardBg: '', color: '#16233a', radius: 0, cardPadX: 0, cardPadY: 0,
+        cardTitleSize: 16, cardTextSize: 13, cardIconSize: 42, align: 'left', padY: 16, padX: 24, bg: '' } },
+    { type: 'qa1', label: '单条问答', ico: '？', tone: '', g: 'singles',
+      fields: sCard(['title', 'desc', 'openFirst']),
+      d: { title: '怎样快速做出一个网站？', desc: '选一个模板，把文字换掉，点导出就完成了。', openFirst: '1',
+        cardBg: '#f5f8ff', color: '#16233a', radius: 12, cardPadX: 18, cardPadY: 16,
+        cardTitleSize: 15, cardTextSize: 13, cardIconSize: 42, align: 'left', padY: 12, padX: 24, bg: '' } },
+    { type: 'prog1', label: '单条进度', ico: '▰', tone: '', g: 'singles',
+      fields: ['title', 'percent', 'barColor', 'color', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: { title: '项目完成度', percent: 68, barColor: '#3b82f6', color: '#16233a',
+        cardPadX: 0, cardPadY: 0, padY: 10, padX: 24, bg: '' } },
+    { type: 'rank1', label: '单条榜单', ico: '＃', tone: 'gold', g: 'singles',
+      fields: sCard(['title', 'desc', 'role']),
+      d: { title: '关键词', desc: '128.6 万', role: '1',
+        cardBg: '#f6f9fc', color: '#16233a', radius: 12, cardPadX: 14, cardPadY: 11,
+        cardTitleSize: 15, cardTextSize: 13, cardIconSize: 42, align: 'left', padY: 6, padX: 24, bg: '' } },
+    { type: 'post1', label: '单篇文章卡', ico: '▭', tone: '', g: 'singles',
+      fields: sCard(['src', 'title', 'dateText', 'desc', 'href']),
+      d: { src: '', title: '文章标题', dateText: '2026-03-18', desc: '用一两句话概述这篇内容。', href: '#',
+        cardBg: '#ffffff', color: '#16233a', radius: 14, cardPadX: 0, cardPadY: 0,
+        cardTitleSize: 17, cardTextSize: 13, cardIconSize: 42, align: 'left', padY: 20, padX: 24, bg: '' } },
+    { type: 'job1', label: '单个职位', ico: '▱', tone: '', g: 'singles',
+      fields: sCard(['title', 'role', 'prodPrice', 'href', 'jobAccent']),
+      d: { title: '前端工程师', role: '上海 · 全职', prodPrice: '25–40K', href: '#', jobAccent: '#3b82f6',
+        cardBg: '#ffffff', color: '#16233a', radius: 12, cardPadX: 16, cardPadY: 14,
+        cardTitleSize: 15, cardTextSize: 13, cardIconSize: 42, align: 'left', padY: 8, padX: 24, bg: '' } },
+    { type: 'shot1', label: '单张图片', ico: '▧', tone: '', g: 'singles',
+      fields: ['src', 'caption', 'width', 'radius', 'align', 'padY', 'bg'],
+      d: { src: '', caption: '', width: 100, radius: 12, align: 'center', padY: 16, padX: 24, bg: '' } }
+  ];
+  ASSETS = ASSETS.concat(SINGLES);
   var ASSET_MAP = {};
   ASSETS.forEach(function (a) { ASSET_MAP[a.type] = a; });
   var FIELD_MAP = {};
@@ -1296,6 +1373,7 @@
       Object.keys(def).forEach(function (k) { if (b.p[k] === undefined) b.p[k] = def[k]; });
       Object.keys(COMMON_DEFAULTS).forEach(function (k) { if (b.p[k] === undefined) b.p[k] = COMMON_DEFAULTS[k]; });
       rowsNormalize(b.type, b.p);
+      rowsStyleSanitize(b.p);
       if (isContainer(b)) b.children = normalizeBlocks(b.children);
       else delete b.children;
       out.push(b);
@@ -1795,6 +1873,47 @@
   }
   /* 视觉样式：两种模式都直接作用于 <section>
      通用增强属性（配色 / 排版 / 效果）也在这里落地，画布与导出页共用同一份 */
+  /* ---------- 主题样式：每个模块决定自己在浅色 / 深色主题下长什么样 ---------- */
+  var THEME_ROLES = ['auto', 'base', 'card', 'soft', 'accent', 'inverse', 'outline', 'plain', 'custom'];
+  var THEME_ROLE_NOTE = {
+    auto: '跟随主题：浅色下用组件自己的配色，切到深色时由整站统一接管（原来的行为）。',
+    base: '用页面底色 + 页面文字色，和页面融为一体；换主题底色时跟着变。',
+    card: '浅色下是浅灰卡片，深色下是深色卡片，把内容从背景里「托」起来。',
+    soft: '用当前强调色调出一层很浅的底，换主题色时整块跟着变。',
+    accent: '整块铺当前强调色，文字自动取对比色；换主题色时整块跟着变。',
+    inverse: '浅色主题下是深色块，深色主题下是浅色块，用来做视觉重点。',
+    outline: '不填底色，只给一圈强调色描边；深色下同样适用。',
+    plain: '完全透明，只保留内容，适合叠在背景图或渐层上。',
+    custom: '下面给浅色和深色各设一套颜色，切换模式时自动换用对应的一套。'
+  };
+  function themeRoleOf(p) {
+    var r = String((p && p.boxThemeRole) || 'auto');
+    return THEME_ROLES.indexOf(r) >= 0 ? r : 'auto';
+  }
+  /* 底色深浅决定文字用黑还是白；解析不出来按浅底深字处理 */
+  function inkOn(bg, fb) {
+    var l = colorLum(bg);
+    if (l == null || l < 0) return fb || '#ffffff';
+    return l > 0.62 ? '#16233a' : '#ffffff';
+  }
+  /* 深色模式的三档底色：优先读页面里「深色模式」组件的设置，没有就用默认深色 */
+  function darkPalette() {
+    var d = { bg: '#0f172a', text: '#e8eef9', card: '#1e293b' };
+    try {
+      (function walk(list) {
+        (list || []).forEach(function (b) {
+          if (!b) return;
+          if (b.type === 'darkmode' && b.p) {
+            d.bg = safeCssColor(b.p.dmDarkBg, d.bg);
+            d.text = safeCssColor(b.p.dmDarkText, d.text);
+            d.card = safeCssColor(b.p.dmDarkCard, d.card);
+          }
+          if (b.children) walk(b.children);
+        });
+      })(state && state.blocks);
+    } catch (e) { }
+    return d;
+  }
   function visualCSS(b) {
     var p = b.p, o = [];
     var bw = Math.max(0, cnum(p, 'boxBorderWidth'));
@@ -1828,6 +1947,61 @@
     if (lockColor && !ink) o.push('color:#16233a');
     var lk = String(cv(p, 'boxLinkColor') || '').trim();
     if (lk) o.push('--wr-mod-link:' + safeCssColor(lk));            // 由 wr-mod-links 类配合 !important 规则生效
+
+    /* --- 主题样式：这个模块在浅色 / 深色主题下长什么样 ---
+       选了非「跟随主题」后，这里的底色会盖过「模块配色」里的模块背景；
+       文字色 / 链接色 / 强调色如果手动设过，仍以手动设置为准。 */
+    var thRole = themeRoleOf(p);
+    if (thRole !== 'auto') {
+      var pageBg = paint((state.page && state.page.bg) || '', '#ffffff');
+      var pageInk = safeCssColor((state.page && state.page.text) || '#16233a', '#16233a');
+      var pageAcc = safeCssColor((state.page && state.page.accent) || '#3b82f6', '#3b82f6');
+      var thBg = '', thInk = '', thAcc = '', thLink = '';
+      if (thRole === 'base') {
+        thBg = 'var(--wr-page-bg,' + pageBg + ')';
+        thInk = 'var(--wr-page-text,' + pageInk + ')';
+      } else if (thRole === 'card') {
+        thBg = '#f6f8fc'; thInk = pageInk;
+      } else if (thRole === 'soft') {
+        thBg = 'color-mix(in srgb,var(--wr-accent,' + pageAcc + ') 10%,transparent)'; thInk = pageInk;
+      } else if (thRole === 'accent') {
+        thBg = 'var(--wr-accent,' + pageAcc + ')';
+        thInk = inkOn(pageAcc, '#ffffff');
+      } else if (thRole === 'inverse') {
+        thBg = '#0f172a'; thInk = '#e8eef9';
+      } else if (thRole === 'outline') {
+        thBg = 'transparent';
+      } else if (thRole === 'plain') {
+        thBg = 'transparent';
+      } else if (thRole === 'custom') {
+        var thLB = safeColor(cv(p, 'boxThemeLightBg'));
+        var thLT = safeColor(cv(p, 'boxThemeLightText'));
+        var thLA = safeColor(cv(p, 'boxThemeLightAccent'));
+        var thLL = safeColor(cv(p, 'boxThemeLightLink'));
+        var thDB = safeColor(cv(p, 'boxThemeDarkBg'));
+        var thDT = safeColor(cv(p, 'boxThemeDarkText'));
+        var thDA = safeColor(cv(p, 'boxThemeDarkAccent'));
+        var thDL = safeColor(cv(p, 'boxThemeDarkLink'));
+        thBg = thLB; thInk = thLT; thAcc = thLA; thLink = thLL;
+        // 深色那一套写成变量，由 componentCSS 里的规则在 html.wr-dark 下取用
+        if (thLB) o.push('--wr-th-bg:' + thLB);
+        if (thLT) { o.push('--wr-th-ink:' + thLT); if (!ink) o.push('--wr-mod-ink:' + thLT); }
+        if (thLA) o.push('--wr-th-accent:' + thLA);
+        if (thLL) o.push('--wr-th-link:' + thLL);
+        if (thDB) o.push('--wr-th-bg-d:' + thDB);
+        if (thDT) o.push('--wr-th-ink-d:' + thDT);
+        if (thDA) o.push('--wr-th-accent-d:' + thDA);
+        if (thDL) o.push('--wr-th-link-d:' + thDL);
+      }
+      if (thBg) o.push('background:' + thBg);
+      if (thInk) o.push('color:' + thInk);
+      if (thAcc && !acc) o.push('--wr-accent:' + thAcc);
+      // 强调 / 反色块里的文字要统一反色，否则组件写死的深字会和深底糊在一起
+      if ((thRole === 'accent' || thRole === 'inverse') && !ink && thInk) o.push('--wr-mod-ink:' + thInk);
+      if ((thRole === 'accent' || thRole === 'inverse') && !lk) o.push('--wr-mod-link:' + (thLink || thInk));
+      if (thRole === 'custom' && thLink && !lk) o.push('--wr-mod-link:' + thLink);
+      if (thRole === 'outline' && !(bw > 0 && bc)) o.push('box-shadow:inset 0 0 0 1px ' + alphaColor(pageAcc, 0.45));
+    }
 
     /* --- 文字排版：写在 section 上，靠 CSS 继承作用到未写死样式的子元素 --- */
     var ffMap = {
@@ -1879,6 +2053,16 @@
     if (isStickyNav(b)) c.push('wr-sticky-nav');
     /* 通用增强：标记类，配合 componentCSS 里的规则生效 */
     if (String(cv(p, 'boxColorLock') || '') === '1') c.push('wr-color-lock');
+    /* 主题样式：把角色写成类，深色模式用对应的规则接管；强调 / 反色块统一反色文字 */
+    var thRole = themeRoleOf(p);
+    if (thRole !== 'auto') {
+      c.push('wr-th-' + thRole);
+      if (thRole === 'accent' || thRole === 'inverse') c.push('wr-mod-ink', 'wr-mod-links');
+      if (thRole === 'custom') {
+        if (String(cv(p, 'boxThemeLightText') || '').trim()) c.push('wr-mod-ink');
+        if (String(cv(p, 'boxThemeLightLink') || '').trim()) c.push('wr-mod-links');
+      }
+    }
     if (String(cv(p, 'boxTextColor') || '').trim()) c.push('wr-mod-ink');
     if (String(cv(p, 'boxLinkColor') || '').trim()) c.push('wr-mod-links');
     if (String(cv(p, 'boxHref') || '').trim()) c.push('wr-haslink');
@@ -2066,6 +2250,15 @@
     if (safeColor(p.footLinkColor)) d['--wr-foot-link'] = safeColor(p.footLinkColor);
     return d;
   }
+  /* 单条组件共用：把卡片级样式（底色 / 圆角 / 内边距 / 文字色）折算成行内声明 */
+  function singleCardStyle(p, fbBg, fbRad, fbPadX, fbPadY) {
+    return css({
+      background: paint(p.cardBg, fbBg),
+      'border-radius': pnum(p, 'radius', fbRad, 0, 120) + 'px',
+      padding: pnum(p, 'cardPadY', fbPadY, 0, 80) + 'px ' + pnum(p, 'cardPadX', fbPadX, 0, 80) + 'px',
+      color: p.color || state.page.text
+    });
+  }
   function wrapStyle(b, editor, parentBlock, skipCol) {
     var p = b.p;
     // 通用背景 / 圆角覆盖：设了就用它替代组件自带值（boxBg 支持渐变）
@@ -2202,6 +2395,97 @@
       if (f && f.type === 'rows' && !Array.isArray(p[k])) p[k] = rowsOf(p[k]);
     });
     return p;
+  }
+
+  /* ---------- 行级独立样式 ----------
+     列表里每一条都能有自己的外观：底色、文字色、圆角、内边距、图标尺寸、角标、是否隐藏。
+     存在 p.__rs = { 字段名: { 行号: {...} } }。行上移 / 下移 / 删除时索引一起搬，
+     所以样式始终跟着它那一行走，不会因为调了顺序就跑到别人身上。 */
+  function rowStyAll(p) {
+    if (!p.__rs || typeof p.__rs !== 'object' || Array.isArray(p.__rs)) p.__rs = {};
+    return p.__rs;
+  }
+  function rowSty(p, key, i) {
+    var m = p && p.__rs && p.__rs[key];
+    if (!m) return null;
+    var s = m[String(i)];
+    return (s && typeof s === 'object') ? s : null;
+  }
+  /* 读某一行的某个样式项，没设就返回组件级兜底值 */
+  function rowStyVal(p, key, i, k, fb) {
+    var s = rowSty(p, key, i);
+    if (!s || s[k] == null || s[k] === '') return fb;
+    return s[k];
+  }
+  function setRowSty(p, key, i, k, v) {
+    var all = rowStyAll(p);
+    var m = all[key] || (all[key] = {});
+    var idx = String(i);
+    var s = m[idx] || (m[idx] = {});
+    if (v == null || v === '') delete s[k]; else s[k] = v;
+    if (!Object.keys(s).length) delete m[idx];
+    if (!Object.keys(m).length) delete all[key];
+  }
+  /* 行顺序变了，样式跟着搬 */
+  function shiftRowSty(p, key, act, idx) {
+    var all = p && p.__rs;
+    if (!all || !all[key]) return;
+    var m = all[key], out = {};
+    if (act === 'clear') { delete all[key]; return; }
+    Object.keys(m).forEach(function (k) {
+      var i = Number(k);
+      if (act === 'del') {
+        if (i === idx) return;
+        out[i > idx ? i - 1 : i] = m[k];
+      } else if (act === 'up' && idx > 0) {
+        if (i === idx) out[idx - 1] = m[k];
+        else if (i === idx - 1) out[idx] = m[k];
+        else out[i] = m[k];
+      } else if (act === 'down') {
+        if (i === idx) out[idx + 1] = m[k];
+        else if (i === idx + 1) out[idx] = m[k];
+        else out[i] = m[k];
+      } else {
+        out[i] = m[k];
+      }
+    });
+    if (Object.keys(out).length) all[key] = out; else delete all[key];
+  }
+  /* 导入的 JSON 不可信：颜色走白名单校验，数值夹紧，超量截断 */
+  function rowsStyleSanitize(p) {
+    if (!p.__rs) return;
+    if (typeof p.__rs !== 'object' || Array.isArray(p.__rs)) { delete p.__rs; return; }
+    var out = {}, n = 0;
+    Object.keys(p.__rs).slice(0, 12).forEach(function (k) {
+      if (!/^[A-Za-z0-9_]{1,32}$/.test(k)) return;
+      var m = p.__rs[k];
+      if (!m || typeof m !== 'object' || Array.isArray(m)) return;
+      var o = {};
+      Object.keys(m).slice(0, 300).forEach(function (i) {
+        if (!/^\d{1,3}$/.test(i)) return;
+        var s = m[i];
+        if (!s || typeof s !== 'object' || Array.isArray(s)) return;
+        var t = {};
+        if (s.bg) { var bg = safePaint(String(s.bg).slice(0, 160), ''); if (bg) t.bg = bg; }
+        if (s.color) { var co = safeColor(String(s.color).slice(0, 40)); if (co) t.color = co; }
+        if (s.badgeColor) { var bc = safeColor(String(s.badgeColor).slice(0, 40)); if (bc) t.badgeColor = bc; }
+        if (s.radius != null && s.radius !== '') {
+          var rd = Math.round(Number(s.radius));
+          if (isFinite(rd)) t.radius = Math.max(0, Math.min(120, rd));
+        }
+        ['padX', 'padY', 'icon'].forEach(function (kk) {
+          if (s[kk] != null && s[kk] !== '') {
+            var v = Math.round(Number(s[kk]));
+            if (isFinite(v)) t[kk] = Math.max(0, Math.min(160, v));
+          }
+        });
+        if (s.badge) t.badge = String(s.badge).slice(0, 10);
+        if (String(s.hide) === '1') t.hide = '1';
+        if (Object.keys(t).length) o[i] = t;
+      });
+      if (Object.keys(o).length && n < 12) { out[k] = o; n++; }
+    });
+    if (Object.keys(out).length) p.__rs = out; else delete p.__rs;
   }
   function safeUrl(u, fallback) {
     var s = String(u || '').trim();
@@ -2479,7 +2763,9 @@
   var gradOpen = {};
   /* 这些字段是文字色 / 边框色，CSS 不接受渐变，不开渐变开关 */
   var NO_GRAD_KEYS = { color: 1, btnColor: 1, boxBorderColor: 1, __text: 1,
-    boxTextColor: 1, boxLinkColor: 1, boxAccent: 1 };
+    boxTextColor: 1, boxLinkColor: 1, boxAccent: 1,
+    boxThemeLightBg: 1, boxThemeLightText: 1, boxThemeLightAccent: 1, boxThemeLightLink: 1,
+    boxThemeDarkBg: 1, boxThemeDarkText: 1, boxThemeDarkAccent: 1, boxThemeDarkLink: 1 };
   function canGradient(k) { return !NO_GRAD_KEYS[k]; }
 
   /* ---------- 组件公共样式：编辑器画布与导出页面使用同一份 ---------- */
@@ -2788,7 +3074,67 @@
       '@media print{.wr-splash,.wr-scrollhint{display:none!important}}'
     ];
   }
+  /* 单个条目的独立样式：按模块 ID + 列表字段 + 第几条命中，用 !important 盖过行内样式。
+     编辑器和导出页读的是同一份 CSS，所以两边长得一模一样。 */
+  function rowStyleCSS() {
+    var out = [];
+    // 少数容器里条目前面还夹着一个标题之类的元素，索引要往后挪几位
+    var ROW_SKIP = { 'footer:footerLinks': 1, 'wiki:wikiInfobox': 1, 'wiki:wikiToc': 1, 'chat:chatMembers': 3, 'table:tableData': -1 };
+    function walk(list) {
+      (list || []).forEach(function (b) {
+        var rs = b && b.p && b.p.__rs;
+        if (rs && b.id) {
+          Object.keys(rs).forEach(function (key) {
+            var skip = ROW_SKIP[b.type + ':' + key] || 0;
+            Object.keys(rs[key]).forEach(function (i) {
+              var s = rs[key][i];
+              var n = Number(i) + 1 + skip;
+              if (!(n > 0)) return;
+              var base = '[data-wr-id="' + b.id + '"] [data-wr-list="' + key + '"]>*:nth-child(' + n + ')';
+              var d = [];
+              if (s.bg) d.push('background:' + s.bg + '!important');
+              if (s.color) d.push('color:' + s.color + '!important');
+              if (s.radius != null) d.push('border-radius:' + s.radius + 'px!important');
+              if (s.padX != null) d.push('padding-left:' + s.padX + 'px!important', 'padding-right:' + s.padX + 'px!important');
+              if (s.padY != null) d.push('padding-top:' + s.padY + 'px!important', 'padding-bottom:' + s.padY + 'px!important');
+              if (s.hide === '1') d.push('display:none!important');
+              if (d.length) out.push(base + '{' + d.join(';') + '}');
+              // 文字色要连带子标题 / 正文一起变，但按钮和链接保留自己的配色
+              if (s.color) out.push(base + ' *:not(a):not(button){color:' + s.color + '!important}');
+              if (s.icon != null) {
+                out.push(base + ' .wr-media{width:' + s.icon + 'px!important;height:' + s.icon + 'px!important;' +
+                  'font-size:' + Math.round(s.icon * 0.66) + 'px!important}');
+              }
+              if (s.badge) {
+                var txt = String(s.badge).replace(/[\r\n"\\<>]/g, ' ').slice(0, 10);
+                var bc = s.badgeColor || 'var(--wr-accent,#3b82f6)';
+                if (txt.trim()) {
+                  out.push(base + '{position:relative}');
+                  out.push(base + '::after{content:"' + txt + '";position:absolute;top:0;right:0;' +
+                    'transform:translate(30%,-45%);background:' + bc + ';color:#fff;font-size:11px;' +
+                    'font-weight:700;line-height:1;padding:5px 8px;border-radius:999px;' +
+                    'white-space:nowrap;z-index:4;box-shadow:0 3px 10px rgba(20,40,80,.18)}');
+                }
+              }
+            });
+          });
+        }
+        if (b && b.children) walk(b.children);
+      });
+    }
+    try { walk(state && state.blocks); } catch (e) { }
+    return out.length ? '/* 列表条目的独立样式 */\n' + out.join('\n') : '';
+  }
   function componentCSS(withEditor) {
+    var dp = darkPalette();
+    /* 深色下的主题样式规则：导出页看 html.wr-dark，画布的「深色预览」看 .canvas.is-dark-preview。
+       选择器可能是逗号分隔的一组，逐个补作用域，否则后面的选择器会漏到浅色模式。 */
+    function thDark(sel, decl) {
+      return sel.split(',').map(function (s) {
+        s = s.trim();
+        return 'html.wr-dark .wr-page ' + s + ',.canvas.is-dark-preview ' + s;
+      }).join(',') + '{' + decl + '}';
+    }
     var base = [
       ':root{--wr-accent:' + safePaint(state.page.accent, '#3b82f6') + '}',
       /* ===== 通用增强属性：模块配色 / 整块链接 / 打印 ===== */
@@ -2796,6 +3142,16 @@
       '.wr-mod-ink,.wr-mod-ink *:not(a):not(button){color:var(--wr-mod-ink)!important}',
       // 模块链接色
       '.wr-mod-links a{color:var(--wr-mod-link)!important}',
+      /* 导航栏内部还有一层自绘底色：模块选了主题样式后让它透出 section 的底色，
+         否则换什么角色都会被那条白底盖住。品牌字 / 按钮按角色反色，保证读得清。 */
+      '.wr-th-base > .wr-nav,.wr-th-card > .wr-nav,.wr-th-soft > .wr-nav,.wr-th-accent > .wr-nav,' +
+      '.wr-th-inverse > .wr-nav,.wr-th-outline > .wr-nav,.wr-th-plain > .wr-nav,.wr-th-custom > .wr-nav' +
+      '{background:transparent!important;color:inherit!important}',
+      '.wr-th-accent > .wr-nav .wr-nav-brand{color:var(--wr-mod-ink,#fff)!important}',
+      '.wr-th-accent > .wr-nav .wr-nav-cta{background:var(--wr-mod-ink,#fff)!important;color:var(--wr-accent,#3b82f6)!important}',
+      '.wr-th-inverse > .wr-nav .wr-nav-brand{color:#16233a!important}',
+      '.wr-th-inverse > .wr-nav .wr-nav-cta{background:#16233a!important;color:#fff!important}',
+      '.wr-th-custom > .wr-nav .wr-nav-brand{color:var(--wr-th-ink,inherit)!important}',
       // 整块链接：透明 <a> 盖住模块；内部真实链接 / 按钮抬高层级，仍可点击
       '.wr-haslink{position:relative}',
       '.wr-blocklink{position:absolute;left:0;top:0;right:0;bottom:0;z-index:2;text-decoration:none;font-size:0;line-height:0;border-radius:inherit;color:transparent}',
@@ -3555,10 +3911,35 @@
       'html.wr-dark body,html.wr-dark .wr-page{background:var(--wr-dark-bg,#0f172a)!important;color:var(--wr-dark-text,#e8eef9)!important}',
       'html.wr-dark .wr-page section:not([data-wr-nobg]){background:var(--wr-dark-card,#1e293b)!important;color:var(--wr-dark-text,#e8eef9)!important}',
       'html.wr-dark h1,html.wr-dark h2,html.wr-dark h3,html.wr-dark h4,html.wr-dark b,html.wr-dark strong{color:inherit!important}',
-      'html.wr-dark a{color:var(--wr-accent,#8b5cf6)!important}',
+      'html.wr-dark a:where(:not([style*="color"]):not([class*="btn"]):not([class*="cta"])){color:var(--wr-accent,#8b5cf6)!important}',
       /* 独立配色锁定：section 已用 data-wr-nobg 退出深色的背景 / 文字覆盖，这里再用高优先级保住链接与标题 */
-      'html.wr-dark .wr-page .wr-color-lock a{color:var(--wr-mod-link,var(--wr-accent,#8b5cf6))!important}',
+      'html.wr-dark .wr-page .wr-color-lock a:where(:not([style*="color"]):not([class*="btn"]):not([class*="cta"])){color:var(--wr-mod-link,var(--wr-accent,#8b5cf6))!important}',
       'html.wr-dark .wr-page .wr-color-lock h1,html.wr-dark .wr-page .wr-color-lock h2,html.wr-dark .wr-page .wr-color-lock h3,html.wr-dark .wr-page .wr-color-lock h4,html.wr-dark .wr-page .wr-color-lock b,html.wr-dark .wr-page .wr-color-lock strong{color:inherit!important}',
+      /* 主题样式：每个模块自己声明在深色下的样子，优先级高于上面的整页统一覆盖 */
+      thDark('section.wr-th-base', 'background:' + dp.bg + '!important;color:' + dp.text + '!important'),
+      thDark('section.wr-th-card', 'background:' + dp.card + '!important;color:' + dp.text + '!important'),
+      thDark('section.wr-th-soft', 'background:color-mix(in srgb,var(--wr-accent,#8b5cf6) 18%,transparent)!important;color:' + dp.text + '!important'),
+      thDark('section.wr-th-accent', 'background:var(--wr-accent,#8b5cf6)!important;color:var(--wr-mod-ink,#fff)!important'),
+      thDark('section.wr-th-accent a:where(:not([style*="color"]):not([class*="btn"]):not([class*="cta"]))', 'color:var(--wr-mod-link,#fff)!important'),
+      thDark('section.wr-th-inverse', 'background:#f8fafc!important;color:#16233a!important;--wr-mod-ink:#16233a!important;--wr-mod-link:#16233a!important'),
+      thDark('section.wr-th-inverse h1,section.wr-th-inverse h2,section.wr-th-inverse h3,section.wr-th-inverse h4,section.wr-th-inverse b,section.wr-th-inverse strong', 'color:#16233a!important'),
+      thDark('section.wr-th-inverse a:where(:not([style*="color"]):not([class*="btn"]):not([class*="cta"]))', 'color:#16233a!important'),
+      thDark('section.wr-th-outline', 'background:transparent!important;color:' + dp.text + '!important'),
+      thDark('section.wr-th-plain', 'background:transparent!important;color:' + dp.text + '!important'),
+      thDark('section.wr-th-custom', 'background:var(--wr-th-bg-d,var(--wr-th-bg,transparent))!important;color:var(--wr-th-ink-d,var(--wr-th-ink,inherit))!important'),
+      thDark('section.wr-th-custom.wr-mod-ink', '--wr-mod-ink:var(--wr-th-ink-d,var(--wr-th-ink))!important'),
+      thDark('section.wr-th-custom.wr-mod-links a:where(:not([style*="color"]):not([class*="btn"]):not([class*="cta"]))', 'color:var(--wr-th-link-d,var(--wr-th-link,var(--wr-accent,#8b5cf6)))!important'),
+      thDark('section.wr-th-base > .wr-nav .wr-nav-brand,section.wr-th-card > .wr-nav .wr-nav-brand,section.wr-th-soft > .wr-nav .wr-nav-brand,section.wr-th-outline > .wr-nav .wr-nav-brand,section.wr-th-plain > .wr-nav .wr-nav-brand', 'color:' + dp.text + '!important'),
+      thDark('section.wr-th-custom > .wr-nav .wr-nav-brand', 'color:var(--wr-th-ink-d,var(--wr-th-ink,inherit))!important'),
+      thDark('section.wr-th-accent > .wr-nav .wr-nav-brand', 'color:var(--wr-mod-ink,#fff)!important'),
+      thDark('section.wr-th-inverse > .wr-nav .wr-nav-brand', 'color:#16233a!important'),
+      /* 画布「深色预览」：把整页的默认深色也搬进编辑器，方便边改边看 */
+      '.canvas.is-dark-preview{background:' + dp.bg + '!important;color:' + dp.text + '!important}',
+      '.canvas.is-dark-preview section:not([data-wr-nobg]){background:' + dp.card + '!important;color:' + dp.text + '!important}',
+      '.canvas.is-dark-preview h1,.canvas.is-dark-preview h2,.canvas.is-dark-preview h3,.canvas.is-dark-preview h4,.canvas.is-dark-preview b,.canvas.is-dark-preview strong{color:inherit!important}',
+      '.canvas.is-dark-preview a:where(:not([style*="color"]):not([class*="btn"]):not([class*="cta"])){color:var(--wr-accent,#8b5cf6)!important}',
+      '.canvas.is-dark-preview .wr-color-lock a:where(:not([style*="color"]):not([class*="btn"]):not([class*="cta"])){color:var(--wr-mod-link,var(--wr-accent,#8b5cf6))!important}',
+      '.canvas.is-dark-preview .wr-color-lock h1,.canvas.is-dark-preview .wr-color-lock h2,.canvas.is-dark-preview .wr-color-lock h3,.canvas.is-dark-preview .wr-color-lock h4,.canvas.is-dark-preview .wr-color-lock b,.canvas.is-dark-preview .wr-color-lock strong{color:inherit!important}',
       /* 浮层：宿主只负责建立定位参照，浮层本身的坐标写在 .wr-layer 上 */
       '.wr-stack{position:relative}',
       '.wr-stack > .wr-layer{position:absolute!important;max-width:none}',
@@ -3640,7 +4021,7 @@
     // 开场幕样式只在该页面用得到时才输出，编辑器里始终保留（试播要用）
     var ic = introCfg();
     var sheet = (withEditor || ic.style !== 'none' || ic.hint !== 'none') ? base.concat(introCSS()) : base;
-    return sheet.join('\n') + '\n' +
+    return sheet.join('\n') + '\n' + rowStyleCSS() + '\n' +
       '@media(max-width:720px){\n' + rules('.wr-page ') + '\n}\n' +
       '@media(min-width:721px){\n.wr-page .wr-only-mobile{display:none!important}\n}\n' +
       // 画布专用规则只注入编辑器，导出页里不该留下 #canvas 这种痕迹
@@ -3783,7 +4164,7 @@
         var gTitle = pnum(p, 'cardTitleSize', 17, 8, 40), gText = pnum(p, 'cardTextSize', 13, 8, 40);
         var gIcon = pnum(p, 'cardIconSize', 42, 12, 160);
         inner = (p.title ? '<h2 style="' + css({ 'font-size': clampFont(30), margin: '0 0 24px', color: p.color || page.text }) + '">' + esc(p.title) + '</h2>' : '') +
-          '<div class="wr-cols" style="display:grid;grid-template-columns:repeat(' + Math.max(1, Math.min(6, Number(p.cols) || 3)) + ',1fr);gap:16px;text-align:' + (p.align || 'center') + '">' +
+          '<div class="wr-cols" data-wr-list="items" style="display:grid;grid-template-columns:repeat(' + Math.max(1, Math.min(6, Number(p.cols) || 3)) + ',1fr);gap:16px;text-align:' + (p.align || 'center') + '">' +
           rowsG.map(function (r) {
             return '<div style="' + css({ background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px', padding: gPadY + 'px ' + gPadX + 'px', color: p.color || page.text }) + '">' +
               mediaHTML(r.a, { size: gIcon, font: Math.round(gIcon * 0.66), fit: 'contain', margin: gIconMargin, alt: r.b }) +
@@ -3806,7 +4187,7 @@
       case 'stats': {
         var rowsS = itemRows(p.items);
         inner = (p.title ? '<h2 style="' + css({ 'font-size': clampFont(30), margin: '0 0 24px', 'text-align': 'center', color: p.color || page.text }) + '">' + esc(p.title) + '</h2>' : '') +
-          '<div class="wr-cols" style="display:grid;grid-template-columns:repeat(' + Math.max(1, Math.min(4, rowsS.length)) + ',1fr);gap:16px;text-align:center">' +
+          '<div class="wr-cols" data-wr-list="items" style="display:grid;grid-template-columns:repeat(' + Math.max(1, Math.min(4, rowsS.length)) + ',1fr);gap:16px;text-align:center">' +
           rowsS.map(function (r) {
             return '<div><div data-count="' + esc(r.a) + '" style="' + css({ 'font-size': 'clamp(26px,4vw,40px)', 'font-weight': '800', color: page.accent || '#3b82f6' }) + '">' + esc(r.a) + '</div>' +
               '<div style="' + css({ 'font-size': '13px', 'margin-top': '6px', color: p.color || page.text, opacity: '.7' }) + '">' + esc(r.b) + '</div></div>';
@@ -3906,7 +4287,7 @@
           esc(p.title || '品牌名称') + '</a>' +
           '<input class="wr-nav-cb" type="checkbox" id="' + navId + '" aria-label="展开菜单" hidden>' +
           '<label class="wr-nav-burger" for="' + navId + '" aria-label="打开菜单">☰</label>' +
-          '<div class="wr-nav-links" style="' + navMargin + ';' + css(navVars(p)) + '">' + navLinks + navBtn + '</div>' +
+          '<div class="wr-nav-links" data-wr-list="navItems" style="' + navMargin + ';' + css(navVars(p)) + '">' + navLinks + navBtn + '</div>' +
           '</div></nav>';
         break;
       }
@@ -3938,7 +4319,7 @@
         inner = '<footer style="color:' + esc(p.color || page.text) + ';' + css(footVars(p)) + '">' +
           '<div class="wr-footer-grid wr-cols" style="' + css({ 'grid-template-columns': 'repeat(' + fCols + ',1fr)' }) + '">' +
           '<div><h4>' + esc(p.title || '') + '</h4><p>' + nl(p.desc) + '</p></div>' +
-          (fLinks.length ? '<div><h4>快速链接</h4>' + fLinks.map(function (r) {
+          (fLinks.length ? '<div data-wr-list="footerLinks"><h4>快速链接</h4>' + fLinks.map(function (r) {
             return '<a href="' + esc(safeUrl(r[1], '#')) + '">' + esc(r[0]) + '</a>';
           }).join('') + '</div>' : '') +
           (hasContact ? '<div><h4>联系方式</h4>' +
@@ -3958,7 +4339,7 @@
         var fPadX = pnum(p, 'cardPadX', 20, 0, 80), fPadY = pnum(p, 'cardPadY', 20, 0, 80);
         var fTitle = pnum(p, 'cardTitleSize', 16, 8, 40), fText = pnum(p, 'cardTextSize', 13, 8, 40);
         var fIcon = pnum(p, 'cardIconSize', 38, 12, 160);
-        inner = head + '<div class="wr-features wr-cols" style="' + css({
+        inner = head + '<div class="wr-features wr-cols" data-wr-list="featureItems" style="' + css({
           'grid-template-columns': 'repeat(2,1fr)', gap: (p.gap == null ? 14 : p.gap) + 'px', color: p.color || page.text
         }) + '">' + fRows.map(function (r) {
           return '<div class="wr-feature" style="' + css({
@@ -3971,7 +4352,7 @@
       }
       case 'gallery': {
         var gRows = rowCells(p.galleryItems);
-        inner = head + '<div class="wr-gallery" style="' + css({
+        inner = head + '<div class="wr-gallery" data-wr-list="galleryItems" style="' + css({
           'grid-template-columns': gridCols(p.cols, 3), gap: (p.gap == null ? 12 : p.gap) + 'px', color: p.color || page.text
         }) + '">' + gRows.map(function (r) {
           var cap = r.slice(1).join(' | ');
@@ -3984,7 +4365,7 @@
       }
       case 'pricing': {
         var prRows = rowCells(p.priceItems);
-        inner = head + '<div class="wr-pricing wr-cols" style="' + css({
+        inner = head + '<div class="wr-pricing wr-cols" data-wr-list="priceItems" style="' + css({
           'grid-template-columns': gridCols(Math.min(3, Math.max(1, prRows.length)), 3),
           gap: (p.gap || 16) + 'px', color: p.color || page.text
         }) + '">' + prRows.map(function (r) {
@@ -4020,7 +4401,7 @@
         var tPadX = pnum(p, 'cardPadX', 18, 0, 80), tPadY = pnum(p, 'cardPadY', 26, 0, 80);
         var tTitle = pnum(p, 'cardTitleSize', 16, 8, 40), tText = pnum(p, 'cardTextSize', 13, 8, 40);
         var tIcon = pnum(p, 'cardIconSize', 62, 16, 160);
-        inner = head + '<div class="wr-team wr-cols" style="' + css({
+        inner = head + '<div class="wr-team wr-cols" data-wr-list="teamItems" style="' + css({
           'grid-template-columns': gridCols(Math.min(3, Math.max(1, tRows.length)), 3),
           gap: (p.gap || 16) + 'px', color: p.color || page.text
         }) + '">' + tRows.map(function (r) {
@@ -4058,7 +4439,7 @@
       }
       case 'timeline': {
         var tlRows = rowCells(p.timelineItems);
-        inner = head + '<div class="wr-timeline" style="' + css({
+        inner = head + '<div class="wr-timeline" data-wr-list="timelineItems" style="' + css({
           'border-left-color': p.lineColor || '#dbe6f6', color: p.color || page.text,
           'max-width': '720px', margin: '0 auto'
         }) + '">' + tlRows.map(function (r) {
@@ -4069,7 +4450,7 @@
       }
       case 'progress': {
         var pgRows = rowCells(p.progressItems);
-        inner = head + '<div style="' + css({
+        inner = head + '<div data-wr-list="progressItems" style="' + css({
           'max-width': '680px', margin: '0 auto', color: p.color || page.text
         }) + '">' + pgRows.map(function (r) {
           var n = pct(r[1]);
@@ -4083,7 +4464,7 @@
       case 'logos': {
         var lgRows = rowCells(p.logoItems);
         var lgJustify = p.align === 'left' ? 'flex-start' : (p.align === 'right' ? 'flex-end' : 'center');
-        inner = head + '<div class="wr-logos" style="' + css({
+        inner = head + '<div class="wr-logos" data-wr-list="logoItems" style="' + css({
           gap: (p.gap || 12) + 'px', 'justify-content': lgJustify, color: p.color || page.text
         }) + '">' + lgRows.map(function (r) {
           var st = css({ background: paint(p.cardBg, '#f5f8ff'), 'border-radius': (p.radius || 0) + 'px' });
@@ -4106,7 +4487,7 @@
         inner = head + '<div class="wr-table-wrap"><table class="wr-table" style="color:' + esc(p.color || page.text) + '">' +
           '<thead><tr>' + th.map(function (c) {
             return '<th style="' + css({ background: paint(p.cardBg, '#eef4ff'), 'border-bottom-color': p.lineColor || '#e2eaf6' }) + '">' + esc(c) + '</th>';
-          }).join('') + '</tr></thead><tbody>' +
+          }).join('') + '</tr></thead><tbody data-wr-list="tableData">' +
           tb.slice(1).map(function (r) {
             return '<tr>' + r.map(function (c) {
               return '<td style="' + css({ 'border-bottom-color': p.lineColor || '#e2eaf6' }) + '">' + esc(c) + '</td>';
@@ -4134,7 +4515,7 @@
       case 'buttongroup': {
         var bgRows = rowCells(p.btnItems);
         var bgJustify = p.align === 'left' ? 'flex-start' : (p.align === 'right' ? 'flex-end' : 'center');
-        inner = head + '<div class="wr-btns" style="' + css({
+        inner = head + '<div class="wr-btns" data-wr-list="btnItems" style="' + css({
           display: 'flex', 'flex-wrap': 'wrap', gap: (p.gap || 12) + 'px', 'justify-content': bgJustify
         }) + '">' + bgRows.map(function (r) {
           var primary = String(r[2] || '').trim() === '1';
@@ -4147,7 +4528,7 @@
       }
       case 'faq': {
         var fqRows = rowCells(p.faqItems);
-        inner = head + '<div class="wr-faq" style="' + css({
+        inner = head + '<div class="wr-faq" data-wr-list="faqItems" style="' + css({
           'max-width': '760px', margin: '0 auto', gap: (p.gap || 10) + 'px', color: p.color || page.text
         }) + '">' + fqRows.map(function (r, i) {
           return '<details' + (p.openFirst === '1' && i === 0 ? ' open' : '') + ' style="' + css({
@@ -4195,7 +4576,7 @@
       /* ===== 社区与产品组件 ===== */
       case 'hotlist': {
         var rowsH = rowCells(p.hotItems).slice(0, 12);
-        inner = head + '<ol class="wr-hotlist" style="' + css({
+        inner = head + '<ol class="wr-hotlist" data-wr-list="hotItems" style="' + css({
           display: 'grid', gap: (p.gap == null ? 8 : p.gap) + 'px', margin: '0', padding: '0',
           'list-style': 'none', 'counter-reset': 'wrHot', color: p.color || page.text
         }) + '">' + rowsH.map(function (r, i) {
@@ -4215,7 +4596,7 @@
       case 'feed': {
         var rowsF = rowCells(p.feedItems).slice(0, 10);
         var isX = String(p.feedStyle || 'weibo') === 'x';
-        inner = '<div class="wr-feed' + (isX ? ' is-x' : '') + '" style="' + css({
+        inner = '<div class="wr-feed' + (isX ? ' is-x' : '') + '" data-wr-list="feedItems" style="' + css({
           display: 'grid', gap: (p.gap == null ? 16 : p.gap) + 'px', color: p.color || page.text
         }) + '">' + rowsF.map(function (r) {
           var likes = parseInt(r[7], 10) || 0;
@@ -4260,7 +4641,7 @@
       }
       case 'rating': {
         var rowsR = rowCells(p.ratingItems).slice(0, 8);
-        inner = head + '<div class="wr-rating-list" style="display:grid;gap:' + (p.gap == null ? 16 : p.gap) + 'px">' +
+        inner = head + '<div class="wr-rating-list" data-wr-list="ratingItems" style="display:grid;gap:' + (p.gap == null ? 16 : p.gap) + 'px">' +
           rowsR.map(function (r) {
             var cover = resolveMedia(r[3]);
             return '<article class="wr-rating-item" style="' + css({
@@ -4325,13 +4706,13 @@
         }) + '"><div class="wr-wiki-main">' +
           head +
           '<p class="wr-wiki-lead">' + esc(p.wikiLead) + '</p>' +
-          (toc.length ? '<nav class="wr-wiki-toc"><b>目录</b>' + toc.map(function (c) {
+          (toc.length ? '<nav class="wr-wiki-toc" data-wr-list="wikiToc"><b>目录</b>' + toc.map(function (c) {
             var tl = String(c[0] || '');
             var lv = Math.min(3, Math.max(1, Number(c[1]) || 1));
             return '<a href="#' + esc(tl.replace(/[^\w\u4e00-\u9fa5-]/g, '').slice(0, 20)) + '" class="wr-toc-' + lv + '">' + esc(tl) + '</a>';
           }).join('') + '</nav>' : '') +
           body.map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') + '</div>' +
-          '<aside class="wr-wiki-info"><b>' + esc(p.title || '条目') + '</b>' +
+          '<aside class="wr-wiki-info" data-wr-list="wikiInfobox"><b>' + esc(p.title || '条目') + '</b>' +
           inf.map(function (r) { return '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('') +
           '</aside></article>';
         break;
@@ -4344,14 +4725,14 @@
           display: 'grid', 'grid-template-columns': '190px minmax(0,1fr)', overflow: 'hidden',
           background: paint(p.cardBg, '#313338'), color: p.color || '#f2f3f5', 'border-radius': (p.radius || 14) + 'px'
         }) + '">' +
-          '<aside class="wr-chat-side"><b class="wr-chat-server"># ' + esc(p.chatServer) + '</b>' +
+          '<aside class="wr-chat-side" data-wr-list="chatMembers"><b class="wr-chat-server"># ' + esc(p.chatServer) + '</b>' +
           '<div class="wr-chat-channel">＃ ' + esc(p.chatChannel) + '</div><div class="wr-chat-side-label">在线 — ' + mem.length + '</div>' +
           mem.map(function (r) {
             return '<div class="wr-chat-member">' + mediaHTML(r[0], { size: 24, round: true, font: 13, alt: r[1] }) +
               '<span>' + esc(r[1]) + '</span><i class="wr-online"></i></div>';
           }).join('') + '</aside>' +
           '<div class="wr-chat-main"><div class="wr-chat-head">＃ ' + esc(p.chatChannel) + '<small>一个专注于交流与分享的频道</small></div>' +
-          '<div class="wr-chat-msgs">' + msgs.map(function (r) {
+          '<div class="wr-chat-msgs" data-wr-list="chatItems">' + msgs.map(function (r) {
             return '<div class="wr-chat-msg">' + mediaHTML(r[0], { size: 36, round: true, font: 18, alt: r[1] }) +
               '<div><p><b style="color:' + safeCssValue(roleColor(r[4])) + '">' + esc(r[1]) + '</b><time>' + esc(r[2]) + '</time></p>' +
               '<div class="wr-chat-text">' + esc(r[3]) + '</div></div></div>';
@@ -4364,7 +4745,7 @@
         var rowsA = rowCells(p.awardItems).slice(0, 8);
         inner = '<div class="wr-awards" style="' + css({ color: p.color || '#fff' }) + '">' +
           head + (p.awardDesc ? '<p class="wr-awards-desc">' + esc(p.awardDesc) + '</p>' : '') +
-          '<div class="wr-awards-grid" style="display:grid;grid-template-columns:repeat(' +
+          '<div class="wr-awards-grid" data-wr-list="awardItems" style="display:grid;grid-template-columns:repeat(' +
           Math.min(2, Math.max(1, Math.ceil(rowsA.length / 2))) + ',minmax(0,1fr));gap:' + (p.gap || 14) + 'px">' +
           rowsA.map(function (r, i) {
             var cover = resolveMedia(r[0]);
@@ -4404,9 +4785,9 @@
           var bwTrack = bwRows.map(bwCard).join('');
           inner = head + '<div class="wr-brandwall is-marquee" style="' + css({
             '--wr-brand-dur': Math.max(10, Math.min(80, Number(p.brandSpeed) || 28)) + 's', gap: (p.gap || 14) + 'px'
-          }) + '"><div class="wr-brand-track">' + bwTrack + '</div><div class="wr-brand-track" aria-hidden="true">' + bwTrack + '</div></div>';
+          }) + '"><div class="wr-brand-track" data-wr-list="brandItems">' + bwTrack + '</div><div class="wr-brand-track" data-wr-list="brandItems" aria-hidden="true">' + bwTrack + '</div></div>';
         } else {
-          inner = head + '<div class="wr-brandwall" style="' + css({
+          inner = head + '<div class="wr-brandwall" data-wr-list="brandItems" style="' + css({
             display: 'grid', 'grid-template-columns': gridCols(p.brandCols, 5),
             gap: (p.gap || 12) + 'px', color: p.color || page.text
           }) + '">' + bwRows.map(bwCard).join('') + '</div>';
@@ -4432,7 +4813,7 @@
       case 'geometry': {
         var gsRows = rowCells(p.shapeItems).slice(0, 8);
         var gsKinds = { '圆': 'circle', '方形': 'square', '方': 'square', '三角': 'triangle', '三角形': 'triangle', '六边形': 'hexagon', '环': 'ring', '环形': 'ring', '水滴': 'drop' };
-        inner = head + '<div class="wr-geometry" style="' + css({
+        inner = head + '<div class="wr-geometry" data-wr-list="shapeItems" style="' + css({
           '--wr-shape-size': Math.max(60, Math.min(240, Number(p.shapeSize) || 150)) + 'px',
           '--wr-shape-dur': Math.max(4, Math.min(24, Number(p.shapeSpeed) || 12)) + 's',
           color: p.color || page.text
@@ -4511,7 +4892,7 @@
           (String(p.cardVerified) !== '0' ? '<span class="wr-pc-verified" title="已认证">✓</span>' : '') + '</h2>' +
           (p.cardRole ? '<p class="wr-pc-role">' + esc(p.cardRole) + '</p>' : '') +
           (p.cardBio ? '<p class="wr-pc-bio">' + nl(p.cardBio) + '</p>' : '') +
-          (links ? '<div class="wr-pc-links">' + links + '</div>' : '') +
+          (links ? '<div class="wr-pc-links" data-wr-list="cardLinks">' + links + '</div>' : '') +
           '</div>';
         break;
       }
@@ -4525,7 +4906,7 @@
         }).join('');
         inner = '<div class="wr-skillbar"' + (String(p.skillAnimate) !== '0' ? ' data-animate="1"' : '') + '>' +
           (p.skillTitle ? '<h2>' + esc(p.skillTitle) + '</h2>' : '') +
-          '<div class="wr-skills">' + (skillRows || '<p class="wr-empty">在右侧填写技能，每行「名称 | 熟练度」</p>') + '</div></div>';
+          '<div class="wr-skills" data-wr-list="skillItems">' + (skillRows || '<p class="wr-empty">在右侧填写技能，每行「名称 | 熟练度」</p>') + '</div></div>';
         break;
       }
       case 'journey': {
@@ -4537,7 +4918,7 @@
         }).join('');
         inner = '<div class="wr-journey">' +
           (p.tlTitle ? '<h2>' + esc(p.tlTitle) + '</h2>' : '') +
-          '<div class="wr-jy-list">' + (events || '<p class="wr-empty">在右侧填写经历，每行「年份 | 标题 | 说明」</p>') + '</div></div>';
+          '<div class="wr-jy-list" data-wr-list="tlItems">' + (events || '<p class="wr-empty">在右侧填写经历，每行「年份 | 标题 | 说明」</p>') + '</div></div>';
         break;
       }
       case 'linkhub': {
@@ -4556,7 +4937,7 @@
           (p.cardAvatar ? '<span class="wr-lh-avatar"><img src="' + esc(resolveMedia(p.cardAvatar) || '') + '" alt=""></span>' : '') +
           (p.linkTitle ? '<h2>' + esc(p.linkTitle) + '</h2>' : '') +
           (p.linkBio ? '<p class="wr-lh-bio">' + esc(p.linkBio) + '</p>' : '') +
-          '<div class="wr-lh-btns">' + (linkBtns || '<p class="wr-empty">在右侧填写链接按钮</p>') + '</div></div>';
+          '<div class="wr-lh-btns" data-wr-list="linkItems">' + (linkBtns || '<p class="wr-empty">在右侧填写链接按钮</p>') + '</div></div>';
         break;
       }
       case 'tagcloud': {
@@ -4568,7 +4949,7 @@
         inner = '<div class="wr-tagcloud' + (String(p.tagStyle) === 'card' ? ' is-card' : '') +
           (String(p.tagSpread) === 'center' ? ' is-center' : '') + '">' +
           (p.tagTitle ? '<h2>' + esc(p.tagTitle) + '</h2>' : '') +
-          '<div class="wr-tags">' + (tags || '<p class="wr-empty">在右侧填写标签</p>') + '</div></div>';
+          '<div class="wr-tags" data-wr-list="tagItems">' + (tags || '<p class="wr-empty">在右侧填写标签</p>') + '</div></div>';
         break;
       }
       case 'statboard': {
@@ -4579,7 +4960,7 @@
         }).join('');
         inner = '<div class="wr-statboard' + (String(p.statDivider) !== '0' ? ' has-divider' : '') + '">' +
           (p.statTitle ? '<h2>' + esc(p.statTitle) + '</h2>' : '') +
-          '<div class="wr-stats" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' +
+          '<div class="wr-stats" data-wr-list="statItems" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' +
           (stats || '<p class="wr-empty">在右侧填写数据</p>') + '</div></div>';
         break;
       }
@@ -4594,7 +4975,7 @@
         }).join('');
         inner = '<div class="wr-polaroid">' +
           (p.polarTitle ? '<h2>' + esc(p.polarTitle) + '</h2>' : '') +
-          '<div class="wr-polars" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' +
+          '<div class="wr-polars" data-wr-list="polarItems" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' +
           (photos || '<p class="wr-empty">在右侧填写照片地址与说明</p>') + '</div></div>';
         break;
       }
@@ -4611,7 +4992,7 @@
           'text-align': cv(p, 'swAlign') || 'center', 'border-radius': (p.radius || 18) + 'px',
           background: paint(p.cardBg, '#ffffff'), color: p.color || page.text
         }) + '">' + (p.swLabel ? '<div class="wr-sw-title">' + esc(p.swLabel) + '</div>' : '') +
-          '<div class="wr-sw-dots' + (String(p.swShape) === 'square' ? ' is-square' : '') + '">' +
+          '<div class="wr-sw-dots' + (String(p.swShape) === 'square' ? ' is-square' : '') + '" data-wr-list="swColors">' +
           (dots || '<p class="wr-empty">在右侧填写可选颜色</p>') + '</div>' +
           (String(p.swShowName) !== '0' ? '<div class="wr-sw-names">' + swRows.map(function (r) {
             return '<span>' + esc(r[1] || r[0]) + '</span>';
@@ -4663,7 +5044,7 @@
             'text-align': p.align || 'center', 'border-radius': (p.radius || 16) + 'px',
             background: paint(p.cardBg, '#ffffff'), color: p.color || page.text
           }) + '">' + (p.tpLabel ? '<div class="wr-tp-title">' + esc(p.tpLabel) + '</div>' : '') +
-          '<div class="wr-tp-btns">' + (themeBtns || '<p class="wr-empty">在右侧填写主题</p>') + '</div></div>';
+          '<div class="wr-tp-btns" data-wr-list="tpThemes">' + (themeBtns || '<p class="wr-empty">在右侧填写主题</p>') + '</div></div>';
         break;
       }
       /* ===== 新组件：设备样机 / 转动品牌墙 / 视频 / 轮播 / 选项卡 / 倒计时 / 对比 / 音频 ===== */
@@ -4711,7 +5092,7 @@
           '--wr-rot-dur': Math.max(8, Math.min(90, Number(p.rotSpeed) || 30)) + 's',
           '--wr-rot-radius': Math.max(120, Math.min(480, Number(p.rotRadius) || 260)) + 'px',
           color: p.color || page.text
-        }) + '"><div class="wr-rot-stage">' + rCards + '</div></div>';
+        }) + '"><div class="wr-rot-stage" data-wr-list="rotItems">' + rCards + '</div></div>';
         break;
       }
       case 'videoplayer': {
@@ -4760,7 +5141,7 @@
           esc(p.slideFit === 'contain' ? 'contain' : 'cover') + '" style="' + css({
           height: Math.max(180, Math.min(640, Number(p.slideH) || 380)) + 'px',
           'border-radius': (p.radius || 0) + 'px'
-        }) + '"><div class="wr-slide-track">' + slides + '</div>' + arrows + dots + '</div>';
+        }) + '"><div class="wr-slide-track" data-wr-list="slideItems">' + slides + '</div>' + arrows + dots + '</div>';
         break;
       }
       case 'tabs': {
@@ -4780,7 +5161,7 @@
           '--wr-tab-card': paint(p.tabCardBg, '#f6f9ff'),
           'text-align': p.tabAlign === 'left' ? 'left' : 'center',
           'border-radius': (p.radius || 0) + 'px', color: p.color || page.text
-        }) + '"><div class="wr-tab-bar" role="tablist">' + tBtns + '</div>' +
+        }) + '"><div class="wr-tab-bar" data-wr-list="tabItems" role="tablist">' + tBtns + '</div>' +
           '<div class="wr-tab-body">' + tPanes + '</div></div>';
         break;
       }
@@ -4841,7 +5222,7 @@
         var stRows = rowCells(p.stepsItems);
         var stCol = String(p.stepsLayout) === 'col';
         inner = head + '<div class="wr-steps' + (stCol ? ' is-col' : '') + (String(p.stepsLine) === '0' ? ' no-line' : '') +
-          '" data-shape="' + esc(p.stepsShape || 'num') + '" style="' + css({ '--wr-step-accent': safeCssColor(p.stepsAccent, '#3b82f6') }) + '">' +
+          '" data-shape="' + esc(p.stepsShape || 'num') + '" data-wr-list="stepsItems" style="' + css({ '--wr-step-accent': safeCssColor(p.stepsAccent, '#3b82f6') }) + '">' +
           stRows.map(function (r, i) {
             var badge = p.stepsShape === 'num' ? String(i + 1) : (p.stepsShape === 'check' ? '✓' : '');
             return '<div class="wr-step" style="' + css({
@@ -4854,7 +5235,7 @@
       }
       case 'posts': {
         var poRows = rowCells(p.postItems);
-        inner = head + '<div class="wr-posts wr-cols" style="' + css({
+        inner = head + '<div class="wr-posts wr-cols" data-wr-list="postItems" style="' + css({
           'grid-template-columns': gridCols(p.postCols, 3), gap: '20px', color: p.color || page.text
         }) + '">' + poRows.map(function (r) {
           var img = resolveMedia(r[0]);
@@ -4999,7 +5380,7 @@
           auto: 'outline', bg: jAccent, color: jAccent, radius: 8, padX: 16, padY: 8,
           fontSize: 13, weight: '600', shadow: 'none'
         }));
-        inner = head + '<div class="wr-jobs" style="' + css({ 'border-radius': (p.radius || 0) + 'px', '--wr-job-accent': jAccent }) + '">' +
+        inner = head + '<div class="wr-jobs" data-wr-list="jobItems" style="' + css({ 'border-radius': (p.radius || 0) + 'px', '--wr-job-accent': jAccent }) + '">' +
           jRows.map(function (r) {
             var jh = safeUrl(r[3], '');
             return '<div class="wr-job" style="' + css({ background: paint(p.jobCardBg, '#fff') }) + '">' +
@@ -5014,7 +5395,7 @@
       }
       case 'iconnav': {
         var icRows = rowCells(p.navItems2);
-        inner = head + '<div class="wr-iconnav wr-cols" style="' + css({ 'grid-template-columns': gridCols(p.navCols, 4), gap: '14px', color: p.color || page.text }) + '">' +
+        inner = head + '<div class="wr-iconnav wr-cols" data-wr-list="navItems2" style="' + css({ 'grid-template-columns': gridCols(p.navCols, 4), gap: '14px', color: p.color || page.text }) + '">' +
           icRows.map(function (r) {
             var ih = safeUrl(r[2], '');
             var imgSrc = isMediaImage(r[0]) ? resolveMedia(r[0]) : '';
@@ -5075,7 +5456,7 @@
           esc(p.title || '品牌名称') + '</a>' +
           '<input class="wr-nav-cb" type="checkbox" id="' + subId + '" aria-label="展开菜单" hidden>' +
           '<label class="wr-nav-burger" for="' + subId + '" aria-label="打开菜单">☰</label>' +
-          '<div class="wr-subnav-links" style="' + (p.align === 'left' ? 'margin-right:auto' : 'margin-left:auto') + ';' + css(navVars(p)) + '">' +
+          '<div class="wr-subnav-links" data-wr-list="navItems" style="' + (p.align === 'left' ? 'margin-right:auto' : 'margin-left:auto') + ';' + css(navVars(p)) + '">' +
           subLinks + (p.btnText ? '<a class="wr-nav-cta" href="' + esc(safeUrl(p.navCtaHref, '#')) + '" style="' + css(btnSkin(p, {
             bg: page.accent, color: '#fff', radius: 9, padX: 18, padY: 9, fontSize: 14, weight: '600', shadow: 'none'
           })) + '">' + esc(p.btnText) + '</a>' : '') +
@@ -5100,7 +5481,7 @@
           esc(p.title || '品牌名称') + '</a>' +
           '<input class="wr-nav-cb" type="checkbox" id="' + smId + '" aria-label="展开菜单" hidden>' +
           '<label class="wr-nav-burger" for="' + smId + '" aria-label="打开菜单">☰</label>' +
-          '<div class="wr-smartnav-links" style="' + css(navVars(p)) + '">' + smLinks + '</div>' +
+          '<div class="wr-smartnav-links" data-wr-list="navItems" style="' + css(navVars(p)) + '">' + smLinks + '</div>' +
           (p.searchPlaceholder ? '<div class="wr-smart-search"><input type="search" placeholder="' + esc(p.searchPlaceholder) + '" aria-label="' + esc(p.searchPlaceholder) + '"><button type="button" aria-label="搜索">⌕</button></div>' : '') +
           '<button type="button" class="wr-smart-theme" data-wr-darkmode="1" aria-pressed="false" title="' + esc(p.themeBtnText || '切换主题') + '">' +
           '<span data-on="☀" data-off="☾">☾</span><em>' + esc(p.themeBtnText || '主题') + '</em></button>' +
@@ -5113,7 +5494,7 @@
       case 'dropdownbar': {
         var ddRows = rowCells(p.dropItems);
         var openFirst = String(p.openFirst || '') === '1';
-        inner = head + '<div class="wr-dropdowns" style="' + css({
+        inner = head + '<div class="wr-dropdowns" data-wr-list="dropItems" style="' + css({
           '--wr-dd-bg': safeCssColor(p.cardBg, '#f6f9fc'),
           '--wr-dd-radius': (p.radius || 12) + 'px',
           gap: (p.gap == null ? 10 : p.gap) + 'px', color: p.color || page.text
@@ -5139,7 +5520,7 @@
         }) + '">' +
           (p.title ? '<h3 class="wr-ck-title">' + esc(p.title) + '</h3>' : '') +
           (p.desc ? '<p class="wr-ck-desc">' + nl(p.desc) + '</p>' : '') +
-          '<div class="wr-chk-list">' + ckRows.map(function (r) {
+          '<div class="wr-chk-list" data-wr-list="checkItems">' + ckRows.map(function (r) {
             var label = String((r && r[0]) || '').trim();
             if (!label) return '';
             var val = String((r && r[1]) || label).trim();
@@ -5158,6 +5539,136 @@
       case 'html':
         inner = sanitizeHTML(p.htmlCode);
         break;
+      /* ===== 单条组件：内容只有一条，样式字段和列表里的那张卡一致 ===== */
+      case 'feat1': {
+        var s1Icon = pnum(p, 'cardIconSize', 42, 12, 160);
+        var s1Pad = pnum(p, 'cardPadY', 26, 0, 80);
+        inner = '<div style="' + singleCardStyle(p, '#f5f8ff', 14, 20, 26) + ';text-align:' + (p.align || 'left') + '">' +
+          mediaHTML(p.emoji, {
+            size: s1Icon, font: Math.round(s1Icon * 0.66), fit: 'contain', alt: p.title,
+            margin: p.align === 'center' ? '0 auto ' + (s1Pad > 0 ? 12 : 6) + 'px'
+              : (p.align === 'right' ? '0 0 12px auto' : '0 0 12px')
+          }) +
+          '<h3 style="margin:0 0 8px;font-size:' + pnum(p, 'cardTitleSize', 17, 8, 40) + 'px">' + esc(p.title) + '</h3>' +
+          '<p style="margin:0;font-size:' + pnum(p, 'cardTextSize', 13, 8, 40) + 'px;line-height:1.7;opacity:.75">' + nl(p.desc) + '</p></div>';
+        break;
+      }
+      case 'member1': {
+        var m1Icon = pnum(p, 'cardIconSize', 62, 16, 160);
+        inner = '<div style="' + singleCardStyle(p, '#f5f8ff', 16, 18, 26) + ';text-align:center">' +
+          mediaHTML(p.emoji, {
+            size: m1Icon, font: Math.round(m1Icon * 0.45), cls: 'wr-team-avatar', round: true,
+            margin: '0 auto 10px', alt: p.title
+          }) +
+          '<h4 style="margin:0 0 4px;font-size:' + pnum(p, 'cardTitleSize', 16, 8, 40) + 'px">' + esc(p.title) + '</h4>' +
+          '<div style="font-size:12px;opacity:.65;margin-bottom:8px">' + esc(p.role) + '</div>' +
+          '<p style="margin:0;font-size:' + pnum(p, 'cardTextSize', 13, 8, 40) + 'px;line-height:1.7;opacity:.75">' + nl(p.desc) + '</p></div>';
+        break;
+      }
+      case 'plan1': {
+        var plHot = String(p.hot) === '1';
+        var plBtn = btnSkin(p, {
+          bg: page.accent, color: '#fff', radius: 9, padX: 11, padY: 11,
+          fontSize: 14, weight: '600', shadow: 'none', full: true
+        });
+        if ((!p.btnStyle || p.btnStyle === 'auto') && !plHot) {
+          plBtn.background = 'rgba(59,130,246,.1)';
+          plBtn.color = p.btnColor || p.color || page.text;
+          plBtn.border = '0';
+          plBtn['box-shadow'] = '';
+        }
+        var plFeats = String(p.desc || '').split(/[\n;；]/).map(function (s) { return s.trim(); }).filter(Boolean);
+        inner = '<div class="wr-price-card" style="' + singleCardStyle(p, '#ffffff', 16, 22, 28) +
+          ';border:' + (plHot ? '2px solid ' + safeCssColor(page.accent) : '1px solid rgba(0,0,0,.08)') +
+          ';box-shadow:' + (plHot ? '0 14px 34px rgba(30,80,180,.13)' : 'none') + '">' +
+          (plHot ? '<span class="wr-price-badge">推荐</span>' : '') +
+          '<h3 style="margin:0;font-size:' + pnum(p, 'cardTitleSize', 17, 8, 40) + 'px">' + esc(p.title) + '</h3>' +
+          '<div class="wr-price-num">' + esc(p.prodPrice) + '</div>' +
+          '<ul style="font-size:' + pnum(p, 'cardTextSize', 13, 8, 40) + 'px">' +
+          plFeats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>' +
+          '<a class="wr-price-btn" href="' + esc(safeUrl(p.href, '#')) + '" style="' + css(plBtn) + '">' +
+          esc(p.btnText || '了解更多') + '</a></div>';
+        break;
+      }
+      case 'milestone1': {
+        var msDot = safeCssColor(p.tlDotColor, '#3b82f6');
+        inner = '<div class="wr-timeline" style="border-left-color:' + safeCssColor(p.tlLineColor, '#dbe6f6') +
+          ';max-width:720px;--wr-accent:' + msDot + ';color:' + (p.color || page.text) + '">' +
+          '<div class="wr-tl-item"><div class="wr-tl-date">' + esc(p.dateText) + '</div>' +
+          '<h4 style="font-size:' + pnum(p, 'cardTitleSize', 16, 8, 40) + 'px">' + esc(p.title) + '</h4>' +
+          '<p style="font-size:' + pnum(p, 'cardTextSize', 13, 8, 40) + 'px">' + nl(p.desc) + '</p></div></div>';
+        break;
+      }
+      case 'qa1': {
+        inner = '<details' + (String(p.openFirst) === '1' ? ' open' : '') + ' style="' + singleCardStyle(p, '#f5f8ff', 12, 18, 16) + '">' +
+          '<summary style="cursor:pointer;font-weight:600;font-size:' + pnum(p, 'cardTitleSize', 15, 8, 40) + 'px">' +
+          esc(p.title) + '</summary>' +
+          '<div style="padding-top:10px;font-size:' + pnum(p, 'cardTextSize', 13, 8, 40) + 'px;line-height:1.75;opacity:.78">' +
+          nl(p.desc) + '</div></details>';
+        break;
+      }
+      case 'prog1': {
+        var prN = Math.max(0, Math.min(100, Math.round(pnum(p, 'percent', 68, 0, 100))));
+        inner = '<div style="max-width:680px;color:' + (p.color || page.text) + '">' +
+          '<div class="wr-pg-row"><div class="wr-pg-label"><span>' + esc(p.title) + '</span><span>' + prN + '%</span></div>' +
+          '<div class="wr-pg-track"><div class="wr-pg-fill" style="width:' + prN + '%;background:' +
+          safeCssColor(p.barColor, page.accent) + '"></div></div></div></div>';
+        break;
+      }
+      case 'rank1': {
+        var rkNo = Math.max(1, Math.min(4, Number(p.role) || 1));
+        inner = '<div class="wr-hot-row" style="display:grid;grid-template-columns:30px 1fr auto;gap:12px;align-items:center;' +
+          singleCardStyle(p, '#ffffff', 12, 14, 11) + '">' +
+          '<b class="wr-hot-rank wr-rank-' + rkNo + '">' + esc(p.role || '1') + '</b>' +
+          '<span class="wr-hot-title">' + esc(p.title) + '</span>' +
+          '<span class="wr-hot-heat">' + esc(p.desc) + '</span></div>';
+        break;
+      }
+      case 'post1': {
+        var po1Img = resolveMedia(p.src);
+        inner = '<article class="wr-post" style="' + singleCardStyle(p, '#ffffff', 14, 0, 0) + ';overflow:hidden">' +
+          (po1Img
+            ? '<img src="' + esc(po1Img) + '" alt="' + esc(p.title) + '" loading="lazy" decoding="async" style="width:100%;height:160px;object-fit:cover;display:block">'
+            : '<div class="wr-post-nocover" style="height:160px">▧</div>') +
+          '<div class="wr-post-body" style="padding:16px 18px">' +
+          '<h3 style="margin:0 0 6px;font-size:' + pnum(p, 'cardTitleSize', 17, 8, 40) + 'px">' +
+          (p.href && p.href !== '#'
+            ? '<a href="' + esc(safeUrl(p.href, '#')) + '" style="color:inherit;text-decoration:none">' + esc(p.title) + '</a>'
+            : esc(p.title)) + '</h3>' +
+          (p.dateText ? '<div class="wr-post-date">' + esc(p.dateText) + '</div>' : '') +
+          (p.desc ? '<p style="font-size:' + pnum(p, 'cardTextSize', 13, 8, 40) + 'px">' + nl(p.desc) + '</p>' : '') +
+          '</div></article>';
+        break;
+      }
+      case 'job1': {
+        var j1Accent = safeCssColor(p.jobAccent, '#3b82f6');
+        var j1Href = safeUrl(p.href, '');
+        var j1Btn = btnSkin(p, {
+          auto: 'outline', bg: j1Accent, color: j1Accent, radius: 8,
+          padX: 16, padY: 8, fontSize: 13, weight: '600', shadow: 'none'
+        });
+        inner = '<div class="wr-jobs" style="border-radius:' + pnum(p, 'radius', 12, 0, 120) + 'px;--wr-job-accent:' + j1Accent + '">' +
+          '<div class="wr-job" style="' + singleCardStyle(p, '#ffffff', 12, 16, 14) + '">' +
+          '<div class="wr-job-main"><b style="font-size:' + pnum(p, 'cardTitleSize', 15, 8, 40) + 'px">' + esc(p.title) + '</b>' +
+          (p.role ? '<span class="wr-job-loc">⌖ ' + esc(p.role) + '</span>' : '') + '</div>' +
+          (p.prodPrice ? '<span class="wr-job-salary">' + esc(p.prodPrice) + '</span>' : '') +
+          '<a class="wr-job-btn" href="' + esc(j1Href || '#') + '" style="' + css(j1Btn) + '">查看详情 →</a>' +
+          '</div></div>';
+        break;
+      }
+      case 'shot1': {
+        var shSrc = resolveMedia(p.src);
+        inner = '<figure style="margin:0;text-align:' + (p.align || 'center') + '">' +
+          '<img src="' + esc(shSrc || PLACEHOLDER_IMG) + '" alt="' + esc(p.caption) + '" loading="lazy" decoding="async" style="' +
+          css({
+            width: Math.max(10, Math.min(100, Number(p.width) || 100)) + '%',
+            'border-radius': pnum(p, 'radius', 12, 0, 120) + 'px',
+            display: 'block', margin: '0 auto'
+          }) + '">' +
+          (p.caption ? '<figcaption style="margin-top:10px;font-size:13px;opacity:.7">' + esc(p.caption) + '</figcaption>' : '') +
+          '</figure>';
+        break;
+      }
       default:
         inner = '<p>未知模块：' + esc(b.type) + '</p>';
     }
@@ -5190,8 +5701,8 @@
     if (cv(p, 'loopFx') === 'typewriter') attrs += ' data-type="1"';
     // 稳定 ID：重新导入时用它把浮层的目标映射回新的模块 ID
     attrs += ' data-wr-id="' + esc(b.id) + '"';
-    // 独立配色：锁定时给 section 打上 data-wr-nobg，豁免深色模式的整页背景 / 文字覆盖
-    if (String(cv(p, 'boxColorLock') || '') === '1') attrs += ' data-wr-nobg="1"';
+    // 独立配色 / 主题样式：给 section 打上 data-wr-nobg，退出深色模式的整页统一覆盖
+    if (String(cv(p, 'boxColorLock') || '') === '1' || themeRoleOf(p) !== 'auto') attrs += ' data-wr-nobg="1"';
     if (isOverlay(b)) {
       // 目标为空（“紧挨着的上一个模块”）或原目标被删除时，renderBlocks 会把解析后的
       // 真实宿主 ID 传进来；导出页必须写解析结果，否则重新导入时浮层会失去宿主。
@@ -5575,7 +6086,55 @@
     if (!over) return f;
     return Object.assign({}, f, { cols: over, long: -1 });
   }
+  /* 展开中的「某一条的独立样式」：带模块 ID，切换模块时自动收起 */
+  var rowStyleOpen = { id: '', key: '', idx: -1 };
+  function rowStyleIsOpen(b, key, i) {
+    return !!b && rowStyleOpen.id === b.id && rowStyleOpen.key === key && rowStyleOpen.idx === i;
+  }
+  function toggleRowStyle(key, idx) {
+    var b = getBlock(selectedId);
+    if (!b) return;
+    if (rowStyleIsOpen(b, key, idx)) { rowStyleOpen.id = ''; rowStyleOpen.key = ''; rowStyleOpen.idx = -1; }
+    else { rowStyleOpen.id = b.id; rowStyleOpen.key = key; rowStyleOpen.idx = idx; }
+    refreshRows(key);
+  }
+  function rowStyleHTML(f, p, i) {
+    var s = rowSty(p, f.k, i) || {};
+    var baseBg = toHexColor(paint(p.cardBg, '') || state.page.accent || '#f5f8ff');
+    var baseInk = toHexColor(paint(p.color, '#16233a'));
+    function colorRow(k, label, defVal) {
+      var cur = toHexColor(paint(s[k], '') || defVal);
+      return '<label class="rs-f"><span>' + label + '</span><span class="rs-cw">' +
+        '<input type="color" class="rs-color" data-rs="' + k + '" data-rs-key="' + f.k + '" data-rs-idx="' + i + '" value="' + esc(cur) + '">' +
+        (s[k] ? '<button type="button" class="rs-x" data-rs-clear="' + k + '" title="恢复跟随整体">✕</button>' : '') +
+        '</span></label>';
+    }
+    function numRow(k, label, ph, min, max) {
+      return '<label class="rs-f"><span>' + label + '</span>' +
+        '<input type="number" class="rs-num" data-rs="' + k + '" data-rs-key="' + f.k + '" data-rs-idx="' + i + '"' +
+        ' value="' + (s[k] == null ? '' : esc(String(s[k]))) + '" placeholder="' + ph + '" min="' + min + '" max="' + max + '"></label>';
+    }
+    return '<div class="rows-style" data-rs-box="' + f.k + '" data-rs-idx="' + i + '">' +
+      '<div class="rs-head"><b>第 ' + (i + 1) + ' 条</b><em>只改这一条</em></div>' +
+      '<div class="rs-grid">' +
+      colorRow('bg', '底色', baseBg) +
+      colorRow('color', '文字', baseInk) +
+      numRow('radius', '圆角', '跟随', 0, 120) +
+      numRow('padX', '左右距', '跟随', 0, 160) +
+      numRow('padY', '上下距', '跟随', 0, 160) +
+      numRow('icon', '图标', '跟随', 0, 160) +
+      '<label class="rs-f rs-wide"><span>角标</span>' +
+      '<input type="text" class="rs-txt" data-rs="badge" data-rs-key="' + f.k + '" data-rs-idx="' + i + '"' +
+      ' value="' + esc(s.badge || '') + '" maxlength="10" placeholder="推荐 / HOT，留空不显示"></label>' +
+      colorRow('badgeColor', '角标色', '#3b82f6') +
+      '<label class="rs-f rs-check rs-wide"><input type="checkbox" data-rs="hide" data-rs-key="' + f.k + '" data-rs-idx="' + i + '"' +
+      (s.hide === '1' ? ' checked' : '') + '><span>在页面上隐藏这一条</span></label>' +
+      '</div>' +
+      '<button type="button" class="rs-reset" data-rs-reset="1">这一条全部恢复跟随整体</button>' +
+      '</div>';
+  }
   function rowsBodyHTML(f, rows) {
+    var b = getBlock(selectedId);
     var cols = rowsCols(f, rows);
     var names = (f.cols || []).slice();
     while (names.length < cols) names.push('第 ' + (names.length + 1) + ' 格');
@@ -5589,12 +6148,20 @@
           ? '<textarea class="prop-textarea rows-cell rows-long"' + attr + ' rows="2" spellcheck="false">' + esc(val) + '</textarea>'
           : '<input class="prop-input rows-cell"' + attr + ' value="' + esc(val) + '" spellcheck="false">';
       }
-      return '<div class="rows-item">' +
-        '<div class="rows-bar"><b>' + (i + 1) + '</b><span class="rows-move">' +
+      var open = rowStyleIsOpen(b, f.k, i);
+      var bp = b ? b.p : {};
+      var hasSty = !!rowSty(bp, f.k, i);
+      return '<div class="rows-item' + (open ? ' is-open' : '') + '">' +
+        '<div class="rows-bar"><b>' + (i + 1) + '</b>' +
+        '<button type="button" class="rows-sty' + (hasSty ? ' has-sty' : '') + '" data-row-act="style"' +
+        ' aria-expanded="' + (open ? 'true' : 'false') + '"' +
+        ' title="这一条单独设样式">◐</button>' +
+        '<span class="rows-move">' +
         (i > 0 ? '<button type="button" data-row-act="up" title="上移">↑</button>' : '') +
         (i < rows.length - 1 ? '<button type="button" data-row-act="down" title="下移">↓</button>' : '') +
         '<button type="button" data-row-act="del" title="删除这一行">✕</button></span></div>' +
-        '<div class="rows-cells' + (cols > 1 ? ' is-two' : '') + '">' + cells + '</div></div>';
+        '<div class="rows-cells' + (cols > 1 ? ' is-two' : '') + '">' + cells + '</div>' +
+        (open ? rowStyleHTML(f, bp, i) : '') + '</div>';
     }).join('');
     var head = '<div class="rows-head"><span>' + (rows.length ? '共 ' + rows.length + ' 行' : '还没有内容') + '</span>' +
       (rows.length ? '<button type="button" data-row-act="clear">清空</button>' : '') + '</div>';
@@ -5641,18 +6208,24 @@
     var f = rowsFieldFor(b.type, key) || { cols: [] };
     var rows = rowsOf(b.p[key]);
     var cols = rowsCols(f, rows);
+    var total = rows.length;
+    var styAct = '';
     if (act === 'add') {
       var nr = [];
       for (var i = 0; i < cols; i++) nr.push('');
       rows.push(nr);
     } else if (act === 'del') {
       rows.splice(idx, 1);
+      styAct = 'del';
     } else if (act === 'up' && idx > 0) {
       var a = rows[idx - 1]; rows[idx - 1] = rows[idx]; rows[idx] = a;
-    } else if (act === 'down' && idx >= 0 && idx < rows.length - 1) {
+      styAct = 'up';
+    } else if (act === 'down' && idx >= 0 && idx < total - 1) {
       var c2 = rows[idx + 1]; rows[idx + 1] = rows[idx]; rows[idx] = c2;
+      styAct = 'down';
     } else if (act === 'clear') {
       rows = [];
+      styAct = 'clear';
     } else if (act === 'addcol') {
       rows.forEach(function (r) { r.push(''); });
     } else if (act === 'delcol') {
@@ -5660,6 +6233,8 @@
       rows.forEach(function (r) { r.length = Math.max(1, r.length - 1); });
     }
     b.p[key] = rows;
+    // 样式跟着那一行走：删了就没了，换位就一起换。搬完必须重算 CSS，否则视觉还停在旧索引上
+    if (styAct) { shiftRowSty(b.p, key, styAct, idx); syncComponentCSS(); }
     refreshRows(key);
     scheduleCanvasRender(); scheduleHistory(); scheduleSave();
   }
@@ -5754,6 +6329,32 @@
     return rows.map(function (r) {
       return fieldHTML({ k: r.k, label: r.label, type: r.type, min: r.min, max: r.max, unit: r.unit, rows: r.rows }, r.v);
     }).join('');
+  }
+  /* 主题样式：每个模块都能决定自己在浅色 / 深色主题下长什么样。
+     放在模块面板靠前的位置（内容之后），比塞进底部「通用设置」更容易找到。 */
+  function themeStyleHTML(b) {
+    var role = themeRoleOf(b.p);
+    var html = '<div class="prop-group theme-style-group"><h3>主题样式 · 在浅色 / 深色下长什么样</h3>' +
+      fieldHTML(F.boxThemeRole, role) +
+      '<p class="theme-role-note">' + esc(THEME_ROLE_NOTE[role] || '') + '</p>';
+    if (role === 'custom') {
+      var cf = function (k, label, hint, ph) {
+        return fieldHTML({ k: k, label: label, type: 'color', hint: hint, ph: ph }, b.p[k]);
+      };
+      html += '<div class="theme-mode-block"><b><i></i>浅色模式下</b>' +
+        cf('boxThemeLightBg', '底色', '留空则透明', '留空则透明') +
+        cf('boxThemeLightText', '文字色', '', '留空跟随页面') +
+        cf('boxThemeLightAccent', '强调色', '按钮 / 图标 / 高亮', '留空跟随主题') +
+        cf('boxThemeLightLink', '链接色', '', '留空跟随强调色') + '</div>' +
+        '<div class="theme-mode-block is-dark"><b><i></i>深色模式下</b>' +
+        cf('boxThemeDarkBg', '底色', '留空沿用浅色', '留空沿用浅色') +
+        cf('boxThemeDarkText', '文字色', '', '留空沿用浅色') +
+        cf('boxThemeDarkAccent', '强调色', '', '留空沿用浅色') +
+        cf('boxThemeDarkLink', '链接色', '', '留空沿用浅色') + '</div>';
+    } else if (role !== 'auto') {
+      html += '<p class="theme-role-tip">会盖过「模块配色」里的模块背景；文字 / 链接 / 强调色手动设过时以手动为准。切到深色会自动换用深色版本，点画布上方的 ☾ 可以先看效果。</p>';
+    }
+    return html + '</div>';
   }
   /* 通用设置：所有模块共享，按主题折叠展示 */
   var COMMON_GROUPS = [
@@ -6140,6 +6741,7 @@
     // 先放文字内容，紧接着放按钮 / 输入框 / 导航 / 页脚这些「组件里的组件」，
     // 最后才是外观与布局，避免改按钮颜色时要一路滚到底。
     html += groupHTML(groups[0]);
+    html += themeStyleHTML(b);
     html += extraGroupHTML('按钮 · 独立设置', extraFields(a, BTN_KEYS),
       '这里只改当前模块里的按钮，不影响其他模块。留空 / 跟随组件时保持原来的样子。');
     html += extraGroupHTML('输入框 · 独立设置', extraFields(a, INPUT_KEYS),
@@ -6602,6 +7204,7 @@
       }
       renderProps();
     }
+    if (key === 'boxThemeRole') renderProps();
     scheduleCanvasRender();
     scheduleHistory(); scheduleSave();
   }
@@ -8861,6 +9464,25 @@
       // 渐变编辑器里的滑杆 / 色标不带 data-key，先单独处理
       var gfield = el.closest ? el.closest('.color-field') : null;
       if (gfield && el.closest('.grad-editor')) { handleGradInput(gfield, el); return; }
+      // 单条样式：底色 / 文字色 / 圆角 / 内边距 / 图标 / 角标 / 隐藏
+      var rsKey = el.getAttribute('data-rs');
+      if (rsKey) {
+        var rsBox = el.closest('.rows-style');
+        var rsB = getBlock(selectedId);
+        if (rsBox && rsB) {
+          var rsField = rsBox.getAttribute('data-rs-box');
+          var rsIdx = Number(rsBox.getAttribute('data-rs-idx'));
+          var rsVal = (el.type === 'checkbox') ? (el.checked ? '1' : '') : el.value;
+          setRowSty(rsB.p, rsField, rsIdx, rsKey, rsVal);
+          syncComponentCSS();
+          // 只更新这一行的「有个性」标记，不整体重绘，输入焦点不丢
+          var rsItem = el.closest('.rows-item');
+          var rsBtn = rsItem ? rsItem.querySelector('.rows-sty') : null;
+          if (rsBtn) rsBtn.classList.toggle('has-sty', !!rowSty(rsB.p, rsField, rsIdx));
+          scheduleHistory(); scheduleSave();
+        }
+        return;
+      }
       if (!key) return;
       // 多行内容里的单个格子：只改这一格，整行数据留在数组里
       if (el.hasAttribute('data-row')) { setRowCell(key, el); return; }
@@ -8879,6 +9501,8 @@
     });
     box.addEventListener('change', function (e) {
       var el = e.target;
+      // 单条样式的颜色 / 数字：input 事件里已经写好了，这里不再重复
+      if (el.getAttribute && el.getAttribute('data-rs')) return;
       if (el.matches && el.matches('input[data-media-file]')) { mediaFilePicked(el); return; }
       if (el.matches && el.matches('input[data-film-file]')) { filmFilePicked(el); return; }
       if (el.classList && el.classList.contains('media-pick')) {
@@ -8903,9 +9527,36 @@
           var rkey = rbox.getAttribute('data-rows');
           var rrow = rbtn.closest('.rows-item');
           var ridx = rrow ? Array.prototype.indexOf.call(rbox.querySelectorAll('.rows-item'), rrow) : -1;
-          rowAction(rkey, rbtn.getAttribute('data-row-act'), ridx);
+          var ract = rbtn.getAttribute('data-row-act');
+          // 「◐」只是展开这一条的样式，不动数据
+          if (ract === 'style') { toggleRowStyle(rkey, ridx); return; }
+          rowAction(rkey, ract, ridx);
           return;
         }
+      }
+      // 单条样式：清除某一项 / 整条恢复
+      var rsX = e.target.closest ? e.target.closest('[data-rs-clear]') : null;
+      if (rsX) {
+        var xs = rsX.closest('.rows-style');
+        var xb = getBlock(selectedId);
+        if (xs && xb) {
+          setRowSty(xb.p, xs.getAttribute('data-rs-box'), Number(xs.getAttribute('data-rs-idx')), rsX.getAttribute('data-rs-clear'), '');
+          syncComponentCSS(); refreshRows(xs.getAttribute('data-rs-box'));
+          scheduleHistory(); scheduleSave();
+        }
+        return;
+      }
+      var rsReset = e.target.closest ? e.target.closest('[data-rs-reset]') : null;
+      if (rsReset) {
+        var rb2 = rsReset.closest('.rows-style');
+        var rb3 = getBlock(selectedId);
+        if (rb2 && rb3) {
+          var rk2 = rb2.getAttribute('data-rs-box');
+          if (rb3.p.__rs) delete rb3.p.__rs[rk2];
+          syncComponentCSS(); refreshRows(rk2);
+          scheduleHistory(); scheduleSave();
+        }
+        return;
       }
       var cfield = e.target.closest ? e.target.closest('.color-field') : null;
       if (cfield && handleGradClick(cfield, e.target)) return;
@@ -10319,6 +10970,17 @@
     $('#undoBtn').addEventListener('click', undo);
     $('#redoBtn').addEventListener('click', redo);
     $('#previewBtn').addEventListener('click', openPreview);
+    // 深色预览：只给画布加类，让组件 CSS 里的深色规则在编辑器里也生效，导出内容不受影响
+    if ($('#darkPreviewBtn')) {
+      $('#darkPreviewBtn').addEventListener('click', function () {
+        var c = $('#canvas'), btn = $('#darkPreviewBtn');
+        var on = !c.classList.contains('is-dark-preview');
+        c.classList.toggle('is-dark-preview', on);
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        toast(on ? '深色预览：画布已切到深色，导出不受影响' : '已回到浅色预览');
+      });
+    }
     if ($('#motionBtn')) $('#motionBtn').addEventListener('click', openMotion);
     // 鼠标落在预览框外的空白处、或页面滚到边界产生滚动链时，把滚轮转发进 iframe 文档。
     // 否则滚动的是弹层本身，整个 iframe 被滚走，吸顶看起来就失效了。
