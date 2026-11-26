@@ -1901,6 +1901,20 @@
     var r = String((p && p.boxThemeRole) || 'auto');
     return THEME_ROLES.indexOf(r) >= 0 ? r : 'auto';
   }
+  /* 「自定义配色」但四个颜色一个都没填 = 和跟随主题没区别。
+     这种情况还写 wr-th-custom，深色模式的规则会用空变量把背景刷成透明，
+     整块渐变就没了 —— 按 auto 处理，保留模块自己的底色。 */
+  function themeRoleEff(p) {
+    var r = themeRoleOf(p);
+    if (r === 'custom') {
+      var has = ['boxThemeLightBg', 'boxThemeLightText', 'boxThemeLightAccent', 'boxThemeLightLink',
+        'boxThemeDarkBg', 'boxThemeDarkText', 'boxThemeDarkAccent', 'boxThemeDarkLink'].some(function (k) {
+          return String(cv(p, k) || '').trim() !== '';
+        });
+      if (!has) return 'auto';
+    }
+    return r;
+  }
   /* 底色深浅决定文字用黑还是白；解析不出来按浅底深字处理 */
   function inkOn(bg, fb) {
     var l = colorLum(bg);
@@ -2065,7 +2079,7 @@
     /* 通用增强：标记类，配合 componentCSS 里的规则生效 */
     if (String(cv(p, 'boxColorLock') || '') === '1') c.push('wr-color-lock');
     /* 主题样式：把角色写成类，深色模式用对应的规则接管；强调 / 反色块统一反色文字 */
-    var thRole = themeRoleOf(p);
+    var thRole = themeRoleEff(p);
     if (thRole !== 'auto') {
       c.push('wr-th-' + thRole);
       if (thRole === 'accent' || thRole === 'inverse') c.push('wr-mod-ink', 'wr-mod-links');
@@ -5713,7 +5727,7 @@
     // 稳定 ID：重新导入时用它把浮层的目标映射回新的模块 ID
     attrs += ' data-wr-id="' + esc(b.id) + '"';
     // 独立配色 / 主题样式：给 section 打上 data-wr-nobg，退出深色模式的整页统一覆盖
-    var roleNow = themeRoleOf(p);
+    var roleNow = themeRoleEff(p);
     if (String(cv(p, 'boxColorLock') || '') === '1' || roleNow !== 'auto') attrs += ' data-wr-nobg="1"';
     // 主题角色也写出来：没内嵌工程快照的旧导出页，靠它才能把「在主题下长什么样」还原回去
     if (roleNow !== 'auto') attrs += ' data-wr-theme="' + esc(roleNow) + '"';
@@ -7556,6 +7570,45 @@
     return '#' + hx(mix(0, 1)) + hx(mix(1, 3)) + hx(mix(2, 5));
   }
 
+  /* 按钮皮肤：原页面的按钮常是渐变 / 胶囊 / 大内边距，只抄底色会把它们
+     全变成「主题色小方块」。这里把底色（含渐变）、文字色、圆角、内边距、
+     字号字重、阴影一起读出来，重新渲染时按钮才还是原来那颗。 */
+  function impBtnSkin(btn, win) {
+    if (!btn) return null;
+    var s;
+    try { s = win.getComputedStyle(btn); } catch (e) { return null; }
+    var out = {};
+    var bg = impBg(btn, win, 0.35);
+    var bw = parseFloat(s.borderTopWidth) || 0;
+    var bc = rgbToHex(s.borderTopColor, 0.35);
+    if (bg) { out.btnStyle = 'solid'; out.btnBg = bg; }
+    else if (bw >= 1 && bc) { out.btnStyle = 'outline'; out.btnBg = bc; out.btnBorderWidth = Math.max(1, Math.min(4, Math.round(bw))); }
+    else { out.btnStyle = 'ghost'; }
+    var ink = rgbToHex(s.color);
+    if (ink) out.btnColor = ink;
+    out.btnRadius = Math.round(clampNum(parseFloat(s.borderTopLeftRadius) || 0, 0, 60));
+    out.btnPadX = Math.round(clampNum(parseFloat(s.paddingLeft) || 0, 0, 60));
+    out.btnPadY = Math.round(clampNum(parseFloat(s.paddingTop) || 0, 0, 30));
+    out.btnFontSize = Math.round(clampNum(parseFloat(s.fontSize) || 14, 10, 24));
+    var fw = parseFloat(s.fontWeight) || 600;
+    out.btnWeight = fw >= 800 ? '800' : (fw >= 700 ? '700' : (fw >= 600 ? '600' : '500'));
+    var sh = String(s.boxShadow || '');
+    if (!sh || /^none$/i.test(sh)) out.btnShadow = 'none';
+    else if (/0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+\d+px/.test(sh)) out.btnShadow = 'glow';
+    else {
+      var bl = /(\d{2,})px/.exec(sh);
+      out.btnShadow = bl && parseFloat(bl[1]) >= 26 ? 'strong' : 'soft';
+    }
+    return out;
+  }
+  /* 把按钮皮肤并进模块属性（没有按钮就原样返回） */
+  function impApplyBtn(opt, btn, win) {
+    var skin = impBtnSkin(btn, win);
+    if (!skin) return opt;
+    for (var k in skin) { if (Object.prototype.hasOwnProperty.call(skin, k)) opt[k] = skin[k]; }
+    return opt;
+  }
+
   /* 取元素的可见文字：<br> 与块级边界转成换行，再压掉多余空白 */  function impText(el) {
     if (!el) return '';
     var c = el.cloneNode(true);
@@ -7719,6 +7772,13 @@
     });
     if (!title && lines.length) title = lines[0];
     if (!sub && lines.length > 1) sub = lines[1];
+    // 品牌开场幕常是「一个大字母字标 + 站名」两行：按字号挑会选中那个字母（W），
+    // 主标题该是站名本身。
+    var nameEl = el2.querySelector('.wr-splash-name,[class*=splash-name],[class*=intro-name]');
+    if (nameEl) {
+      var nt = impText(nameEl).replace(/\n/g, ' ').trim();
+      if (nt && nt.length <= 40) title = nt;
+    }
     // 副标题常写成 <span class="...sub/slogan/tagline">，字号比正文还小，
     // 靠「字号第二大」取不到，会连带把「进入网站」按钮文字当副标题
     var subEl = el2.querySelector('.wr-splash-sub,[class*=subtitle],[class*=sub-title],[class*=slogan],[class*=tagline]');
@@ -8293,7 +8353,12 @@
     if (!from || !from.p || !to || !to.p) return;
     ['boxHover', 'loopFx', 'boxShadow', 'animIn', 'animOnce', 'animDur', 'animDelay',
       'animEase', 'animDist', 'animStagger', 'boxBorderWidth', 'boxBorderColor',
-      'boxMinHeight', 'boxWidth', 'boxAlign'].forEach(function (k) {
+      'boxMinHeight', 'boxWidth', 'boxAlign',
+      // 外壳自己的配色也要跟着走：页脚 / 导航外面套的那层 section 往往写着
+      // 「独立配色锁定 + 深色主题色」，压平后丢了这些，重新导出就退回跟随主题
+      'bg', 'color', 'radius', 'boxColorLock', 'boxThemeRole',
+      'boxThemeLightBg', 'boxThemeLightText', 'boxThemeLightAccent', 'boxThemeLightLink',
+      'boxThemeDarkBg', 'boxThemeDarkText', 'boxThemeDarkAccent', 'boxThemeDarkLink'].forEach(function (k) {
         var v = from.p[k], d = COMMON_DEFAULTS[k];
         if (v == null || v === '' || v === d) return;
         var old = to.p[k];
@@ -8372,7 +8437,7 @@
     }
     // 有些站点直接把导航写在文档流最上面（靠 scroll 脚本加类），这种也按吸顶处理
     if (sticky === '0' && r.top <= 150 && r.width >= (win.innerWidth || 1200) * 0.6) sticky = '1';
-    return makeImp('navbar', {
+    var navOpt = {
       title: title.slice(0, 24),
       emoji: markSrc || '✦',
       navItems: nav,
@@ -8382,10 +8447,13 @@
       navHeight: Math.round(clampNum(r.height, 48, 96)),
       color: impTextColor(el, win) || readableInk(bg),
       bg: bg,
-      align: 'right',
+      align: /center/.test(s.textAlign) ? 'center' : (/left|start/.test(s.textAlign) ? 'left' : 'right'),
       padY: impPadOf(el, win).padY,
       padX: impPadOf(el, win).padX
-    });
+    };
+    // 导航右侧那颗按钮（常是渐变胶囊）也照原样带回来
+    impApplyBtn(navOpt, cta, win);
+    return makeImp('navbar', navOpt);
   }
 
   function impFooterBlock(el, win) {
@@ -8517,7 +8585,7 @@
     // 颜色取标题自己的：深色主视觉区里 <h1 style="color:#fff">，区块本身继承的却是深色文字
     var ink = rgbToHex(win.getComputedStyle(h).color) || rgbToHex(s.color);
     if (!ink || ink.toLowerCase() === bg.toLowerCase()) ink = readableInk(bg);
-    return makeImp('hero', {
+    var heroOpt = {
       kicker: kicker.slice(0, 24),
       title: title.slice(0, 60),
       desc: desc.slice(0, 160),
@@ -8528,7 +8596,10 @@
       align: /center/.test(s.textAlign) ? 'center' : 'left',
       padY: impPadOf(el, win).padY,
       padX: impPadOf(el, win).padX
-    });
+    };
+    // 主视觉按钮的渐变 / 圆角 / 内边距也要带回来，否则会退回主题色
+    impApplyBtn(heroOpt, cta, win);
+    return makeImp('hero', heroOpt);
   }
 
   /* 单个元素 → 模块数组（返回空数组表示这层没有可编辑内容） */
@@ -8651,9 +8722,20 @@
               var v = tv(pair[1]);
               if (v) t[pair[0]] = v;
             });
+            // 只写了 wr-th-custom、却没写任何 --wr-th-* 颜色：等于「跟随主题」，
+            // 硬留着 custom 会在深色模式下把背景刷没
+            if (!t.boxThemeLightBg && !t.boxThemeLightText && !t.boxThemeLightAccent && !t.boxThemeLightLink &&
+              !t.boxThemeDarkBg && !t.boxThemeDarkText && !t.boxThemeDarkAccent && !t.boxThemeDarkLink) {
+              t.boxThemeRole = 'auto';
+            }
           }
         }
       } catch (eTh) { }
+      /* 独立配色锁定：原页面用 wr-color-lock 让这一块在深色模式下不被整页覆盖。
+         不还原这个开关，重新导出后一进深色模式，渐变 hero / 品牌墙就被刷成深色卡片。 */
+      try {
+        if (/(?:^|\s)wr-color-lock(?:\s|$)/.test(String(el.className || ''))) t.boxColorLock = '1';
+      } catch (eLock) { }
       if (fx) {
         if (fx.boxHover) t.boxHover = fx.boxHover;
         if (fx.loopFx) t.loopFx = fx.loopFx;
@@ -8673,8 +8755,13 @@
         // 宽度 / 最小高度：原页面常见「width:95% + margin:auto」「min-height:450px」
         var mh = parseFloat(s.minHeight) || 0;
         if (mh >= 40 && mh <= 2000) t.boxMinHeight = Math.round(mh);
+        // 锚点：#features / #text 这些是导航跳转的落点，丢了导航点了没反应
+        var eid = String(el.id || '').trim();
+        if (eid && eid !== 'top' && /^[A-Za-z][A-Za-z0-9_-]{0,40}$/.test(eid)) t.anchorId = eid;
         var par = el.parentElement;
-        if (par && res[0].type !== 'divider') {
+        // 浮层的宽高由外层 .wr-layer 决定，再给 section 写一次百分比，
+        // 导出后会变成「49% 的 49%」，窄屏上开关文字直接折成两行
+        if (par && res[0].type !== 'divider' && t.layerMode !== 'overlay') {
           var ps = win.getComputedStyle(par);
           var pr = par.getBoundingClientRect(), er = el.getBoundingClientRect();
           /* 顶层模块：父层就是 .wr-page（整页那圈宽度），它自带页面底色，
@@ -8953,6 +9040,7 @@
   /* 编辑器自己导出的「社区与产品」组件，重新导入时认回原组件类型。
      只靠通用流程会把热搜、聊天、仓库卡全拍成一段段文字，编辑能力就丢了。 */
   function impSiteBlock(el, win) {
+    var hostEl = el;
     var cls = String(el.className || '');
     var types = [
       ['wr-hotlist', 'hotlist'], ['wr-feed', 'feed'], ['wr-qa', 'qa'], ['wr-rating-list', 'rating'],
@@ -8978,11 +9066,19 @@
     }
     if (!type) return null;
     var q = function (s) { return el.querySelector(s); };
+    // 组件容器（.wr-futype 等）常常只是 section 里的一层，底色 / 留白 / 对齐都在外层；
+    // 只读容器会把整块的背景和间距丢掉（远看就是「渐变没了、文字贴边」）。
+    var qh = function (s) { return hostEl.querySelector(s); };
     var qa = function (s) { return Array.prototype.slice.call(el.querySelectorAll(s)); };
     var qqa = function (n, s) { return n ? Array.prototype.slice.call(n.querySelectorAll(s)) : []; };
     var tx = function (n) { return n ? String(n.textContent || '').replace(/\s+/g, ' ').trim() : ''; };
-    var pad = impPadOf(el, win);
-    var opt = { padY: pad.padY, padX: pad.padX, align: 'left', color: impTextColor(el, win) || '' };
+    var hs0 = win.getComputedStyle(hostEl);
+    var pad = impPadOf(hostEl, win);
+    var opt = {
+      padY: pad.padY, padX: pad.padX,
+      align: /center/.test(hs0.textAlign) ? 'center' : (/right|end/.test(hs0.textAlign) ? 'right' : 'left'),
+      color: impTextColor(el, win) || impTextColor(hostEl, win) || ''
+    };
     var iconOf = function (n) {
       if (!n) return '';
       var im = n.querySelector ? n.querySelector('img') : null;
@@ -9099,7 +9195,8 @@
       // 3D 环形品牌墙：卡片是绝对定位 + transform，按普通列表解析会整块丢掉
       var rr = q('.wr-brandrotor') || el;
       var rrs = win.getComputedStyle(rr);
-      opt.title = tx(q('h2'));
+      // 标题（「感谢与我们」这种）写在 section 里、转子容器外面，只问容器会丢
+      opt.title = tx(q('h2')) || tx(qh('h2'));
       opt.rotShape = rr.getAttribute && rr.getAttribute('data-shape') === 'sphere' ? 'sphere' : 'ring';
       opt.rotPause = rr.getAttribute && rr.getAttribute('data-pause') === '0' ? '0' : '1';
       opt.rotSpeed = Math.round(clampNum(parseFloat(rrs.getPropertyValue('--wr-rot-dur')) || 30, 8, 90));
@@ -9299,13 +9396,78 @@
       }).filter(function (s) { return s.replace(/[|\s]/g, ''); }).join('\n');
       opt.cardBg = impBg(tpk, win, 0.5) || '#ffffff';
     }
-    // 组件底色 / 圆角：导出页把样式写在 section 上，这里按当前元素取（外层通常没有）
+    // 组件底色 / 圆角：导出页把样式写在 section 上，容器自己往往是透明的，
+    // 所以容器取不到就往外层找 —— 渐变色块（futype / brandrotor）全靠这一步。
     var s = win.getComputedStyle(el);
-    var bg = impBg(el, win, 0.5);
+    var bg = impBg(el, win, 0.5) || (hostEl !== el ? impBg(hostEl, win, 0.5) : '');
     if (bg) opt.bg = bg;
-    var rad = Math.round(clampNum(parseFloat(s.borderRadius), 0, 48));
+    // 深色开关 / 字号调节这类是「浮在页面上的控件」，原页面本来就没有底色；
+    // 留着组件默认的浅灰底，导出后会多出一条横条。
+    else if (type === 'darkmode' || type === 'fontsizer') opt.bg = 'transparent';
+    var rad = Math.round(clampNum(parseFloat(s.borderRadius) || (hostEl !== el ? parseFloat(hs0.borderRadius) : 0), 0, 48));
     if (rad) opt.radius = rad;
     return makeImp(type, opt);
+  }
+
+  /* 「文章列表」：一排 .wr-post（封面 + 标题 + 日期 + 摘要 + 链接）。
+     通用卡片流程会把它拍成「图标 + 标题 + 说明」的网格 —— 封面缩成小图标、
+     日期黏进正文、链接丢失。认出原组件，这些字段才能各归各位。 */
+  function impPostsOf(el, win) {
+    if (!el || !el.children) return null;
+    var hostEl = el;
+    if (!/(?:^|\s)wr-posts(?:\s|$)/.test(String(el.className || ''))) {
+      var inner = el.querySelector ? el.querySelector('.wr-posts') : null;
+      if (!inner || inner.parentElement !== el) return null;
+      // 外层还有标题 / 说明等别的东西就别整块吞掉
+      if (impBlockKids(el, win).length > 1) return null;
+      el = inner;
+    }
+    var cards = Array.prototype.slice.call(el.children).filter(function (c) {
+      var cc = String(c.className || '');
+      if (!/(?:^|\s)wr-post(?:\s|$)/.test(cc)) return false;
+      return !/wr-post-(body|img|date|text|act|who|media|nocover)/.test(cc);
+    });
+    if (cards.length < 2) return null;
+    var rows = [], imgH = 0, cardBg = '', cardInk = '', cardRad = 0;
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i];
+      var im = c.querySelector('img');
+      var src = im ? (im.getAttribute('src') || im.currentSrc || '') : '';
+      var titleEl = c.querySelector('h1,h2,h3,h4,.wr-post-title');
+      var dateEl = c.querySelector('.wr-post-date,time');
+      var descEl = c.querySelector('p,.wr-post-excerpt,.wr-post-desc');
+      var linkEl = (titleEl && titleEl.querySelector('a')) || c.querySelector('a[href]');
+      var title = titleEl ? impText(titleEl).replace(/\n/g, ' ').trim() : '';
+      if (!title) return null;
+      var date = dateEl ? impText(dateEl).replace(/\n/g, ' ').trim() : '';
+      var desc = descEl ? impText(descEl).replace(/\n/g, ' ').trim() : '';
+      // 摘要把日期剔掉：日期有独立字段，别在正文里再说一遍
+      if (date && desc.indexOf(date) === 0) desc = desc.slice(date.length).trim();
+      var cs0 = win.getComputedStyle(c);
+      if (im) {
+        var ih = im.getBoundingClientRect().height;
+        if (ih > 40) imgH = Math.max(imgH, Math.round(ih));
+      }
+      if (!cardBg) cardBg = impBg(c, win, 0.35);
+      if (!cardInk) cardInk = rgbToHex(cs0.color) || '';
+      if (!cardRad) cardRad = Math.round(clampNum(parseFloat(cs0.borderTopLeftRadius) || 0, 0, 40));
+      rows.push([src.replace(/\|/g, '%7C'), title.replace(/\|/g, '/').slice(0, 60),
+        date.replace(/\|/g, '/').slice(0, 24), desc.replace(/\|/g, '/').slice(0, 120),
+        (linkEl && linkEl.getAttribute('href')) || ''].join(' | '));
+    }
+    var cs = win.getComputedStyle(el);
+    var tpl = String(cs.gridTemplateColumns || '');
+    var cols = tpl.split(/\s+/).filter(function (v) { return /px|%|fr|em|rem|vw/.test(v); }).length;
+    if (!cols) cols = Math.min(cards.length, 3);
+    var pad = impPadOf(el, win);
+    return makeImp('posts', {
+      title: '', postItems: rows.join('\n'), postCols: String(Math.min(Math.max(cols, 1), 4)),
+      postCardBg: cardBg || '#ffffff', postImgH: imgH || 160,
+      radius: cardRad || 14, color: cardInk || '',
+      align: /center/.test(cs.textAlign) ? 'center' : 'left',
+      padY: pad.padY, padX: pad.padX,
+      bg: impBg(el, win, 0.5) || (hostEl !== el ? impBg(hostEl, win, 0.5) : '') || ''
+    });
   }
 
   /* 容器类：主视觉 → 递归子节点 → 需要时包一层容器 */
@@ -9371,6 +9533,9 @@
       var hb = impHeroBlock(el, win);
       if (hb) { ctx.heroDone = true; ctx.used++; return [hb]; }
     }
+    // 文章列表先单独认：封面 / 日期 / 摘要 / 链接各有字段，不能被拍成通用卡片
+    var postsB = impPostsOf(el, win);
+    if (postsB) { ctx.used++; return [postsB]; }
     // 一组「图标 + 标题 + 说明」的兄弟块 → 三栏卡片（否则会被拆成一段段零散文字）
     var cardRow = impCardRows(kids, win, s);
     if (cardRow) { ctx.used++; return [cardRow]; }
@@ -9426,6 +9591,9 @@
     // 单子元素、无底色、无多列、padding 不大 = 纯包装层，直接穿透
     if (inner.length === 1 && !styleBox) {
       var pass = inner[0];
+      // 外层那圈底色也是包装层的一部分：白底 section 里放一列卡片，
+      // 卡片区的底该是白的，不能退回组件默认的浅灰。
+      if (pass && pass.p && bg && !pass.p.bg && !/^(navbar|footer|hero|film)$/.test(pass.type)) pass.p.bg = bg;
       // 包装层的留白是「套在外面的」，要加到子模块上（取最大值会吃掉内层那圈）
       if (pass && pass.p && padX >= 12 && !/^(navbar|footer)$/.test(pass.type)) {
         pass.p.padX = Math.min((Number(pass.p.padX) || 0) + Math.min(padX, 80), 120);
@@ -9516,6 +9684,22 @@
     page.text = rgbToHex(bs.color) || '';
     var title = String(doc.title || '').replace(/\s+/g, ' ').trim();
     if (title) page.name = title.slice(0, 60);
+    // 标签页图标：原页面已经有 ico（多半是内嵌的 data URI），就照原样带走；
+    // 不读的话导入后会自动生成一个「首字」图标，和原站对不上。
+    try {
+      var icoLink = doc.querySelector('link[rel~="icon"],link[rel="apple-touch-icon"]');
+      var icoHref = icoLink ? String(icoLink.getAttribute('href') || '').trim() : '';
+      if (/^data:image\//i.test(icoHref) && icoHref.length < 700000) {
+        page.favicon = icoHref; page.faviconMode = 'custom';
+      } else if (/^https?:\/\//i.test(icoHref) && icoHref.length < 400) {
+        page.favicon = icoHref; page.faviconMode = 'custom';
+      }
+    } catch (eIco) { }
+    try {
+      var md = doc.querySelector('meta[name="description"]');
+      var mdTx = md ? String(md.getAttribute('content') || '').replace(/\s+/g, ' ').trim() : '';
+      if (mdTx && mdTx.length <= 200 && !page.description) page.description = mdTx;
+    } catch (eMd) { }
     // 主色：先看原页面按钮的底色（有饱和度的才算），没有再退回模块里的 btnBg
     function saturated(hex) {
       if (!hex) return false;
@@ -9684,9 +9868,11 @@
       }
       frame.remove();
       if (!res.blocks.length) { toast('没能从这个页面里认出可编辑的模块', true); return; }
+      // 先把「只包着导航 / 页脚的壳」拍平再数：弹窗和 toast 的模块数才对得上画布
+      var flatBlocks = impFlattenChrome(res.blocks);
       impPending = {
-        name: fileName || '未命名.html', blocks: res.blocks, page: res.page || {},
-        stats: stats, total: countBlocks(res.blocks)
+        name: fileName || '未命名.html', blocks: flatBlocks, page: res.page || {},
+        stats: stats, total: countBlocks(flatBlocks)
       };
       showImportModal();
     };
@@ -9786,6 +9972,13 @@
       if (pg.bg) state.page.bg = pg.bg;
       if (pg.text) state.page.text = pg.text;
       if (pg.accent) { state.page.accent = pg.accent; syncComponentCSS(); }
+      // 原页面的标签页图标 / 站点描述一起带过来
+      if (pg.favicon) {
+        state.page.favicon = String(pg.favicon).slice(0, 700000);
+        state.page.faviconMode = 'custom';
+        try { applyEditorFavicon(); } catch (eFav) { }
+      }
+      if (pg.description) state.page.description = String(pg.description).slice(0, 200);
       if (pg.name) {
         state.name = pg.name;
         $('#projectName').value = pg.name;
@@ -9817,10 +10010,27 @@
         state.page.hintColor = pg.hint.color || '';
       }
     }
+    /* 按钮底色刚好等于页面主色时，交回「跟随主题」：以后换主色，CTA 还能一起变。
+       不这么做的话，导入后每颗按钮都会被锁死成导入那一刻的蓝色。 */
+    if (!st.exact) {
+      (function relink(list) {
+        var acc = String((state.page && state.page.accent) || '').toLowerCase();
+        if (!acc) return;
+        (function walk(arr) {
+          (arr || []).forEach(function (b) {
+            var p = (b && b.p) || {};
+            if (String(p.btnStyle) === 'solid' && String(p.btnBg || '').toLowerCase() === acc) {
+              p.btnStyle = 'auto'; p.btnBg = ''; p.btnColor = '';
+            }
+            if (b && b.children) walk(b.children);
+          });
+        })(list);
+      })(state.blocks);
+    }
     selectedId = null;
     pushHistory(); renderAll();
     closeImportModal();
-    toast('✓ 已导入 ' + (st.total || countBlocks(st.blocks)) + ' 个模块' + (append ? '（追加到末尾）' : '（替换原画布，可撤销）'));
+    toast('✓ 已导入 ' + countBlocks(st.blocks) + ' 个模块' + (append ? '（追加到末尾）' : '（替换原画布，可撤销）'));
   }
 
   /* 选文件 → 读文本 → 解析 */
