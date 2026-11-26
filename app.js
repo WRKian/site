@@ -5713,7 +5713,10 @@
     // 稳定 ID：重新导入时用它把浮层的目标映射回新的模块 ID
     attrs += ' data-wr-id="' + esc(b.id) + '"';
     // 独立配色 / 主题样式：给 section 打上 data-wr-nobg，退出深色模式的整页统一覆盖
-    if (String(cv(p, 'boxColorLock') || '') === '1' || themeRoleOf(p) !== 'auto') attrs += ' data-wr-nobg="1"';
+    var roleNow = themeRoleOf(p);
+    if (String(cv(p, 'boxColorLock') || '') === '1' || roleNow !== 'auto') attrs += ' data-wr-nobg="1"';
+    // 主题角色也写出来：没内嵌工程快照的旧导出页，靠它才能把「在主题下长什么样」还原回去
+    if (roleNow !== 'auto') attrs += ' data-wr-theme="' + esc(roleNow) + '"';
     if (isOverlay(b)) {
       // 目标为空（“紧挨着的上一个模块”）或原目标被删除时，renderBlocks 会把解析后的
       // 真实宿主 ID 传进来；导出页必须写解析结果，否则重新导入时浮层会失去宿主。
@@ -7503,7 +7506,9 @@
      读真实字号 / 颜色 / 对齐 / 留白 / 底色，再按语义标签归到已有组件；
      认不出的包装层会被摊平，只保留有底色或大留白的那层当容器，免得一导入几十层套娃。
      =================================================================== */
-  var IMPORT_MAX_BYTES = 12 * 1024 * 1024;
+  /* 导出页里带着工程快照（图片会出现两份），上限比原来的 12MB 抬高一档；
+     带快照的文件不走 iframe 渲染，直接 JSON.parse，24MB 也不卡 */
+  var IMPORT_MAX_BYTES = 24 * 1024 * 1024;
   var IMP_SKIP_TAG = /^(SCRIPT|STYLE|NOSCRIPT|LINK|META|TEMPLATE|HEAD|TITLE|BASE|SOURCE|TRACK|PARAM|OBJECT|EMBED|CANVAS|AUDIO|MAP|AREA)$/;
   var IMP_INLINE = /^(SPAN|A|B|STRONG|EM|I|U|S|SMALL|CODE|KBD|MARK|SUP|SUB|LABEL|TIME|ABBR|CITE|BR|IMG|SVG|DEL|INS|Q|FONT|WBR|BDI|BDO|VAR|SAMP|BIG|STRIKE|TT|NOBR)$/;
   var impPending = null;
@@ -7525,8 +7530,33 @@
     return '#' + hex(p[0]) + hex(p[1]) + hex(p[2]);
   }
 
-  /* 取元素的可见文字：<br> 与块级边界转成换行，再压掉多余空白 */
-  function impText(el) {
+  /* 文字颜色：原页面常用半透明白（rgba(255,255,255,.6)）做层次。
+     直接按 rgbToHex 会把它当「太淡」丢掉，导入后文字要么变黑要么看不见；
+     这里按它背后的底色合成一个等效实色，深底浅字 / 浅底深字都能对上。 */
+  function impTextColor(el, win) {
+    var raw = '';
+    try { raw = String(win.getComputedStyle(el).color || ''); } catch (e) { return ''; }
+    var solid = rgbToHex(raw, 0.85);
+    if (solid) return solid;
+    var m = /^rgba?\(([^)]+)\)$/i.exec(raw);
+    if (!m) return '';
+    var p = m[1].split(/[,\s\/]+/).filter(function (x) { return x !== ''; }).map(parseFloat);
+    if (p.length < 4 || !isFinite(p[3])) return '';
+    var a = p[3];
+    if (a < 0.15) return '';
+    var bg = '#ffffff';
+    try {
+      var b = impBackdrop(el.parentElement || el, win, '#ffffff');
+      if (/^#[0-9a-f]{6}$/i.test(b)) bg = b;
+    } catch (e2) { }
+    var mix = function (i, j) {
+      return Math.round(p[i] * a + parseInt(bg.slice(j, j + 2), 16) * (1 - a));
+    };
+    var hx = function (n) { var x = clampNum(n, 0, 255).toString(16); return x.length < 2 ? '0' + x : x; };
+    return '#' + hx(mix(0, 1)) + hx(mix(1, 3)) + hx(mix(2, 5));
+  }
+
+  /* 取元素的可见文字：<br> 与块级边界转成换行，再压掉多余空白 */  function impText(el) {
     if (!el) return '';
     var c = el.cloneNode(true);
     Array.prototype.slice.call(c.querySelectorAll('br')).forEach(function (b) {
@@ -7565,9 +7595,21 @@
       // 内联元素平时并进正文，但「span.wr-media 里包一张头像」这种就是一个独立模块，
       // 过滤掉的话头像、logo、二维码会整块消失
       var im = c.tagName === 'IMG' ? c : (c.querySelector ? c.querySelector('img') : null);
-      if (!im) return false;
-      var r = im.getBoundingClientRect();
-      return r.width >= 20 && r.height >= 12;
+      if (im) {
+        var r = im.getBoundingClientRect();
+        if (r.width >= 20 && r.height >= 12) return true;
+      }
+      // 按钮长得像按钮：有底色 / 描边 / btn 类名的 <a> 不能当普通文字吞掉，
+      // 否则「容器里放一个按钮」会变成一段纯文字，链接和配色全丢
+      if (c.tagName === 'A') {
+        try {
+          var cs = win.getComputedStyle(c);
+          if (rgbToHex(cs.backgroundColor, 0.4)) return true;
+          if (/btn|button|cta/i.test(String(c.className || ''))) return true;
+          if (parseFloat(cs.borderTopWidth) >= 1 && !/none/.test(cs.borderTopStyle)) return true;
+        } catch (e) { }
+      }
+      return false;
     });
   }
 
@@ -8338,7 +8380,7 @@
       navCtaHref: cta ? (cta.getAttribute('href') || '#') : '#contact',
       sticky: sticky,
       navHeight: Math.round(clampNum(r.height, 48, 96)),
-      color: rgbToHex(s.color) || readableInk(bg),
+      color: impTextColor(el, win) || readableInk(bg),
       bg: bg,
       align: 'right',
       padY: impPadOf(el, win).padY,
@@ -8421,7 +8463,7 @@
       phone: phone,
       email: email,
       address: addr,
-      color: rgbToHex(s.color) || '#c8d6ea',
+      color: impTextColor(el, win) || '#c8d6ea',
       bg: bg,
       padY: impPadOf(el, win).padY,
       padX: impPadOf(el, win).padX
@@ -8582,6 +8624,36 @@
       }
       var layer = impLayerOf(el, win);
       if (layer) Object.keys(layer).forEach(function (k) { t[k] = layer[k]; });
+      /* 主题样式：新导出页有 data-wr-theme；自定义配色写在 --wr-th-* 变量上。
+         不认这一步，重新导入后每个模块都会退回「跟随主题」，浅/深色下的差别就没了。 */
+      try {
+        var roleT = el.getAttribute && el.getAttribute('data-wr-theme');
+        if (!roleT) {
+          // 更早的导出页没有 data-wr-theme，但角色一直写在 class 上（wr-th-custom 等）
+          var thM = /(?:^|\s)wr-th-(base|card|soft|accent|inverse|outline|plain|custom)(?:\s|$)/.exec(String(el.className || ''));
+          if (thM) roleT = thM[1];
+        }
+        if (roleT && /^(base|card|soft|accent|inverse|outline|plain|custom)$/.test(roleT)) {
+          t.boxThemeRole = roleT;
+          if (roleT === 'custom') {
+            var tcs = win.getComputedStyle(el);
+            var tv = function (n) {
+              var raw = String(tcs.getPropertyValue(n) || '').trim();
+              if (!raw) return '';
+              var hx = rgbToHex(raw, 0);
+              return hx || '';
+            };
+            [['boxThemeLightBg', '--wr-th-bg'], ['boxThemeLightText', '--wr-th-ink'],
+              ['boxThemeLightAccent', '--wr-th-accent'], ['boxThemeLightLink', '--wr-th-link'],
+              ['boxThemeDarkBg', '--wr-th-bg-d'], ['boxThemeDarkText', '--wr-th-ink-d'],
+              ['boxThemeDarkAccent', '--wr-th-accent-d'], ['boxThemeDarkLink', '--wr-th-link-d']
+            ].forEach(function (pair) {
+              var v = tv(pair[1]);
+              if (v) t[pair[0]] = v;
+            });
+          }
+        }
+      } catch (eTh) { }
       if (fx) {
         if (fx.boxHover) t.boxHover = fx.boxHover;
         if (fx.loopFx) t.loopFx = fx.loopFx;
@@ -8604,22 +8676,30 @@
         var par = el.parentElement;
         if (par && res[0].type !== 'divider') {
           var ps = win.getComputedStyle(par);
+          var pr = par.getBoundingClientRect(), er = el.getBoundingClientRect();
+          /* 顶层模块：父层就是 .wr-page（整页那圈宽度），它自带页面底色，
+             按「外壳」跳过会把所有宽度设置都丢掉。这里直接拿页面宽度当分母，
+             width:88% 才还原得回 88。 */
+          var pageHost = false;
+          try {
+            pageHost = par === el.ownerDocument.body ||
+              (par.classList && (par.classList.contains('wr-page') || par.id === 'top'));
+          } catch (ePage) { }
           // 外层 section 自己有底色 / 圆角 = 它才是这块的外壳（会合并进来），
           // 这时 el 只是壳里的一段内容，它自己的宽度不能变成整块的宽度
           var parentIsShell = false;
           try { parentIsShell = !!impBg(par, win, 0.5) || parseFloat(ps.borderRadius) > 0; } catch (e1) { }
-          var pr = par.getBoundingClientRect(), er = el.getBoundingClientRect();
-          var inner = pr.width - (parseFloat(ps.paddingLeft) || 0) - (parseFloat(ps.paddingRight) || 0);
+          var inner = pageHost ? pr.width : pr.width - (parseFloat(ps.paddingLeft) || 0) - (parseFloat(ps.paddingRight) || 0);
           // 多列布局（grid / flex row）里每列的宽度是布局算出来的，不是自己定的，别搬
           var multiCol = /grid/.test(ps.display) ||
             (/flex/.test(ps.display) && /row/.test(ps.flexDirection)) ||
             (s.gridTemplateColumns || '').split(/\s+/).filter(Boolean).length > 1;
-          if (!parentIsShell && !multiCol && inner > 60 && er.width > 60) {
+          if ((pageHost || (!parentIsShell && !multiCol)) && inner > 60 && er.width > 60) {
             var ratio = er.width / inner;
             if (ratio >= 0.3 && ratio < 0.985) {
               t.boxWidth = Math.round(ratio * 100);
-              var gl = er.left - (pr.left + (parseFloat(ps.paddingLeft) || 0));
-              var gr = (pr.right - (parseFloat(ps.paddingRight) || 0)) - er.right;
+              var gl = er.left - (pr.left + (pageHost ? 0 : (parseFloat(ps.paddingLeft) || 0)));
+              var gr = (pr.right - (pageHost ? 0 : (parseFloat(ps.paddingRight) || 0))) - er.right;
               if (Math.abs(gl - gr) < 4 && gl > 8) t.boxAlign = 'center';
               else if (gr < 4 && gl > 8) t.boxAlign = 'right';
             }
@@ -8635,7 +8715,7 @@
     var s = win.getComputedStyle(el);
     var text = impText(el);
     var align = /center/.test(s.textAlign) ? 'center' : (/right|end/.test(s.textAlign) ? 'right' : 'left');
-    var color = rgbToHex(s.color) || '';
+    var color = impTextColor(el, win) || '';
     var bg = impBg(el, win, 0.5);
     var padY = Math.round(clampNum((parseFloat(s.paddingTop) + parseFloat(s.paddingBottom)) / 2, 0, 120));
     var padX = Math.round(clampNum(parseFloat(s.paddingLeft), 0, 80));
@@ -8877,8 +8957,8 @@
     var types = [
       ['wr-hotlist', 'hotlist'], ['wr-feed', 'feed'], ['wr-qa', 'qa'], ['wr-rating-list', 'rating'],
       ['wr-search', 'search'], ['wr-repo', 'repo'], ['wr-wiki', 'wiki'], ['wr-chat', 'chat'],
-      ['wr-awards', 'awards'], ['wr-marquee', 'marquee'],
-      ['wr-brandwall', 'brandwall'], ['wr-futype', 'futype'], ['wr-geometry', 'geometry'],
+      ['wr-awards', 'awards'], ['wr-marquee', 'marquee'], ['wr-logos', 'logos'],
+      ['wr-brandwall', 'brandwall'], ['wr-brandrotor', 'brandrotor'], ['wr-futype', 'futype'], ['wr-geometry', 'geometry'],
       ['wr-kinetic', 'kinetic'], ['wr-hires', 'hires'], ['wr-object3d', 'object3d'],
       ['wr-profilecard', 'profilecard'], ['wr-skillbar', 'skillbar'], ['wr-journey', 'journey'],
       ['wr-linkhub', 'linkhub'], ['wr-tagcloud', 'tagcloud'], ['wr-statboard', 'statboard'], ['wr-polaroid', 'polaroid'],
@@ -8888,8 +8968,8 @@
     for (var i = 0; i < types.length; i++) { if (cls.indexOf(types[i][0]) >= 0) { type = types[i][1]; break; } }
     if (!type && el.tagName === 'SECTION') {
       // 导出页里某些组件的内部容器带类名，而 section 本身只有动效类
-      var hit = el.querySelector('.wr-hotlist,.wr-feed,.wr-qa,.wr-rating-list,.wr-search,.wr-repo,.wr-wiki,.wr-chat,.wr-awards,.wr-marquee,' +
-        '.wr-brandwall,.wr-futype,.wr-geometry,.wr-kinetic,.wr-hires,.wr-object3d,' +
+      var hit = el.querySelector('.wr-hotlist,.wr-feed,.wr-qa,.wr-rating-list,.wr-search,.wr-repo,.wr-wiki,.wr-chat,.wr-awards,.wr-marquee,.wr-logos,' +
+        '.wr-brandwall,.wr-brandrotor,.wr-futype,.wr-geometry,.wr-kinetic,.wr-hires,.wr-object3d,' +
         '.wr-profilecard,.wr-skillbar,.wr-journey,.wr-linkhub,.wr-tagcloud,.wr-statboard,.wr-polaroid,' +
         '.wr-colorswitch,.wr-darkmode,.wr-fontsizer,.wr-themepicker');
       if (hit) {
@@ -8902,7 +8982,7 @@
     var qqa = function (n, s) { return n ? Array.prototype.slice.call(n.querySelectorAll(s)) : []; };
     var tx = function (n) { return n ? String(n.textContent || '').replace(/\s+/g, ' ').trim() : ''; };
     var pad = impPadOf(el, win);
-    var opt = { padY: pad.padY, padX: pad.padX, align: 'left', color: rgbToHex(win.getComputedStyle(el).color) || '' };
+    var opt = { padY: pad.padY, padX: pad.padX, align: 'left', color: impTextColor(el, win) || '' };
     var iconOf = function (n) {
       if (!n) return '';
       var im = n.querySelector ? n.querySelector('img') : null;
@@ -8988,6 +9068,19 @@
       opt.marqueeDir = /is-right/.test(String(q('.wr-marquee') || el).className) ? 'right' : 'left';
       var dur = parseFloat(win.getComputedStyle(q('.wr-marquee-track') || el).animationDuration) || 24;
       opt.marqueeSpeed = Math.round(dur);
+    } else if (type === 'logos') {
+      // 合作品牌墙：一排小徽标，常被拍成「标题 + 一串文字」，认回来才能单独改
+      var lgs = q('.wr-logos') || el;
+      opt.logoItems = qa('.wr-logo-item').map(function (r) {
+        var lim = r.querySelector('img');
+        var label = lim ? (lim.getAttribute('src') || '') : tx(r);
+        var lhref = r.tagName === 'A' ? (r.getAttribute('href') || '') : '';
+        return [label, lhref].join(' | ');
+      }).filter(function (s) { return s.replace(/[|\s]/g, ''); }).join('\n');
+      opt.color = rgbToHex(win.getComputedStyle(lgs).color) || opt.color;
+      var lgc = q('.wr-logo-item');
+      if (lgc) opt.cardBg = impBg(lgc, win, 0.5) || '';
+      if (!opt.logoItems) return null;
     } else if (type === 'brandwall') {
       var bw = q('.wr-brandwall') || el;
       opt.title = tx(q('h2'));
@@ -9002,6 +9095,24 @@
       if (bwDur) opt.brandSpeed = Math.round(bwDur);
       var bwc = q('.wr-brand-card');
       if (bwc) opt.cardBg = impBg(bwc, win, 0.5) || '';
+    } else if (type === 'brandrotor') {
+      // 3D 环形品牌墙：卡片是绝对定位 + transform，按普通列表解析会整块丢掉
+      var rr = q('.wr-brandrotor') || el;
+      var rrs = win.getComputedStyle(rr);
+      opt.title = tx(q('h2'));
+      opt.rotShape = rr.getAttribute && rr.getAttribute('data-shape') === 'sphere' ? 'sphere' : 'ring';
+      opt.rotPause = rr.getAttribute && rr.getAttribute('data-pause') === '0' ? '0' : '1';
+      opt.rotSpeed = Math.round(clampNum(parseFloat(rrs.getPropertyValue('--wr-rot-dur')) || 30, 8, 90));
+      opt.rotRadius = Math.round(clampNum(parseFloat(rrs.getPropertyValue('--wr-rot-radius')) || 260, 120, 480));
+      opt.rotItems = qa('.wr-rot-item').map(function (r) {
+        var im = r.querySelector('img');
+        var label = im ? (im.getAttribute('src') || im.getAttribute('alt') || '') : tx(r.querySelector('.wr-rot-card span') || r);
+        var href = r.tagName === 'A' ? (r.getAttribute('href') || '') : '';
+        return [label, href].join(' | ');
+      }).filter(function (s) { return s.replace(/[|\s]/g, ''); }).join('\n');
+      var rc = q('.wr-rot-card');
+      if (rc) opt.rotCardBg = impBg(rc, win, 0.5) || '#ffffff';
+      if (!opt.rotItems) return null;
     } else if (type === 'futype') {
       var ft = q('.wr-futype') || el;
       opt.futypeText = qa('.wr-futype-line').map(tx).join('\n');
@@ -9201,7 +9312,7 @@
   function impMapGeneric(el, win, ctx) {
     var s = win.getComputedStyle(el);
     var align = /center/.test(s.textAlign) ? 'center' : (/right|end/.test(s.textAlign) ? 'right' : 'left');
-    var color = rgbToHex(s.color) || '';
+    var color = impTextColor(el, win) || '';
     var bg = impBg(el, win, 0.5);
     var padY = Math.round(clampNum((parseFloat(s.paddingTop) + parseFloat(s.paddingBottom)) / 2, 0, 120));
     var padX = Math.round(clampNum(parseFloat(s.paddingLeft), 0, 80));
@@ -9385,7 +9496,11 @@
       }
       if (bgc && accents.indexOf(bgc) < 0) accents.push(bgc);
     });
-    impBlockKids(body, win).forEach(function (c) {
+    /* 本站导出的页把正文放在 <main class="wr-page"> 里，body 只负责页面底色。
+       从 body 起扫会把整页拍成「一个大容器套所有模块」，宽度 / 留白全被外层吃掉；
+       有 .wr-page 就从它的子节点起算，模块层级才和原来一致。 */
+    var root = doc.querySelector('main.wr-page') || body;
+    impBlockKids(root, win).forEach(function (c) {
       // 一个模块解析崩了不能拖垮整页：跳过它，其余照常导入
       try {
         blocks = blocks.concat(impMap(c, win, ctx));
@@ -9468,9 +9583,88 @@
     return out;
   }
 
+  /* 导出页里内嵌的工程快照。有它就不该再猜：颜色 / 渐变 / 宽度 / 主题 / 组件类型全在 JSON 里。
+     手工改过 HTML（删了几个 section）时快照会过期，这种情况退回结构解析。 */
+  function impModelOf(html) {
+    var m = /<script[^>]*id=["']wr-model["'][^>]*>([\s\S]*?)<\/script>/i.exec(String(html || ''));
+    if (!m) return null;
+    var txt = String(m[1] || '').replace(/^\s+|\s+$/g, '');
+    if (!txt) return null;
+    var data = null;
+    try { data = JSON.parse(txt); } catch (e) { return null; }
+    if (!data || !Array.isArray(data.blocks) || !data.blocks.length) return null;
+    // 页面上的 <section data-wr-id> 数量要和快照里一致，否则说明页面被改过
+    var domCount = (String(html).match(/<section[^>]*data-wr-id="/gi) || []).length;
+    var modelCount = countBlocks(data.blocks);
+    if (domCount && modelCount !== domCount) {
+      try { console.warn('wr-model 与页面结构不一致（' + modelCount + ' vs ' + domCount + '），改用结构解析'); } catch (e2) { }
+      return null;
+    }
+    return data;
+  }
+
+  function impModelPending(model, fileName) {
+    var clean = null;
+    try {
+      clean = sanitizeProject({
+        name: typeof model.name === 'string' ? model.name : '',
+        page: model.page && typeof model.page === 'object' ? model.page : {},
+        blocks: model.blocks, assets: [], components: []
+      });
+    } catch (e) { clean = null; }
+    if (!clean || !clean.blocks.length) return false;
+    // 重新发 ID：导入到的项目里可能已经有一模一样的 ID（尤其是原地再导入一次）
+    var map = {}, all = [];
+    (function walk(list) {
+      (list || []).forEach(function (b) {
+        var old = b.id;
+        b.id = uid();
+        if (old) map[old] = b.id;
+        all.push(b);
+        if (b.children && b.children.length) walk(b.children);
+      });
+    })(clean.blocks);
+    (function fix(list) {
+      (list || []).forEach(function (b) {
+        if (b.p && b.p.layerMode === 'overlay' && b.p.layerTarget && map[b.p.layerTarget]) {
+          b.p.layerTarget = map[b.p.layerTarget];
+        }
+        if (b.children && b.children.length) fix(b.children);
+      });
+    })(clean.blocks);
+    var dataImgs = 0, remoteImgs = 0;
+    all.forEach(function (b) {
+      Object.keys(b.p || {}).forEach(function (k) {
+        var v = b.p[k];
+        if (typeof v !== 'string' || v.length < 24) return;
+        if (/^data:image\//i.test(v)) dataImgs++;
+        else if (/^https?:\/\/[^\s]+\.(png|jpe?g|gif|webp|svg|avif)/i.test(v)) remoteImgs++;
+      });
+    });
+    impPending = {
+      name: fileName || '未命名.html',
+      blocks: clean.blocks,
+      page: clean.page,
+      pageName: clean.name,
+      exact: true,
+      stats: {
+        dataImgs: dataImgs, remoteImgs: remoteImgs, localImgs: 0,
+        skipped: 0, used: all.length, extCss: 0
+      },
+      total: all.length
+    };
+    clearTimeout(toastTimer);
+    $('#toast').classList.remove('show');
+    showImportModal();
+    return true;
+  }
+
   /* 渲染 + 解析：先摆一个隐藏 iframe，150ms 后读结构 */
   function importHtmlText(html, fileName) {
     if (!/<(body|div|section|main|p|h1|table)\b/i.test(html)) { toast('这个文件里没有可识别的网页结构', true); return; }
+    // 本站导出的页面自带工程快照，直接还原（这是最准的一条路）
+    var model = impModelOf(html);
+    if (model && impModelPending(model, fileName)) return;
     toast('正在解析页面结构…');
     var frame = document.createElement('iframe');
     frame.setAttribute('sandbox', 'allow-same-origin');
@@ -9512,6 +9706,11 @@
     $('#impCount').textContent = st.total || countBlocks(st.blocks);
     $('#impChips').innerHTML = chips;
     var notes = [];
+    if (st.exact) {
+      notes.push('这是本站导出的页面，已按原样还原：颜色、渐变、宽度、主题样式和组件类型都不会被重新猜一遍');
+      if (st.stats.dataImgs) notes.push(st.stats.dataImgs + ' 处内嵌图片一起带过来');
+      if (st.stats.remoteImgs) notes.push(st.stats.remoteImgs + ' 张外链图片保留原地址');
+    }
     if (st.stats.localImgs) notes.push('有 ' + st.stats.localImgs + ' 张图片是相对路径（如 images/a.png），导入后打不开，需要重新上传');
     if (st.stats.remoteImgs) notes.push(st.stats.remoteImgs + ' 张外链图片保留原地址');
     if (st.stats.dataImgs) notes.push(st.stats.dataImgs + ' 张内嵌图片直接带过来');
@@ -9528,8 +9727,10 @@
     if (st.stats.scripts && st.stats.textLen < 240) {
       notes.push('这个页面的正文是脚本生成的（HTML 里只有 ' + st.stats.scripts + ' 个 script），只按静态结构导入，内容可能不全');
     }
-    notes.push('样式只保留关键项（字号、颜色、对齐、留白、底色含渐变），复杂布局会被拍平成模块顺序');
-    notes.push('已识别的悬停 / 常驻动效和进场动画会还原到「动效」设置里；原页面的视差与复杂脚本交互仍需在编辑器中调整');
+    if (!st.exact) {
+      notes.push('样式只保留关键项（字号、颜色、对齐、留白、底色含渐变），复杂布局会被拍平成模块顺序');
+      notes.push('已识别的悬停 / 常驻动效和进场动画会还原到「动效」设置里；原页面的视差与复杂脚本交互仍需在编辑器中调整');
+    }
     $('#impNotes').innerHTML = notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('');
     // 每次打开都回到「替换」：上一次选了追加再导一次，很容易把内容悄悄翻倍
     var rm = document.querySelector('input[name="impMode"][value="replace"]');
@@ -9559,7 +9760,8 @@
     if (!st) return;
     var append = mode === 'append';
     var before = countBlocks(state.blocks);
-    st.blocks = impFlattenChrome(st.blocks);
+    // 带工程快照的导入已经是原结构，拍平导航 / 页脚反而会改变层级
+    if (!st.exact) st.blocks = impFlattenChrome(st.blocks);
     // 浮层里记的是原页面的模块 ID，映射成本次导入生成的新 ID
     var idMap = (st.stats && st.stats.idMap) || {};
     (function mapTargets(list) {
@@ -9571,7 +9773,15 @@
       });
     })(st.blocks);
     state.blocks = append ? state.blocks.concat(st.blocks) : st.blocks;
-    if (!append) {
+    if (!append && st.exact) {
+      /* 原样还原：整份页面设置都回来（宽度、字体、标签页图标、动效开关…），
+         不再只挑 bg / text / accent 三项，否则导入后页面宽度和字体都会变回默认 */
+      state.page = Object.assign(defaultState().page, st.page || {});
+      if (st.pageName) state.name = st.pageName;
+      $('#projectName').value = state.name || '';
+      $('#stageTitle').textContent = state.name || '未命名页面';
+      syncComponentCSS();
+    } else if (!append) {
       var pg = st.page || {};
       if (pg.bg) state.page.bg = pg.bg;
       if (pg.text) state.page.text = pg.text;
@@ -9617,7 +9827,7 @@
   function pickHtmlFile() { $('#importHtmlFile').click(); }
   function importHtmlFile(file) {
     if (!file) return;
-    if (file.size > IMPORT_MAX_BYTES) { toast('HTML 文件超过 12MB，太大了解析不动', true); return; }
+    if (file.size > IMPORT_MAX_BYTES) { toast('HTML 文件超过 24MB，太大了解析不动', true); return; }
     var reader = new FileReader();
     reader.onload = function (e) { importHtmlText(String(e.target.result || ''), file.name); };
     reader.onerror = function () { toast('读取文件失败', true); };
@@ -10706,6 +10916,46 @@
     return L.join('\n');
   }
 
+  /* 导出时把整份工程一起写进页面（<script type="application/json" id="wr-model">）。
+     同一个页面再导入时直接按原样还原：颜色、渐变、宽度、主题样式、组件类型都不用靠猜。
+     只写「结构 + 样式」不写素材表；素材引用在序列化时展开成真实 data URI，导入方拿到就能用。
+     超过 4MB 就不写了（再多会把导出的 HTML 撑到导入上限附近），退化为结构解析。 */
+  var MODEL_MAX_BYTES = 4 * 1024 * 1024;
+  function exportModelJSON() {
+    try {
+      var mk = function (pageObj) {
+        return JSON.stringify({
+          v: 1,
+          name: state.name,
+          page: pageObj,
+          blocks: state.blocks
+        }, function (k, v) {
+          if (typeof v === 'string' && v.indexOf('asset:') === 0) {
+            var real = '';
+            try { real = resolveMedia(v) || ''; } catch (e) { }
+            return real || v;
+          }
+          return v;
+        });
+      };
+      var raw = mk(state.page);
+      if (raw && raw.length > MODEL_MAX_BYTES) {
+        // 开场片常常是几 MB 的 data URI：体积超限时先把它摘掉再试一次，
+        // 别为了一个可选动画把整份工程快照丢掉（结构 / 颜色 / 主题比开场片重要）
+        var slim = Object.assign({}, state.page);
+        delete slim.introFilm;
+        delete slim.introPoster;
+        raw = mk(slim);
+      }
+      if (!raw || raw.length > MODEL_MAX_BYTES) {
+        try { console.warn('工程快照过大（' + Math.round(String(raw || '').length / 1024) + 'KB），本次导出不内嵌'); } catch (e) { }
+        return '';
+      }
+      // 别让 JSON 里的 </script> 提前闭合标签
+      return raw.replace(/</g, '\\u003c');
+    } catch (e) { return ''; }
+  }
+
   function exportHTML() {
     var p = state.page;
     var font = p.font === 'serif'
@@ -10728,6 +10978,8 @@
     var favHref = faviconHref();
     var favTags = '<link rel="icon" href="' + esc(favHref || 'data:,') + '">\n' +
       (favHref ? '<link rel="apple-touch-icon" href="' + esc(favHref) + '">\n' : '');
+    var modelJson = exportModelJSON();
+    var modelTag = modelJson ? '<script type="application/json" id="wr-model">' + modelJson + '</script>\n' : '';
     return '<!doctype html>\n' +
       '<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
@@ -10762,7 +11014,7 @@
       componentCSS(false) + '\n' +
       '</style>\n' +
       (headJs.length ? '<script>' + headJs.join('') + '</script>\n' : '') +
-      '</head>\n<body>\n' + introHTML(fx.intro) + '<main class="wr-page" id="top">\n' + body + '\n</main>\n' + hintHTML(fx.intro) +
+      '</head>\n<body>\n' + introHTML(fx.intro) + '<main class="wr-page" id="top">\n' + body + '\n</main>\n' + modelTag + hintHTML(fx.intro) +
       (fx.any ? '<script>\n' + fxScript(fx) + '\n</script>\n' : '') +
       (socialFlags() ? '<script>\n' + socialScript() + '\n</script>\n' : '') +
       (hasAppearance ? '<script>\n' + appearanceScript() + '\n</script>\n' : '') +
