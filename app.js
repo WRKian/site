@@ -920,6 +920,8 @@
     { key: 'social', label: '社区与产品', ico: '◍' },
     { key: 'tdesign', label: 'TDesign 组件', ico: '◈' },
     { key: 'blog', label: '博客组件', ico: '✎' },
+    { key: 'struct', label: '结构组件', ico: '⌗' },
+    { key: 'data', label: '数据与图表', ico: '◫' },
     { key: 'visual', label: '视觉实验', ico: '✧' },
     { key: 'personal', label: '个性化', ico: '☺' },
     { key: 'appearance', label: '网页外观', ico: '◐' },
@@ -1444,6 +1446,150 @@
       } }
   ];
   ASSETS = ASSETS.concat(TDSIGN).concat(BLOGCOMP);
+
+  /* ---------- 结构组件（文章页的骨架：页头 / 作者 / 系列 / 相关 / 翻页 / 评论 / 锚点 / 筛选） ---------- */
+  var STRUCTCOMP = [
+    { type: 'posthead', label: '文章页头', ico: '❡', tone: '', g: 'struct',
+      fields: ['phKicker', 'phTitle', 'phSub', 'author', 'dateText', 'phRead', 'phTags',
+        'tdAccent', 'color', 'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg', 'align'],
+      d: {
+        phKicker: '架构笔记', phTitle: '网关选型的几个坑：从 Nginx 到 Envoy',
+        phSub: '自建网关到底该选哪一个？这篇把压测数据、运维成本和踩过的坑摊开讲。',
+        author: 'WR Kian', dateText: '2026-03-11', phRead: '8 分钟',
+        phTags: '架构, 网关, 性能',
+        tdAccent: '', color: '#16233a', cardBg: '', radius: 0, cardPadX: 0, cardPadY: 0,
+        padY: 56, padX: 24, bg: '', align: 'left'
+      } },
+    { type: 'authorbox', label: '作者名片', ico: '☻', tone: '', g: 'struct',
+      fields: ['emoji', 'title', 'role', 'desc', 'abStats', 'abFollow', 'href', 'tdAccent',
+        'color', 'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        emoji: '🧑‍💻', title: 'WR Kian', role: '后端工程师 · 写点东西',
+        desc: '写了六年 Java，最近在折腾网关和可观测性。这里放一些不适合发在公司的想法。',
+        abStats: '128 | 文章\n12k | 订阅',
+        abFollow: '关注作者', href: '#',
+        tdAccent: '', color: '#16233a', cardBg: '#f7f9fc', radius: 14,
+        cardPadX: 24, cardPadY: 22, padY: 32, padX: 24, bg: ''
+      } },
+    { type: 'serieslist', label: '系列目录', ico: '⧉', tone: '', g: 'struct',
+      fields: ['title', 'desc', 'slItems', 'slCurrent', 'tdAccent',
+        'color', 'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        title: '从零搭一个静态博客', desc: '一共 8 篇，按顺序看比较顺。',
+        slItems: '为什么要自己搭\n选型：Hexo 还是自己写\n目录结构与构建脚本\n文章页的排版细节\n搜索与标签\n部署到边缘节点\n性能优化：一次 300ms 的提升\n总结与后续',
+        slCurrent: '3',
+        tdAccent: '', color: '#16233a', cardBg: '#ffffff', radius: 12,
+        cardPadX: 22, cardPadY: 20, padY: 32, padX: 24, bg: ''
+      } },
+    { type: 'related', label: '相关阅读', ico: '⧈', tone: '', g: 'struct',
+      fields: ['title', 'relItems', 'relCols', 'tdAccent', 'color', 'cardBg', 'radius',
+        'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        title: '相关阅读',
+        relItems: 'nginx 的 upstream 到底怎么选 | 2026-02-18 | #\n自建可观测性：从日志到链路 | 2026-01-27 | #\n一次线上 502 的完整复盘 | 2026-01-09 | #',
+        relCols: '3',
+        tdAccent: '', color: '#16233a', cardBg: '#ffffff', radius: 12,
+        cardPadX: 18, cardPadY: 16, padY: 36, padX: 24, bg: ''
+      } },
+    { type: 'blogpager', label: '博客翻页', ico: '⇹', tone: '', g: 'struct',
+      fields: ['bpTotal', 'bpCurrent', 'bpPrevHref', 'bpNextHref', 'tdAccent', 'color',
+        'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg', 'align'],
+      d: {
+        bpTotal: '9', bpCurrent: '3', bpPrevHref: '#', bpNextHref: '#',
+        tdAccent: '', color: '#4a5a72', cardBg: '', radius: 8,
+        cardPadX: 0, cardPadY: 0, padY: 28, padX: 24, bg: '', align: 'center'
+      } },
+    { type: 'comments', label: '评论区', ico: '❞', tone: '', g: 'struct',
+      fields: ['title', 'cmItems', 'cmPlaceholder', 'cmBtn', 'tdAccent', 'color',
+        'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        title: '评论 · 3',
+        cmItems: '阿吉 | 2 小时前 | 第 3 点我也踩过，最后是把 keepalive 调大才稳的。\nLynn | 昨天 | 想问下压测用的是 wrk 还是 vegeta？数据看着挺可信。\n老张 | 3 天前 | 建议补一下 Envoy 的内存占用对比。',
+        cmPlaceholder: '说点什么…', cmBtn: '发表',
+        tdAccent: '', color: '#16233a', cardBg: '#ffffff', radius: 12,
+        cardPadX: 22, cardPadY: 20, padY: 32, padX: 24, bg: ''
+      } },
+    { type: 'anchornav', label: '章节锚点', ico: '⋮', tone: '', g: 'struct',
+      fields: ['anItems', 'anCurrent', 'anStyle', 'tdAccent', 'color',
+        'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg', 'align'],
+      d: {
+        anItems: '写在前面 | #intro\n核心思路 | #idea\n代码实现 | #code\n接口设计 | #api\n小结 | #end',
+        anCurrent: '2', anStyle: 'rail',
+        tdAccent: '', color: '#4a5a72', cardBg: '', radius: 8,
+        cardPadX: 0, cardPadY: 0, padY: 24, padX: 20, bg: '', align: 'right'
+      } },
+    { type: 'tagfilter', label: '标签筛选条', ico: '☷', tone: '', g: 'struct',
+      fields: ['tfItems', 'tfActive', 'tfStyle', 'tdAccent', 'color',
+        'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg', 'align'],
+      d: {
+        tfItems: '全部, 前端, 后端, 架构, 生活, 读书', tfActive: '全部', tfStyle: 'pill',
+        tdAccent: '', color: '#4a5a72', cardBg: '', radius: 0,
+        cardPadX: 0, cardPadY: 0, padY: 22, padX: 24, bg: '', align: 'left'
+      } }
+  ];
+  ASSETS = ASSETS.concat(STRUCTCOMP);
+
+  /* ---------- 数据与图表（参考 Frappe Builder：数据绑定列表 / 表单 / 图表 / 指标） ---------- */
+  var DATACOMP = [
+    { type: 'datalist', label: '数据列表', ico: '▤', tone: '', g: 'data',
+      fields: ['dlTitle', 'dlTable', 'dlKey', 'dlBase', 'dlLayout', 'dlLimit', 'dlShow', 'dlOrder', 'dlDir',
+        'dlEmpty', 'dlSample', 'tdAccent', 'color', 'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        dlTitle: '最新笔记', dlTable: 'note_book', dlKey: '', dlBase: '',
+        dlLayout: 'card', dlLimit: '6', dlShow: 'title, body, created_at', dlOrder: '', dlDir: 'desc',
+        dlEmpty: '还没有数据，去「⚙ 数据」里录几条试试。',
+        dlSample: '第一篇笔记 | 这是摘要，导出后会换成数据库里的真实内容 | 2026-03-18\n第二篇笔记 | 版式可以切卡片 / 列表 / 表格 | 2026-03-11\n第三篇笔记 | 条数和排序都在右侧调 | 2026-03-02',
+        color: '#16233a', cardBg: '#ffffff', radius: 12,
+        cardPadX: 20, cardPadY: 18, padY: 36, padX: 24, bg: ''
+      } },
+    { type: 'dataform', label: '数据表单', ico: '⌨', tone: '', g: 'data',
+      fields: ['dfTitle', 'dfTable', 'dfKey', 'dfBase', 'dfFields', 'dfBtn', 'dfOk', 'dfErr', 'dfNote',
+        'tdAccent', 'color', 'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        dfTitle: '写一条留言', dfTable: 'note_book', dfKey: '', dfBase: '',
+        dfFields: 'title | 标题 | text | 1\nbody | 内容 | textarea | 1\ncreated_at | 日期 | date | 0',
+        dfBtn: '提交', dfOk: '✓ 已提交，谢谢！', dfErr: '提交失败，请稍后再试',
+        dfNote: '提交后可以在上面的数据列表里看到。',
+        color: '#16233a', cardBg: '#ffffff', radius: 12,
+        cardPadX: 24, cardPadY: 22, padY: 32, padX: 24, bg: ''
+      } },
+    { type: 'chart', label: '图表', ico: '▥', tone: '', g: 'data',
+      fields: ['chType', 'chTitle', 'chSub', 'chItems', 'chHeight', 'chShowValue',
+        'tdAccent', 'color', 'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        chType: 'bar', chTitle: '每周访问量', chSub: '最近 6 周（单位：千次）',
+        chItems: '第 1 周 | 12\n第 2 周 | 18\n第 3 周 | 15\n第 4 周 | 24\n第 5 周 | 21\n第 6 周 | 31',
+        chHeight: 220, chShowValue: '1',
+        color: '#16233a', cardBg: '#ffffff', radius: 12,
+        cardPadX: 22, cardPadY: 20, padY: 32, padX: 24, bg: ''
+      } },
+    { type: 'metric', label: '指标卡', ico: '◴', tone: '', g: 'data',
+      fields: ['mtValue', 'mtLabel', 'mtDelta', 'mtTrend', 'mtSpark', 'mtFoot',
+        'tdAccent', 'color', 'cardBg', 'radius', 'cardPadX', 'cardPadY', 'padY', 'padX', 'bg'],
+      d: {
+        mtValue: '12,480', mtLabel: '本月新增用户', mtDelta: '+12.4%', mtTrend: 'up',
+        mtSpark: '8,9,7,11,13,12,16,18', mtFoot: '较上月',
+        color: '#16233a', cardBg: '#ffffff', radius: 14,
+        cardPadX: 22, cardPadY: 20, padY: 24, padX: 24, bg: ''
+      } }
+  ];
+  /* 单个原子件：嵌入块、图标 */
+  var ATOMS = [
+    { type: 'embed', label: '嵌入块', ico: '▭', tone: '', g: 'show',
+      fields: ['emUrl', 'emRatio', 'emTitle', 'emCaption', 'padY', 'padX', 'bg', 'align'],
+      d: {
+        emUrl: '', emRatio: '16/9', emTitle: '嵌入内容',
+        emCaption: '填一个分享链接（地图 / 视频 / 在线表格），导出后会按比例嵌进来。',
+        padY: 32, padX: 24, bg: '', align: 'center'
+      } },
+    { type: 'icon', label: '图标', ico: '✦', tone: '', g: 'basic',
+      fields: ['icName', 'icSize', 'icColor', 'icBg', 'icLabel', 'align', 'padY', 'padX', 'bg'],
+      d: {
+        icName: 'zap', icSize: 40, icColor: '', icBg: '#eaf1ff', icLabel: '',
+        align: 'center', padY: 24, padX: 24, bg: ''
+      } }
+  ];
+  ASSETS = ASSETS.concat(DATACOMP).concat(ATOMS);
   var ASSET_MAP = {};
   ASSETS.forEach(function (a) { ASSET_MAP[a.type] = a; });
   /* ---------- TDesign / 博客组件专用字段 ----------
@@ -1484,7 +1630,76 @@
     prevTitle: { k: 'prevTitle', label: '上一篇标题', type: 'text' },
     prevHref: { k: 'prevHref', label: '上一篇链接', type: 'text' },
     nextTitle: { k: 'nextTitle', label: '下一篇标题', type: 'text' },
-    nextHref: { k: 'nextHref', label: '下一篇链接', type: 'text' }
+    nextHref: { k: 'nextHref', label: '下一篇链接', type: 'text' },
+
+    /* ---------- 结构组件（文章页骨架用的那几块） ---------- */
+    phKicker: { k: 'phKicker', label: '分类 / 栏目', type: 'text', hint: '标题上方的小胶囊，留空不显示' },
+    phTitle: { k: 'phTitle', label: '文章标题', type: 'textarea', hint: '支持换行，长标题自动缩小' },
+    phSub: { k: 'phSub', label: '副标题 / 导语', type: 'textarea' },
+    phRead: { k: 'phRead', label: '阅读时长', type: 'text', hint: '如 8 分钟，留空不显示' },
+    phTags: { k: 'phTags', label: '标签', type: 'text', hint: '用逗号分隔，如 架构, 网关' },
+    abFollow: { k: 'abFollow', label: '按钮文字', type: 'text', hint: '留空不显示按钮' },
+    abStats: { k: 'abStats', label: '数据格', type: 'rows', cols: ['数值', '说明'] },
+    slItems: { k: 'slItems', label: '章节列表', type: 'rows', cols: ['章节标题', '链接'], long: 1 },
+    slCurrent: { k: 'slCurrent', label: '当前第几章', type: 'text', hint: '从 1 开始，会高亮这一条' },
+    relItems: { k: 'relItems', label: '文章列表', type: 'rows', cols: ['标题', '日期', '链接'], long: 1 },
+    relCols: { k: 'relCols', label: '每行几篇', type: 'select', opts: [['2', '2 篇'], ['3', '3 篇'], ['4', '4 篇']] },
+    bpTotal: { k: 'bpTotal', label: '总页数', type: 'text', hint: '填数字，如 9' },
+    bpCurrent: { k: 'bpCurrent', label: '当前页', type: 'text' },
+    bpPrevHref: { k: 'bpPrevHref', label: '上一页链接', type: 'text' },
+    bpNextHref: { k: 'bpNextHref', label: '下一页链接', type: 'text' },
+    cmItems: { k: 'cmItems', label: '评论', type: 'rows', cols: ['昵称', '时间', '内容'], long: 1 },
+    cmPlaceholder: { k: 'cmPlaceholder', label: '输入框提示', type: 'text' },
+    cmBtn: { k: 'cmBtn', label: '按钮文字', type: 'text' },
+    anItems: { k: 'anItems', label: '章节', type: 'rows', cols: ['章节名', '锚点'] },
+    anCurrent: { k: 'anCurrent', label: '当前第几节', type: 'text', hint: '从 1 开始' },
+    anStyle: { k: 'anStyle', label: '排列', type: 'seg', opts: [['rail', '竖排'], ['row', '横排']] },
+    tfItems: { k: 'tfItems', label: '筛选项', type: 'text', hint: '用逗号分隔，如 全部, 前端, 后端' },
+    tfActive: { k: 'tfActive', label: '当前选中', type: 'text', hint: '写其中一项的名字' },
+    tfStyle: { k: 'tfStyle', label: '样式', type: 'seg', opts: [['pill', '胶囊'], ['underline', '下划线']] },
+
+    /* ---------- 数据与图表（参考 Frappe Builder 的数据绑定 / 图表块） ---------- */
+    dlTitle: { k: 'dlTitle', label: '区块标题', type: 'text' },
+    dlTable: { k: 'dlTable', label: '数据表', type: 'text', hint: '数据库里那张表的名字，如 note_book' },
+    dlKey: { k: 'dlKey', label: '接口密钥', type: 'text', hint: '在「⚙ 数据 → 数据接口」里生成，留空就用示例数据' },
+    dlBase: { k: 'dlBase', label: '接口地址', type: 'text', hint: '留空 = 同源 /api/data/表名；页面放在别的域名下要填完整地址' },
+    dlLayout: { k: 'dlLayout', label: '版式', type: 'seg', opts: [['card', '卡片'], ['list', '列表'], ['table', '表格']] },
+    dlLimit: { k: 'dlLimit', label: '显示条数', type: 'text', hint: '1–200，默认 6' },
+    dlShow: { k: 'dlShow', label: '显示字段', type: 'text', hint: '用逗号分隔，留空显示全部字段' },
+    dlOrder: { k: 'dlOrder', label: '排序字段', type: 'text', hint: '留空按主键；可填 created_at' },
+    dlDir: { k: 'dlDir', label: '排序方向', type: 'seg', opts: [['desc', '新的在前'], ['asc', '旧的在前']] },
+    dlEmpty: { k: 'dlEmpty', label: '空数据文案', type: 'text' },
+    dlSample: { k: 'dlSample', label: '示例数据', type: 'rows', cols: ['标题', '副标题 / 摘要', '日期'], long: 1, hint: '编辑器里显示这几条，导出后自动换成真实数据' },
+    dfTitle: { k: 'dfTitle', label: '表单标题', type: 'text' },
+    dfTable: { k: 'dfTable', label: '提交到数据表', type: 'text', hint: '和上面的数据列表同一张表即可' },
+    dfKey: { k: 'dfKey', label: '接口密钥', type: 'text' },
+    dfBase: { k: 'dfBase', label: '接口地址', type: 'text', hint: '留空 = 同源' },
+    dfFields: { k: 'dfFields', label: '表单字段', type: 'rows', cols: ['字段名', '标签', '类型', '必填'], hint: '类型可填 text / textarea / number / email / date' },
+    dfBtn: { k: 'dfBtn', label: '按钮文字', type: 'text' },
+    dfOk: { k: 'dfOk', label: '成功提示', type: 'text' },
+    dfErr: { k: 'dfErr', label: '失败提示', type: 'text' },
+    dfNote: { k: 'dfNote', label: '底部说明', type: 'text' },
+    chType: { k: 'chType', label: '图表类型', type: 'seg', opts: [['bar', '柱状'], ['line', '折线'], ['donut', '环形']] },
+    chItems: { k: 'chItems', label: '数据', type: 'rows', cols: ['标签', '数值'] },
+    chTitle: { k: 'chTitle', label: '标题', type: 'text' },
+    chSub: { k: 'chSub', label: '副标题', type: 'text' },
+    chHeight: { k: 'chHeight', label: '高度', type: 'range', min: 120, max: 360, unit: 'px' },
+    chShowValue: { k: 'chShowValue', label: '数值标签', type: 'seg', opts: [['1', '显示'], ['0', '隐藏']] },
+    mtValue: { k: 'mtValue', label: '主数值', type: 'text' },
+    mtLabel: { k: 'mtLabel', label: '说明', type: 'text' },
+    mtDelta: { k: 'mtDelta', label: '变化', type: 'text', hint: '如 +12.4%' },
+    mtTrend: { k: 'mtTrend', label: '趋势', type: 'seg', opts: [['up', '上升'], ['down', '下降'], ['flat', '持平']] },
+    mtSpark: { k: 'mtSpark', label: '迷你趋势', type: 'text', hint: '逗号分隔的数字，如 3,5,4,8,9,12' },
+    mtFoot: { k: 'mtFoot', label: '底部小字', type: 'text' },
+    emUrl: { k: 'emUrl', label: '嵌入地址', type: 'text', hint: '只支持 http(s)，如地图、视频、在线表格的分享链接' },
+    emRatio: { k: 'emRatio', label: '比例', type: 'seg', opts: [['16/9', '16:9'], ['4/3', '4:3'], ['1/1', '1:1'], ['21/9', '21:9']] },
+    emTitle: { k: 'emTitle', label: '标题', type: 'text' },
+    emCaption: { k: 'emCaption', label: '说明', type: 'text' },
+    icName: { k: 'icName', label: '图标', type: 'select', opts: [['arrow-right', '→ 箭头'], ['arrow-up-right', '↗ 外链'], ['check', '✓ 对勾'], ['close', '✕ 关闭'], ['plus', '＋ 加号'], ['star', '★ 星标'], ['heart', '♥ 喜欢'], ['mail', '✉ 邮件'], ['phone', '☎ 电话'], ['pin', '📍 位置'], ['clock', '⏱ 时间'], ['calendar', '📅 日历'], ['search', '🔍 搜索'], ['user', '👤 用户'], ['users', '👥 团队'], ['cart', '🛒 购物'], ['download', '⬇ 下载'], ['link', '🔗 链接'], ['lock', '🔒 锁定'], ['globe', '🌐 全球'], ['zap', '⚡ 闪电'], ['layers', '◈ 层级'], ['code', '</> 代码'], ['chat', '💬 对话'], ['play', '▶ 播放'], ['menu', '☰ 菜单']] },
+    icSize: { k: 'icSize', label: '图标大小', type: 'range', min: 16, max: 96, unit: 'px' },
+    icColor: { k: 'icColor', label: '图标颜色', type: 'color' },
+    icBg: { k: 'icBg', label: '底色', type: 'color', hint: '留空只有图标' },
+    icLabel: { k: 'icLabel', label: '图标下文字', type: 'text' }
   });
   var FIELD_MAP = {};
   Object.keys(F).forEach(function (k) { FIELD_MAP[k] = F[k]; });
@@ -3571,6 +3786,267 @@
     ];
   }
 
+  /* ---------- 数据与图表样式（数据列表 / 数据表单 / 图表 / 指标卡 / 嵌入 / 图标） ---------- */
+  function dataCSS() {
+    return [
+      /* 数据列表 */
+      '.wr-dl{position:relative;width:100%;max-width:860px;margin:0 auto;box-sizing:border-box;' +
+        'padding:var(--wr-td-pad,20px);border-radius:var(--wr-td-r,12px);background:var(--wr-td-card,#fff);' +
+        'box-shadow:0 2px 14px rgba(20,40,80,.06)}',
+      '.wr-dl-badge{display:inline-block;margin-bottom:12px;padding:2px 9px;border-radius:999px;' +
+        'background:rgba(59,130,246,.1);color:var(--wr-td-accent,#3b82f6);font-size:10.5px;letter-spacing:.02em}',
+      '.wr-dl-empty{margin:0;padding:26px 0;text-align:center;font-size:12.5px;opacity:.55}',
+      '.wr-dl-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}',
+      '.wr-dl-card{padding:14px 15px;border-radius:10px;background:rgba(0,0,0,.028);transition:.18s}',
+      '.wr-dl-card:hover{background:rgba(0,0,0,.05)}',
+      '.wr-dl-card time{display:block;font-size:11px;opacity:.5;margin-bottom:5px}',
+      '.wr-dl-card b{display:block;font-size:14px;font-weight:600;line-height:1.55}',
+      '.wr-dl-card p{margin:6px 0 0;font-size:12.5px;line-height:1.75;opacity:.7;' +
+        'display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
+      '.wr-dl-list{display:flex;flex-direction:column}',
+      '.wr-dl-li{display:flex;align-items:baseline;gap:14px;padding:11px 2px;border-bottom:1px solid rgba(0,0,0,.06)}',
+      '.wr-dl-li:last-child{border-bottom:0}',
+      '.wr-dl-li b{flex:0 1 auto;font-size:13.5px;font-weight:600}',
+      '.wr-dl-li span{flex:1;min-width:0;font-size:12.5px;opacity:.62;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.wr-dl-li time{flex:0 0 auto;font-size:11.5px;opacity:.5}',
+      '.wr-dl-tb{width:100%;border-collapse:collapse;font-size:12.5px}',
+      '.wr-dl-tb th{text-align:left;padding:8px 10px;font-weight:600;font-size:11.5px;opacity:.6;' +
+        'border-bottom:1px solid rgba(0,0,0,.1);white-space:nowrap}',
+      '.wr-dl-tb td{padding:9px 10px;border-bottom:1px solid rgba(0,0,0,.055);vertical-align:top}',
+      '.wr-dl-tb tr:last-child td{border-bottom:0}',
+
+      /* 数据表单 */
+      '.wr-df{width:100%;max-width:520px;margin:0 auto;box-sizing:border-box;padding:var(--wr-td-pad,22px);' +
+        'border-radius:var(--wr-td-r,12px);background:var(--wr-td-card,#fff);box-shadow:0 2px 14px rgba(20,40,80,.06)}',
+      '.wr-df-f{display:block;margin-bottom:14px}',
+      '.wr-df-l{display:block;margin-bottom:6px;font-size:12.5px;opacity:.72}',
+      '.wr-df-l i{font-style:normal;color:#f04438;margin-left:3px}',
+      '.wr-df-in{width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid rgba(0,0,0,.13);' +
+        'border-radius:8px;background:transparent;color:inherit;font-size:13px;line-height:1.6;outline:none}',
+      '.wr-df-in:focus{border-color:var(--wr-td-accent,#3b82f6);box-shadow:0 0 0 3px rgba(59,130,246,.12)}',
+      'textarea.wr-df-in{resize:vertical;min-height:76px}',
+      '.wr-df-foot{display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap}',
+      '.wr-df-btn{padding:10px 22px;border:0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;' +
+        'background:var(--wr-td-accent,#3b82f6);color:#fff}',
+      '.wr-df-btn:hover{filter:brightness(1.06)}',
+      '.wr-df-btn[disabled]{opacity:.6;cursor:default}',
+      '.wr-df-msg{font-size:12px;opacity:.8}',
+      '.wr-df-msg.is-ok{color:#12b76a}',
+      '.wr-df-msg.is-err{color:#f04438}',
+      '.wr-df-note{margin-top:10px;font-size:11.5px;opacity:.55;line-height:1.7}',
+
+      /* 图表 */
+      '.wr-ch{width:100%;max-width:780px;margin:0 auto;box-sizing:border-box;padding:var(--wr-td-pad,20px);' +
+        'border-radius:var(--wr-td-r,12px);background:var(--wr-td-card,#fff);box-shadow:0 2px 14px rgba(20,40,80,.06)}',
+      '.wr-ch-t{font-size:14px;font-weight:600}',
+      '.wr-ch-s{margin-top:3px;font-size:11.5px;opacity:.55}',
+      '.wr-ch-art{margin-top:16px;color:var(--wr-td-accent,#3b82f6)}',
+      '.wr-ch-bars{display:flex;align-items:flex-end;gap:10px}',
+      '.wr-ch-b{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;' +
+        'align-items:center;gap:6px}',
+      '.wr-ch-b b{font-size:11px;font-weight:600;opacity:.75}',
+      '.wr-ch-b i{width:100%;max-width:56px;border-radius:6px 6px 2px 2px;background:currentColor;opacity:.85;' +
+        'transition:height .3s}',
+      '.wr-ch-b span{font-size:10.5px;opacity:.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
+      '.wr-ch-line{position:relative}',
+      '.wr-ch-line svg{position:absolute;left:0;right:0;top:0;bottom:26px;width:100%;height:calc(100% - 26px)}',
+      '.wr-ch-dot{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;' +
+        'background:currentColor;box-shadow:0 0 0 3px rgba(255,255,255,.9)}',
+      '.wr-ch-v{position:absolute;transform:translate(-50%,-160%);font-size:10.5px;font-style:normal;' +
+        'text-decoration:none;opacity:.7}',
+      '.wr-ch-xs{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;' +
+        'font-size:10.5px;opacity:.5}',
+      '.wr-ch-xs span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.wr-ch-donut{display:flex;align-items:center;gap:18px}',
+      '.wr-ch-donut svg{flex:0 0 auto;height:100%;width:auto;max-width:60%}',
+      '.wr-ch-leg{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}',
+      '.wr-ch-leg span{display:flex;align-items:center;gap:8px;font-size:12px;color:inherit}',
+      '.wr-ch-leg i{width:9px;height:9px;border-radius:3px;background:currentColor;flex:0 0 auto}',
+      '.wr-ch-leg b{margin-left:auto;font-size:11.5px;font-weight:600}',
+
+      /* 指标卡 */
+      '.wr-mt{width:100%;max-width:320px;margin:0 auto;box-sizing:border-box;padding:var(--wr-td-pad,20px);' +
+        'border-radius:var(--wr-td-r,14px);background:var(--wr-td-card,#fff);box-shadow:0 2px 14px rgba(20,40,80,.06)}',
+      '.wr-mt-top{display:flex;align-items:center;gap:10px}',
+      '.wr-mt-label{font-size:12.5px;opacity:.65}',
+      '.wr-mt-d{margin-left:auto;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}',
+      '.wr-mt-v{margin-top:8px;font-size:30px;font-weight:800;line-height:1.15;letter-spacing:-.02em}',
+      '.wr-mt-spark{display:block;width:100%;height:34px;margin-top:10px;opacity:.9}',
+      '.wr-mt-foot{margin-top:8px;font-size:11px;opacity:.5}',
+
+      /* 嵌入块 */
+      '.wr-em{position:relative;width:100%;max-width:880px;margin:0 auto;border-radius:12px;overflow:hidden;' +
+        'background:rgba(0,0,0,.04)}',
+      '.wr-em iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}',
+      '.wr-em.is-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;' +
+        'border:1.5px dashed rgba(0,0,0,.16);background:rgba(0,0,0,.02);color:inherit;text-align:center;padding:20px}',
+      '.wr-em-ico{opacity:.45}',
+      '.wr-em.is-empty b{font-size:13.5px;font-weight:600}',
+      '.wr-em.is-empty p{margin:0;font-size:11.5px;opacity:.55;max-width:420px;line-height:1.7}',
+      '.wr-em-cap{margin-top:8px;text-align:center;font-size:11.5px;opacity:.55}',
+
+      /* 图标 */
+      '.wr-ic{display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:center}',
+      '.wr-ic.is-left{align-items:flex-start}',
+      '.wr-ic-box{display:inline-flex;align-items:center;justify-content:center;border-radius:14px;' +
+        'padding:14px;color:var(--wr-td-accent,#3b82f6);line-height:0}',
+      '.wr-ic-l{font-size:12.5px;opacity:.7}',
+
+      '@media(max-width:640px){' +
+        '.wr-dl-cards{grid-template-columns:1fr}' +
+        '.wr-dl-li span{display:none}' +
+        '.wr-dl,.wr-df,.wr-ch,.wr-mt,.wr-em{max-width:100%}' +
+        '.wr-ch-donut{flex-direction:column;align-items:flex-start;height:auto!important}' +
+        '.wr-ch-donut svg{height:150px;max-width:100%}' +
+        '.wr-ch-leg{width:100%}' +
+        '.wr-df-foot .wr-df-btn{width:100%}' +
+        '}'
+    ];
+  }
+
+  /* ---------- 结构组件样式（文章页头 / 作者 / 系列 / 相关 / 翻页 / 评论 / 锚点 / 筛选） ---------- */
+  function structCSS() {
+    return [
+      /* 结构组件的小标题左对齐：下面跟的是左起的内容，居中会显得脱节 */
+      '.wr-td-title.is-left{text-align:left}',
+      '.wr-sec{width:100%;max-width:var(--wr-sec-w,760px);margin:0 auto}',
+      /* 文章页头 */
+      '.wr-ph{width:100%;max-width:760px;margin:0 auto;box-sizing:border-box;' +
+        'padding:var(--wr-td-pad,0);border-radius:var(--wr-td-r,0);background:var(--wr-td-card,transparent)}',
+      '.wr-ph-kick{display:inline-block;margin-bottom:14px;padding:3px 11px;border-radius:999px;' +
+        'background:rgba(0,0,0,.05);font-size:11.5px;letter-spacing:.1em;opacity:.9;' +
+        'color:var(--wr-td-accent,#3b82f6);font-weight:600}',
+      '.wr-ph-t{margin:0 0 14px;font-size:clamp(24px,4vw,40px);line-height:1.32;font-weight:800;' +
+        'letter-spacing:-.01em;color:inherit}',
+      '.wr-ph-sub{margin:0 0 18px;font-size:clamp(13px,2vw,16px);line-height:1.85;opacity:.72}',
+      '.wr-ph-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;opacity:.62}',
+      '.wr-ph-meta i{font-style:normal;opacity:.45}',
+      '.wr-ph-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}',
+      '.wr-ph-tag{padding:3px 10px;border-radius:6px;background:rgba(0,0,0,.045);font-size:11.5px;opacity:.82}',
+
+      /* 作者名片 */
+      '.wr-ab{display:flex;align-items:flex-start;gap:16px;width:100%;max-width:760px;margin:0 auto;' +
+        'box-sizing:border-box;padding:var(--wr-td-pad,24px);border-radius:var(--wr-td-r,14px);' +
+        'background:var(--wr-td-card,#f7f9fc)}',
+      '.wr-ab-img{flex:0 0 auto}',
+      '.wr-ab-main{flex:1;min-width:0}',
+      '.wr-ab-name{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:16px;font-weight:700}',
+      '.wr-ab-role{font-size:12px;font-weight:400;opacity:.6}',
+      '.wr-ab-bio{margin:8px 0 0;font-size:13px;line-height:1.8;opacity:.74}',
+      '.wr-ab-stats{display:flex;gap:20px;margin-top:12px}',
+      '.wr-ab-stats div{display:flex;flex-direction:column}',
+      '.wr-ab-stats b{font-size:15px;line-height:1.35}',
+      '.wr-ab-stats span{font-size:11px;opacity:.6}',
+      '.wr-ab-btn{flex:0 0 auto;padding:9px 17px;border-radius:999px;background:var(--wr-td-accent,#3b82f6);' +
+        'color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;white-space:nowrap}',
+
+      /* 系列目录 */
+      '.wr-sl{width:100%;max-width:720px;margin:0 auto;box-sizing:border-box;padding:var(--wr-td-pad,20px);' +
+        'border-radius:var(--wr-td-r,12px);background:var(--wr-td-card,#fff);' +
+        'box-shadow:0 2px 14px rgba(20,40,80,.06)}',
+      '.wr-sl-desc{margin:0 0 14px;font-size:13px;line-height:1.75;opacity:.7}',
+      '.wr-sl-prog{display:flex;align-items:center;gap:12px}',
+      '.wr-sl-bar{flex:1;height:4px;border-radius:999px;background:rgba(0,0,0,.08);overflow:hidden}',
+      '.wr-sl-bar i{display:block;height:100%;border-radius:999px;background:var(--wr-td-accent,#3b82f6)}',
+      '.wr-sl-n{font-size:11.5px;opacity:.6;white-space:nowrap}',
+      '.wr-sl-list{margin-top:12px}',
+      '.wr-sl-i{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:8px;' +
+        'color:inherit;text-decoration:none;font-size:13.5px;transition:.18s}',
+      '.wr-sl-i em{flex:0 0 auto;font:11px/1 var(--mono,monospace);font-style:normal;opacity:.45}',
+      '.wr-sl-i span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.wr-sl-i i{flex:0 0 auto;font-style:normal;font-size:10.5px;padding:2px 7px;border-radius:999px;' +
+        'background:rgba(0,0,0,.05);opacity:.7}',
+      '.wr-sl-i:hover{background:rgba(0,0,0,.035)}',
+      '.wr-sl-i.is-cur{background:rgba(59,130,246,.09);font-weight:600;color:var(--wr-td-accent,#3b82f6)}',
+      '.wr-sl-i.is-cur em{opacity:.8}',
+      '.wr-sl-i.is-cur i{background:var(--wr-td-accent,#3b82f6);color:#fff;opacity:1}',
+
+      /* 相关阅读 */
+      '.wr-rel{display:grid;grid-template-columns:repeat(var(--wr-rel-cols,3),minmax(0,1fr));gap:14px;' +
+        'width:100%;max-width:920px;margin:0 auto}',
+      '.wr-rel-i{display:flex;flex-direction:column;gap:6px;padding:var(--wr-td-pad,16px);' +
+        'border-radius:var(--wr-td-r,12px);background:var(--wr-td-card,#fff);' +
+        'box-shadow:0 2px 12px rgba(20,40,80,.06);color:inherit;text-decoration:none;transition:.2s}',
+      '.wr-rel-i time{font-size:11px;opacity:.5}',
+      '.wr-rel-i b{font-size:13.5px;font-weight:600;line-height:1.6}',
+      '.wr-rel-i i{font-style:normal;font-size:12px;opacity:.35;transition:.2s}',
+      '.wr-rel-i:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(20,40,80,.12)}',
+      '.wr-rel-i:hover i{opacity:.9;color:var(--wr-td-accent,#3b82f6)}',
+
+      /* 博客翻页 */
+      '.wr-bp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;box-sizing:border-box}',
+      '.wr-bp-btn{padding:7px 13px;border-radius:var(--wr-td-r,8px);border:1px solid rgba(0,0,0,.1);' +
+        'color:inherit;text-decoration:none;font-size:12.5px;transition:.16s}',
+      '.wr-bp-btn:hover{border-color:var(--wr-td-accent,#3b82f6);color:var(--wr-td-accent,#3b82f6)}',
+      '.wr-bp-btn.is-off{opacity:.35;pointer-events:none}',
+      '.wr-bp-n{min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;' +
+        'padding:0 8px;border-radius:var(--wr-td-r,8px);font-size:12.5px;color:inherit;text-decoration:none}',
+      '.wr-bp-n:hover{background:rgba(0,0,0,.05)}',
+      '.wr-bp-n.is-on{background:var(--wr-td-accent,#3b82f6);color:#fff;font-weight:700}',
+      '.wr-bp-dots{opacity:.4;padding:0 4px}',
+
+      /* 评论区 */
+      '.wr-cm{width:100%;max-width:760px;margin:0 auto;box-sizing:border-box;padding:var(--wr-td-pad,20px);' +
+        'border-radius:var(--wr-td-r,12px);background:var(--wr-td-card,#fff)}',
+      '.wr-cm-i{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.06)}',
+      '.wr-cm-i:first-of-type{padding-top:0}',
+      '.wr-cm-av{flex:0 0 34px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;' +
+        'background:rgba(0,0,0,.06);font-size:13px;font-weight:700;opacity:.7}',
+      '.wr-cm-b{flex:1;min-width:0}',
+      '.wr-cm-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}',
+      '.wr-cm-h b{font-size:13px}',
+      '.wr-cm-h time{font-size:11px;opacity:.5}',
+      '.wr-cm-b p{margin:6px 0 0;font-size:13px;line-height:1.8;opacity:.82}',
+      '.wr-cm-rp{margin-top:6px;padding:0;border:0;background:transparent;cursor:pointer;' +
+        'color:var(--wr-td-accent,#3b82f6);font-size:11.5px;opacity:.8}',
+      '.wr-cm-form{display:flex;gap:10px;margin-top:16px}',
+      '.wr-cm-input{flex:1;min-width:0;height:36px;padding:0 12px;border:1px solid rgba(0,0,0,.12);' +
+        'border-radius:8px;background:transparent;color:inherit;font-size:13px;outline:none}',
+      '.wr-cm-input:focus{border-color:var(--wr-td-accent,#3b82f6)}',
+      '.wr-cm-btn{flex:0 0 auto;height:36px;padding:0 18px;border:0;border-radius:8px;cursor:pointer;' +
+        'background:var(--wr-td-accent,#3b82f6);color:#fff;font-size:13px;font-weight:600}',
+
+      /* 章节锚点 */
+      '.wr-an{display:inline-flex;flex-direction:column;gap:2px;width:100%;max-width:210px;box-sizing:border-box}',
+      '.wr-an-i{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:6px;' +
+        'color:inherit;text-decoration:none;font-size:12.5px;opacity:.62;transition:.16s}',
+      '.wr-an-i i{flex:0 0 6px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.4}',
+      '.wr-an-i span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.wr-an-i:hover{opacity:.95}',
+      '.wr-an-i.is-on{opacity:1;font-weight:600;color:var(--wr-td-accent,#3b82f6)}',
+      '.wr-an-i.is-on i{opacity:1;background:var(--wr-td-accent,#3b82f6);box-shadow:0 0 0 3px rgba(59,130,246,.16)}',
+      '.wr-an.is-row{flex-direction:row;flex-wrap:wrap;max-width:none;gap:8px}',
+      '.wr-an.is-row .wr-an-i{padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.04)}',
+      '.wr-an.is-row .wr-an-i span{flex:0 0 auto}',
+
+      /* 标签筛选条 */
+      '.wr-tf{display:flex;flex-wrap:wrap;gap:8px;width:100%;box-sizing:border-box}',
+      '.wr-tf-i{padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.045);color:inherit;' +
+        'text-decoration:none;font-size:12.5px;transition:.16s}',
+      '.wr-tf-i:hover{background:rgba(0,0,0,.08)}',
+      '.wr-tf-i.is-on{background:var(--wr-td-accent,#3b82f6);color:#fff;font-weight:600}',
+      '.wr-tf.is-under{gap:20px;border-bottom:1px solid rgba(0,0,0,.08)}',
+      '.wr-tf.is-under .wr-tf-i{padding:8px 0;border-radius:0;background:transparent;' +
+        'border-bottom:2px solid transparent;margin-bottom:-1px}',
+      '.wr-tf.is-under .wr-tf-i:hover{background:transparent;opacity:.8}',
+      '.wr-tf.is-under .wr-tf-i.is-on{background:transparent;color:var(--wr-td-accent,#3b82f6);' +
+        'border-bottom-color:var(--wr-td-accent,#3b82f6)}',
+
+      /* 手机上把横向挤的几块摊开 */
+      '@media(max-width:640px){' +
+        '.wr-ab{flex-direction:column;align-items:flex-start}' +
+        '.wr-ab-btn{width:100%;text-align:center;box-sizing:border-box}' +
+        '.wr-rel{grid-template-columns:1fr}' +
+        '.wr-cm-form{flex-wrap:wrap}' +
+        '.wr-cm-input{flex:1 1 100%}' +
+        '.wr-cm-btn{width:100%}' +
+        '.wr-an{max-width:none}' +
+        '.wr-sl-i span{white-space:normal}' +
+        '.wr-bp{justify-content:flex-start!important}' +
+        '}'
+    ];
+  }
+
   function componentCSS(withEditor) {
     var dp = darkPalette();
     /* 深色下的主题样式规则：导出页看 html.wr-dark，画布的「深色预览」看 .canvas.is-dark-preview。
@@ -4396,7 +4872,7 @@
       '.wr-shadow-sm{box-shadow:0 6px 18px rgba(20,40,80,.10)}',
       '.wr-shadow-md{box-shadow:0 12px 32px rgba(20,40,80,.16)}',
       '.wr-shadow-lg{box-shadow:0 20px 52px rgba(20,40,80,.24)}'
-    ].concat(tdCSS()).concat(blogCSS()).concat(fxCSS());
+    ].concat(tdCSS()).concat(blogCSS()).concat(structCSS()).concat(dataCSS()).concat(fxCSS());
     // 同一组规则生成两份：导出页按视口宽度、编辑器画布按设备切换
     var mob = [
       ['.wr-nav-inner', 'padding-top:10px;padding-bottom:10px'],
@@ -4529,6 +5005,49 @@
   }
   function tdIcon(kind) {
     return { info: 'i', success: '✓', warning: '!', error: '✕' }[kind] || 'i';
+  }
+  /* ---------- 内置图标集（24×24 描边，跟 Lucide 一个路子，不引外部资源） ---------- */
+  var ICON_PATHS = {
+    'arrow-right': '<path d="M4 12h15"/><path d="M13 6l6 6-6 6"/>',
+    'arrow-up-right': '<path d="M7 17L17 7"/><path d="M9 7h8v8"/>',
+    check: '<path d="M4 12.5l5 5L20 6.5"/>',
+    close: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+    plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    star: '<path d="M12 3.6l2.6 5.4 5.9.9-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.9l5.9-.9z"/>',
+    heart: '<path d="M12 20.2S4.5 15.6 4.5 10.6A3.9 3.9 0 0 1 12 8.4a3.9 3.9 0 0 1 7.5 2.2c0 5-7.5 9.6-7.5 9.6z"/>',
+    mail: '<rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.6 7l8.4 5.6L20.4 7"/>',
+    phone: '<path d="M6 3.5h3l1.9 4.6-2.3 1.5a12.4 12.4 0 0 0 5.8 5.8l1.5-2.3 4.6 1.9v3a2 2 0 0 1-2.1 2A16.4 16.4 0 0 1 4 5.6a2 2 0 0 1 2-2.1z"/>',
+    pin: '<path d="M12 21.2s7-6.6 7-11.3a7 7 0 1 0-14 0c0 4.7 7 11.3 7 11.3z"/><circle cx="12" cy="9.8" r="2.6"/>',
+    clock: '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 2"/>',
+    calendar: '<rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17"/><path d="M8 3v4"/><path d="M16 3v4"/>',
+    search: '<circle cx="11" cy="11" r="6.4"/><path d="M15.8 15.8L21 21"/>',
+    user: '<circle cx="12" cy="8.2" r="3.9"/><path d="M4.6 20.4c1.4-3.9 4.6-6 7.4-6s6 2.1 7.4 6"/>',
+    users: '<circle cx="9.2" cy="8.4" r="3.4"/><path d="M2.8 19.6c1.2-3.3 3.8-5 6.4-5s5.2 1.7 6.4 5"/><path d="M16.4 5.4a3.2 3.2 0 0 1 0 6.2"/><path d="M18 14.9c2 .6 3.4 2.2 4.2 4.7"/>',
+    cart: '<path d="M2.6 4.4h2.6l2.6 10.8h10.2L20.6 7H6.3"/><circle cx="9.4" cy="19" r="1.5"/><circle cx="17.4" cy="19" r="1.5"/>',
+    download: '<path d="M12 3.6v10.6"/><path d="M7.6 10.4L12 14.8l4.4-4.4"/><path d="M4 19.6h16"/>',
+    link: '<path d="M9.6 14.4l4.8-4.8"/><path d="M8.4 8.4H6.6a4 4 0 0 0 0 8h1.8"/><path d="M15.6 8.4h1.8a4 4 0 0 1 0 8h-1.8"/>',
+    lock: '<rect x="5.5" y="10.5" width="13" height="9.5" rx="2"/><path d="M8.6 10.5V8a3.4 3.4 0 0 1 6.8 0v2.5"/>',
+    globe: '<circle cx="12" cy="12" r="8.6"/><path d="M3.6 12h16.8"/><path d="M12 3.4c2.9 3.6 2.9 13.6 0 17.2"/><path d="M12 3.4c-2.9 3.6-2.9 13.6 0 17.2"/>',
+    zap: '<path d="M13.2 2.6L5.4 13.2h5.6l-1.6 8.2 7.8-10.6h-5.6z"/>',
+    layers: '<path d="M12 3.4l8.6 4.7-8.6 4.7L3.4 8.1z"/><path d="M3.4 13.1l8.6 4.7 8.6-4.7"/>',
+    code: '<path d="M9 8l-4.2 4L9 16"/><path d="M15 8l4.2 4L15 16"/>',
+    chat: '<path d="M4 4.8h16v11.4H9.4L4 20.2z"/>',
+    play: '<path d="M8.4 5.2l10.4 6.8-10.4 6.8z"/>',
+    menu: '<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>'
+  };
+  function iconSVG(name, size, color) {
+    var body = ICON_PATHS[name] || ICON_PATHS.zap;
+    return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" ' +
+      'stroke="' + (color || 'currentColor') + '" stroke-width="1.7" stroke-linecap="round" ' +
+      'stroke-linejoin="round" aria-hidden="true">' + body + '</svg>';
+  }
+  /* 数据组件的接口地址：留空走同源，填了域名就补全成 /api/data/表名 */
+  function dataEndpoint(base, table) {
+    var t = String(table || '').trim();
+    var b = String(base || '').trim().replace(/\/+$/, '');
+    if (!b) return t ? '/api/data/' + encodeURIComponent(t) : '';
+    if (b.indexOf('/api/data') >= 0) return b;
+    return t ? b + '/api/data/' + encodeURIComponent(t) : b;
   }
   /* 卡片外观统一走 CSS 变量，避免每个组件各写一份背景 / 内边距 */
   function tdCardVars(p, defBg, defPadX, defPadY, defRad) {
@@ -6400,6 +6919,356 @@
           ';' + tdCardVars(p, 'rgba(0,0,0,.035)', 18, 16, 10) + '">' +
           pnCard('← 上一篇', p.prevTitle, p.prevHref, false) +
           pnCard('下一篇 →', p.nextTitle, p.nextHref, true) +
+          '</div>';
+        break;
+      }
+
+      /* ===== 结构组件 ===== */
+      case 'posthead': {
+        var phPal = tdPalette(p);
+        var phTagList = String(p.phTags || '').split(/[,，]/).map(function (x) { return x.trim(); }).filter(Boolean);
+        var phMeta = [p.author, p.dateText, p.phRead].filter(function (x) { return !!x; });
+        var phJust = { left: 'flex-start', center: 'center', right: 'flex-end' }[p.align || 'left'] || 'flex-start';
+        inner = '<header class="wr-ph" style="--wr-td-accent:' + phPal.accent +
+          ';color:' + (p.color || page.text) + ';text-align:' + (p.align || 'left') +
+          ';' + tdCardVars(p, 'transparent', 0, 0, 0) + '">' +
+          (p.phKicker ? '<div class="wr-ph-kick">' + esc(p.phKicker) + '</div>' : '') +
+          (p.phTitle ? '<h1 class="wr-ph-t">' + nl(p.phTitle) + '</h1>' : '') +
+          (p.phSub ? '<p class="wr-ph-sub">' + nl(p.phSub) + '</p>' : '') +
+          (phMeta.length ? '<div class="wr-ph-meta" style="justify-content:' + phJust + '">' +
+            phMeta.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('<i>·</i>') + '</div>' : '') +
+          (phTagList.length ? '<div class="wr-ph-tags" style="justify-content:' + phJust + '">' +
+            phTagList.map(function (t) { return '<span class="wr-ph-tag">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+          '</header>';
+        break;
+      }
+      case 'authorbox': {
+        var abPal = tdPalette(p);
+        var abStats = rowsOf(p.abStats);
+        inner = '<div class="wr-ab" style="--wr-td-accent:' + abPal.accent +
+          ';color:' + (p.color || page.text) + ';' + tdCardVars(p, '#f7f9fc', 24, 22, 14) + '">' +
+          mediaHTML(p.emoji, { size: 56, font: 26, round: true, cls: 'wr-ab-img', alt: p.title }) +
+          '<div class="wr-ab-main">' +
+            '<div class="wr-ab-name">' + esc(p.title || '') +
+              (p.role ? '<span class="wr-ab-role">' + esc(p.role) + '</span>' : '') + '</div>' +
+            (p.desc ? '<p class="wr-ab-bio">' + nl(p.desc) + '</p>' : '') +
+            (abStats.length ? '<div class="wr-ab-stats">' + abStats.map(function (r) {
+              return '<div><b>' + esc(r[0] || '') + '</b><span>' + esc(r[1] || '') + '</span></div>';
+            }).join('') + '</div>' : '') +
+          '</div>' +
+          (p.abFollow ? '<a class="wr-ab-btn" href="' + esc(safeUrl(p.href, '#')) + '">' +
+            esc(p.abFollow) + '</a>' : '') +
+          '</div>';
+        break;
+      }
+      case 'serieslist': {
+        var slPal = tdPalette(p);
+        var slRows = rowsOf(p.slItems);
+        var slCur = Math.max(1, parseInt(p.slCurrent, 10) || 1);
+        var slPct = slRows.length ? Math.round(Math.min(slCur, slRows.length) / slRows.length * 100) : 0;
+        inner = '<div class="wr-sec" style="--wr-sec-w:720px">' + (p.title ? '<h3 class="wr-td-title is-left">' + esc(p.title) + '</h3>' : '') +
+          '<div class="wr-sl" style="--wr-td-accent:' + slPal.accent +
+          ';color:' + (p.color || page.text) + ';' + tdCardVars(p, '#ffffff', 22, 20, 12) + '">' +
+          (p.desc ? '<p class="wr-sl-desc">' + nl(p.desc) + '</p>' : '') +
+          '<div class="wr-sl-prog"><div class="wr-sl-bar"><i style="width:' + slPct + '%"></i></div>' +
+          '<span class="wr-sl-n">第 ' + Math.min(slCur, slRows.length || 1) + ' / ' + (slRows.length || 1) + ' 篇</span></div>' +
+          '<div class="wr-sl-list">' + (slRows.length ? slRows.map(function (r, i) {
+            var on = (i + 1) === slCur;
+            return '<a class="wr-sl-i' + (on ? ' is-cur' : '') + '" href="' + esc(safeUrl(r[1], '#')) + '">' +
+              '<em>' + ('0' + (i + 1)).slice(-2) + '</em><span>' + esc(r[0] || '') + '</span>' +
+              (on ? '<i>正在看</i>' : '') + '</a>';
+          }).join('') : '<p class="wr-empty">在右侧填写章节</p>') + '</div>' +
+          '</div>' + '</div>';
+        break;
+      }
+      case 'related': {
+        var relPal = tdPalette(p);
+        var relRows = rowsOf(p.relItems);
+        var relCols = Math.min(4, Math.max(2, parseInt(p.relCols, 10) || 3));
+        inner = '<div class="wr-sec" style="--wr-sec-w:920px">' + (p.title ? '<h3 class="wr-td-title is-left">' + esc(p.title) + '</h3>' : '') +
+          '<div class="wr-rel" style="--wr-rel-cols:' + relCols + ';--wr-td-accent:' + relPal.accent +
+          ';color:' + (p.color || page.text) + ';' + tdCardVars(p, '#ffffff', 18, 16, 12) + '">' +
+          (relRows.length ? relRows.map(function (r) {
+            return '<a class="wr-rel-i" href="' + esc(safeUrl(r[2], '#')) + '">' +
+              (r[1] ? '<time>' + esc(r[1]) + '</time>' : '') +
+              '<b>' + esc(r[0] || '') + '</b><i>→</i></a>';
+          }).join('') : '<p class="wr-empty">在右侧填写文章</p>') +
+          '</div>' + '</div>';
+        break;
+      }
+      case 'blogpager': {
+        var bpPal = tdPalette(p);
+        var bpTotal = Math.min(30, Math.max(1, parseInt(p.bpTotal, 10) || 1));
+        var bpCur = Math.min(bpTotal, Math.max(1, parseInt(p.bpCurrent, 10) || 1));
+        inner = '<nav class="wr-bp" style="--wr-td-accent:' + bpPal.accent +
+          ';color:' + (p.color || page.text) + ';justify-content:' +
+          ({ left: 'flex-start', center: 'center', right: 'flex-end' }[p.align || 'center'] || 'center') + '">' +
+          '<a class="wr-bp-btn' + (bpCur <= 1 ? ' is-off' : '') + '" href="' +
+          esc(safeUrl(p.bpPrevHref, '#')) + '">← 上一页</a>' +
+          pagerList(bpTotal, bpCur).map(function (n) {
+            if (n === '...') return '<span class="wr-bp-dots">…</span>';
+            return '<a class="wr-bp-n' + (n === bpCur ? ' is-on' : '') + '" href="#">' + n + '</a>';
+          }).join('') +
+          '<a class="wr-bp-btn' + (bpCur >= bpTotal ? ' is-off' : '') + '" href="' +
+          esc(safeUrl(p.bpNextHref, '#')) + '">下一页 →</a>' +
+          '</nav>';
+        break;
+      }
+      case 'comments': {
+        var cmPal = tdPalette(p);
+        var cmRows = rowsOf(p.cmItems);
+        inner = '<div class="wr-sec" style="--wr-sec-w:760px">' + (p.title ? '<h3 class="wr-td-title is-left">' + esc(p.title) + '</h3>' : '') +
+          '<div class="wr-cm" style="--wr-td-accent:' + cmPal.accent +
+          ';color:' + (p.color || page.text) + ';' + tdCardVars(p, '#ffffff', 22, 20, 12) + '">' +
+          (cmRows.length ? cmRows.map(function (r) {
+            var initial = String(r[0] || '?').trim().slice(0, 1).toUpperCase() || '?';
+            return '<div class="wr-cm-i">' +
+              '<span class="wr-cm-av">' + esc(initial) + '</span>' +
+              '<div class="wr-cm-b">' +
+                '<div class="wr-cm-h"><b>' + esc(r[0] || '') + '</b>' +
+                (r[1] ? '<time>' + esc(r[1]) + '</time>' : '') + '</div>' +
+                '<p>' + nl(r[2] || '') + '</p>' +
+                '<button class="wr-cm-rp" type="button">回复</button>' +
+              '</div></div>';
+          }).join('') : '<p class="wr-empty">在右侧填写评论</p>') +
+          '<div class="wr-cm-form">' +
+            '<input class="wr-cm-input" type="text" placeholder="' + esc(p.cmPlaceholder || '说点什么…') + '">' +
+            '<button class="wr-cm-btn" type="button">' + esc(p.cmBtn || '发表') + '</button>' +
+          '</div></div>' + '</div>';
+        break;
+      }
+      case 'anchornav': {
+        var anPal = tdPalette(p);
+        var anRows = rowsOf(p.anItems);
+        var anCur = Math.max(1, parseInt(p.anCurrent, 10) || 1);
+        var anRail = String(p.anStyle) !== 'row';
+        inner = '<nav class="wr-an' + (anRail ? '' : ' is-row') +
+          '" style="--wr-td-accent:' + anPal.accent + ';color:' + (p.color || page.text) +
+          ';text-align:' + (p.align || 'right') + '">' +
+          (anRows.length ? anRows.map(function (r, i) {
+            return '<a class="wr-an-i' + ((i + 1) === anCur ? ' is-on' : '') + '" href="' +
+              esc(safeUrl(r[1], '#')) + '"><i></i><span>' + esc(r[0] || '') + '</span></a>';
+          }).join('') : '<p class="wr-empty">在右侧填写章节</p>') +
+          '</nav>';
+        break;
+      }
+      case 'tagfilter': {
+        var tfPal = tdPalette(p);
+        var tfList = String(p.tfItems || '').split(/[,，]/).map(function (x) { return x.trim(); }).filter(Boolean);
+        var tfAct = String(p.tfActive || '').trim();
+        inner = '<div class="wr-tf' + (String(p.tfStyle) === 'underline' ? ' is-under' : '') +
+          '" style="--wr-td-accent:' + tfPal.accent + ';color:' + (p.color || page.text) +
+          ';text-align:' + (p.align || 'left') + ';justify-content:' +
+          ({ left: 'flex-start', center: 'center', right: 'flex-end' }[p.align || 'left'] || 'flex-start') + '">' +
+          (tfList.length ? tfList.map(function (t) {
+            return '<a class="wr-tf-i' + (t === tfAct ? ' is-on' : '') + '" href="#">' + esc(t) + '</a>';
+          }).join('') : '<p class="wr-empty">在右侧填写筛选项</p>') +
+          '</div>';
+        break;
+      }
+
+      /* ===== 数据与图表 ===== */
+      case 'datalist': {
+        var dlPal = tdPalette(p);
+        var dlRows = rowsOf(p.dlSample);
+        var dlLayout = String(p.dlLayout || 'card');
+        var dlShow = String(p.dlShow || '').split(/[,，]/).map(function (x) { return x.trim(); }).filter(Boolean);
+        var dlEndpoint = dataEndpoint(p.dlBase, p.dlTable);
+        var dlKey = String(p.dlKey || '').trim();
+        var dlBody;
+        if (dlLayout === 'table') {
+          var cols = dlShow.length ? dlShow : ['标题', '摘要', '日期'];
+          dlBody = '<table class="wr-dl-tb"><thead><tr>' + cols.map(function (c) {
+            return '<th>' + esc(c) + '</th>';
+          }).join('') + '</tr></thead><tbody>' + (dlRows.length ? dlRows.map(function (r) {
+            return '<tr>' + cols.map(function (c, i) {
+              return '<td>' + esc(r[i] || '') + '</td>';
+            }).join('') + '</tr>';
+          }).join('') : '<tr><td colspan="' + cols.length + '">' + esc(p.dlEmpty || '暂无数据') + '</td></tr>') +
+            '</tbody></table>';
+        } else if (dlLayout === 'list') {
+          dlBody = '<div class="wr-dl-list">' + (dlRows.length ? dlRows.map(function (r) {
+            return '<div class="wr-dl-li"><b>' + esc(r[0] || '') + '</b>' +
+              (r[1] ? '<span>' + esc(r[1]) + '</span>' : '') +
+              (r[2] ? '<time>' + esc(r[2]) + '</time>' : '') + '</div>';
+          }).join('') : '<p class="wr-dl-empty">' + esc(p.dlEmpty || '暂无数据') + '</p>') + '</div>';
+        } else {
+          dlBody = '<div class="wr-dl-cards">' + (dlRows.length ? dlRows.map(function (r) {
+            return '<div class="wr-dl-card">' +
+              (r[2] ? '<time>' + esc(r[2]) + '</time>' : '') +
+              '<b>' + esc(r[0] || '') + '</b>' +
+              (r[1] ? '<p>' + esc(r[1]) + '</p>' : '') + '</div>';
+          }).join('') : '<p class="wr-dl-empty">' + esc(p.dlEmpty || '暂无数据') + '</p>') + '</div>';
+        }
+        inner = (p.dlTitle ? '<h3 class="wr-td-title is-left">' + esc(p.dlTitle) + '</h3>' : '') +
+          '<div class="wr-dl is-' + dlLayout + '"' +
+          ' data-wr-list="1" data-wr-endpoint="' + esc(dlEndpoint) + '" data-wr-key="' + esc(dlKey) + '"' +
+          ' data-wr-layout="' + esc(dlLayout) + '" data-wr-limit="' + esc(String(p.dlLimit || '6')) + '"' +
+          ' data-wr-show="' + esc(dlShow.join(',')) + '" data-wr-order="' + esc(p.dlOrder || '') + '"' +
+          ' data-wr-dir="' + esc(p.dlDir || 'desc') + '" data-wr-empty="' + esc(p.dlEmpty || '暂无数据') + '"' +
+          (dlKey ? '' : ' data-wr-sample="1"') +
+          ' style="--wr-td-accent:' + dlPal.accent + ';color:' + (p.color || page.text) +
+          ';' + tdCardVars(p, '#ffffff', 20, 18, 12) + '">' +
+          (editor ? '<div class="wr-dl-badge">' + (dlKey ? '导出后读「' + esc(p.dlTable || '?') + '」的真实数据' : '示例数据 · 填接口密钥后读真实数据') + '</div>' : '') +
+          '<div class="wr-dl-body">' + dlBody + '</div></div>';
+        break;
+      }
+      case 'dataform': {
+        var dfPal = tdPalette(p);
+        var dfRows = rowsOf(p.dfFields);
+        var dfEndpoint = dataEndpoint(p.dfBase, p.dfTable);
+        var dfKey = String(p.dfKey || '').trim();
+        inner = (p.dfTitle ? '<h3 class="wr-td-title is-left">' + esc(p.dfTitle) + '</h3>' : '') +
+          '<form class="wr-df"' +
+          ' data-wr-form="1" data-wr-endpoint="' + esc(dfEndpoint) + '" data-wr-key="' + esc(dfKey) + '"' +
+          ' data-wr-ok="' + esc(p.dfOk || '✓ 已提交') + '" data-wr-err="' + esc(p.dfErr || '提交失败') + '"' +
+          ' style="--wr-td-accent:' + dfPal.accent + ';color:' + (p.color || page.text) +
+          ';' + tdCardVars(p, '#ffffff', 24, 22, 12) + '">' +
+          (editor && !dfKey ? '<div class="wr-dl-badge">还没填接口密钥，导出后点提交会提示未配置</div>' : '') +
+          (dfRows.length ? dfRows.map(function (r) {
+            var fn = String(r[0] || '').trim(), label = String(r[1] || fn), ty = String(r[2] || 'text').trim().toLowerCase();
+            var need = String(r[3] || '').trim() === '1' || /必填|true|yes/i.test(String(r[3] || ''));
+            var ph = esc(label);
+            var field = ty === 'textarea'
+              ? '<textarea class="wr-df-in" data-wr-field="' + esc(fn) + '" rows="3" placeholder="' + ph + '"' + (need ? ' required' : '') + '></textarea>'
+              : '<input class="wr-df-in" data-wr-field="' + esc(fn) + '" type="' +
+                ({ number: 'number', email: 'email', date: 'date', tel: 'tel', url: 'url' }[ty] || 'text') +
+                '" placeholder="' + ph + '"' + (need ? ' required' : '') + '>';
+            return '<label class="wr-df-f"><span class="wr-df-l">' + esc(label) +
+              (need ? '<i>*</i>' : '') + '</span>' + field + '</label>';
+          }).join('') : '<p class="wr-empty">在右侧填写表单字段</p>') +
+          '<div class="wr-df-foot">' +
+            '<button class="wr-df-btn" type="submit">' + esc(p.dfBtn || '提交') + '</button>' +
+            '<span class="wr-df-msg" aria-live="polite"></span>' +
+          '</div>' +
+          (p.dfNote ? '<div class="wr-df-note">' + esc(p.dfNote) + '</div>' : '') +
+          '</form>';
+        break;
+      }
+      case 'chart': {
+        var chPal = tdPalette(p);
+        var chRows = rowsOf(p.chItems).map(function (r) {
+          return { label: String(r[0] || ''), v: Math.max(0, parseFloat(r[1]) || 0) };
+        }).filter(function (r) { return r.label; });
+        var chH = Math.max(120, Math.min(360, Number(p.chHeight) || 220));
+        var chMax = chRows.reduce(function (m, r) { return Math.max(m, r.v); }, 0) || 1;
+        var chTotal = chRows.reduce(function (s, r) { return s + r.v; }, 0) || 1;
+        var chType = String(p.chType || 'bar');
+        var chShowV = String(p.chShowValue) !== '0';
+        var chArt = '';
+        if (!chRows.length) {
+          chArt = '<p class="wr-empty">在右侧填写数据</p>';
+        } else if (chType === 'bar') {
+          chArt = '<div class="wr-ch-bars" style="height:' + chH + 'px">' + chRows.map(function (r) {
+            return '<div class="wr-ch-b"><b>' + (chShowV ? esc(String(r.v)) : '') + '</b>' +
+              '<i style="height:' + Math.max(2, Math.round(r.v / chMax * 100)) + '%"></i>' +
+              '<span>' + esc(r.label) + '</span></div>';
+          }).join('') + '</div>';
+        } else if (chType === 'line') {
+          var pts = chRows.map(function (r, i) {
+            var x = chRows.length === 1 ? 50 : 3 + i * 94 / (chRows.length - 1);
+            var y = 96 - Math.round(r.v / chMax * 90);
+            return { x: x, y: y, r: r };
+          });
+          var chLine = pts.map(function (o) { return o.x.toFixed(1) + ',' + o.y.toFixed(1); }).join(' ');
+          /* 折线下面补一层淡淡的面积，细线在浅色背景上才看得清 */
+          var chArea = chLine + ' ' + pts[pts.length - 1].x.toFixed(1) + ',100 ' + pts[0].x.toFixed(1) + ',100';
+          chArt = '<div class="wr-ch-line" style="height:' + chH + 'px">' +
+            '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+            '<polygon points="' + chArea + '" fill="currentColor" opacity="0.12" stroke="none"/>' +
+            '<polyline points="' + chLine +
+            '" fill="none" stroke="currentColor" stroke-width="2.4" vector-effect="non-scaling-stroke"' +
+            ' stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            pts.map(function (o) {
+              return '<i class="wr-ch-dot" style="left:' + o.x.toFixed(1) + '%;top:' + o.y.toFixed(1) + '%"></i>' +
+                (chShowV ? '<u class="wr-ch-v" style="left:' + o.x.toFixed(1) + '%;top:' + o.y.toFixed(1) + '%">' + esc(String(o.r.v)) + '</u>' : '');
+            }).join('') +
+            '<div class="wr-ch-xs">' + chRows.map(function (r) { return '<span>' + esc(r.label) + '</span>'; }).join('') + '</div></div>';
+        } else {
+          var CIRC = 2 * Math.PI * 38;
+          var acc = 0;
+          chArt = '<div class="wr-ch-donut" style="height:' + chH + 'px">' +
+            '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+            '<circle cx="50" cy="50" r="38" fill="none" stroke="rgba(0,0,0,.07)" stroke-width="12"/>' +
+            chRows.map(function (r, i) {
+              var len = r.v / chTotal * CIRC;
+              var seg = '<circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="12"' +
+                ' stroke-dasharray="' + len.toFixed(2) + ' ' + (CIRC - len).toFixed(2) + '"' +
+                ' stroke-dashoffset="' + (-acc).toFixed(2) + '" opacity="' + (1 - i * 0.16).toFixed(2) + '"' +
+                ' transform="rotate(-90 50 50)"/>';
+              acc += len;
+              return seg;
+            }).join('') + '</svg>' +
+            '<div class="wr-ch-leg">' + chRows.map(function (r, i) {
+              return '<span style="opacity:' + (1 - i * 0.16).toFixed(2) + '"><i></i>' + esc(r.label) +
+                (chShowV ? '<b>' + Math.round(r.v / chTotal * 100) + '%</b>' : '') + '</span>';
+            }).join('') + '</div></div>';
+        }
+        inner = '<div class="wr-ch" style="--wr-td-accent:' + chPal.accent + ';color:' + (p.color || page.text) +
+          ';' + tdCardVars(p, '#ffffff', 22, 20, 12) + '">' +
+          (p.chTitle ? '<div class="wr-ch-t">' + esc(p.chTitle) + '</div>' : '') +
+          (p.chSub ? '<div class="wr-ch-s">' + esc(p.chSub) + '</div>' : '') +
+          '<div class="wr-ch-art">' + chArt + '</div>' +
+          '</div>';
+        break;
+      }
+      case 'metric': {
+        var mtPal = tdPalette(p);
+        var mtNums = String(p.mtSpark || '').split(/[,，]/).map(function (x) { return parseFloat(x); })
+          .filter(function (n) { return isFinite(n); });
+        var mtTrend = String(p.mtTrend || 'up');
+        var mtColor = { up: '#12b76a', down: '#f04438', flat: '#98a2b3' }[mtTrend] || '#12b76a';
+        var mtArrow = { up: '↑', down: '↓', flat: '→' }[mtTrend] || '↑';
+        var mtSpark = '';
+        if (mtNums.length > 1) {
+          var mn = Math.min.apply(null, mtNums), mx = Math.max.apply(null, mtNums);
+          var span = (mx - mn) || 1;
+          var mpts = mtNums.map(function (n, i) {
+            return (i * 100 / (mtNums.length - 1)).toFixed(1) + ',' +
+              (28 - (n - mn) / span * 24).toFixed(1);
+          }).join(' ');
+          mtSpark = '<svg class="wr-mt-spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true">' +
+            '<polyline points="' + mpts + '" fill="none" stroke="' + mtColor +
+            '" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+        inner = '<div class="wr-mt" style="--wr-td-accent:' + mtPal.accent + ';color:' + (p.color || page.text) +
+          ';' + tdCardVars(p, '#ffffff', 22, 20, 14) + '">' +
+          '<div class="wr-mt-top">' +
+            '<span class="wr-mt-label">' + esc(p.mtLabel || '') + '</span>' +
+            (p.mtDelta ? '<span class="wr-mt-d" style="color:' + mtColor + ';background:' + mtColor + '1a">' +
+              mtArrow + ' ' + esc(p.mtDelta) + '</span>' : '') +
+          '</div>' +
+          '<div class="wr-mt-v">' + esc(p.mtValue || '') + '</div>' +
+          mtSpark +
+          (p.mtFoot ? '<div class="wr-mt-foot">' + esc(p.mtFoot) + '</div>' : '') +
+          '</div>';
+        break;
+      }
+      case 'embed': {
+        var emUrl = String(p.emUrl || '').trim();
+        var emOk = /^https?:\/\//i.test(emUrl);
+        var emRatio = String(p.emRatio || '16/9').replace('/', ' / ');
+        inner = (emOk
+          ? '<div class="wr-em" style="aspect-ratio:' + emRatio + '">' +
+            '<iframe src="' + esc(emUrl) + '" title="' + esc(p.emTitle || '嵌入内容') + '" loading="lazy" ' +
+            'referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; clipboard-write; encrypted-media" ' +
+            'allowfullscreen></iframe></div>'
+          : '<div class="wr-em is-empty" style="aspect-ratio:' + emRatio + '">' +
+            '<span class="wr-em-ico">' + iconSVG('globe', 30, 'currentColor') + '</span>' +
+            '<b>' + esc(p.emTitle || '嵌入内容') + '</b>' +
+            '<p>' + esc(p.emCaption || '在右侧填一个 http(s) 分享链接') + '</p></div>') +
+          (emOk && p.emCaption ? '<div class="wr-em-cap">' + esc(p.emCaption) + '</div>' : '');
+        break;
+      }
+      case 'icon': {
+        var icSz = Math.max(16, Math.min(96, Number(p.icSize) || 40));
+        var icCol = safeColor(p.icColor) || 'var(--wr-td-accent, #3b82f6)';
+        var icBgCol = safeColor(p.icBg);
+        var label = String(p.icLabel || '');
+        inner = '<div class="wr-ic' + (String(p.align) === 'left' ? ' is-left' : '') + '">' +
+          '<span class="wr-ic-box"' + (icBgCol ? ' style="background:' + icBgCol + '"' : '') + '>' +
+          iconSVG(String(p.icName || 'zap'), Math.round(icSz * 0.56), icCol) + '</span>' +
+          (label ? '<span class="wr-ic-l">' + esc(label) + '</span>' : '') +
           '</div>';
         break;
       }
@@ -11747,6 +12616,93 @@
     ].join('\n');
   }
   /* ---------- 新组件交互：轮播 / 选项卡 / 倒计时 / 图片对比 ---------- */
+  /* ---------- 数据组件运行时：导出页里按接口把真实数据填进去 ---------- */
+  function dataFlags() {
+    var n = { list: 0, form: 0, any: 0 };
+    (function walk(list) {
+      (list || []).forEach(function (b) {
+        if (!b) return;
+        if (b.type === 'datalist') { n.list++; n.any++; }
+        if (b.type === 'dataform') { n.form++; n.any++; }
+        walk(b.children);
+      });
+    })(state.blocks);
+    return n;
+  }
+  function dataScript() {
+    var L = ['/*wr-data*/', '(function(){'];
+    L.push(
+      'var q=function(s,r){return (r||document).querySelector(s)};',
+      'var qa=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};',
+      'var t=function(v){return v==null?"":String(v)};',
+      'function esc(v){return t(v).replace(/[&<>"\']/g,function(c){',
+      'return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","\'":"&#39;"}[c]})}',
+
+      'function cards(rows){return \'<div class="wr-dl-cards">\'+rows.map(function(r){',
+      'return \'<div class="wr-dl-card">\'+(r[2]?\'<time>\'+esc(r[2])+\'</time>\':"")+',
+      '\'<b>\'+esc(r[0]||"")+\'</b>\'+(r[1]?\'<p>\'+esc(r[1])+\'</p>\':"")+\'</div>\'}).join("")+\'</div>\'}',
+
+      'function list(rows){return \'<div class="wr-dl-list">\'+rows.map(function(r){',
+      'return \'<div class="wr-dl-li"><b>\'+esc(r[0]||"")+\'</b>\'+',
+      '(r[1]?\'<span>\'+esc(r[1])+\'</span>\':"")+(r[2]?\'<time>\'+esc(r[2])+\'</time>\':"")+\'</div>\'}).join("")+\'</div>\'}',
+
+      'function table(rows,cols){var h=\'<table class="wr-dl-tb"><thead><tr>\'+cols.map(function(c){',
+      'return "<th>"+esc(c)+"</th>"}).join("")+"</tr></thead><tbody>";',
+      'if(!rows.length){return h+\'<tr><td colspan="\'+cols.length+\'"></td></tr></tbody></table>\'}',
+      'return h+rows.map(function(r){return "<tr>"+cols.map(function(c,i){',
+      'return "<td>"+esc(r[i]||"")+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"}',
+
+      'function paint(el,data){',
+      'var body=q(".wr-dl-body",el);if(!body)return;',
+      'var layout=el.getAttribute("data-wr-layout")||"card";',
+      'var show=(el.getAttribute("data-wr-show")||"").split(",").filter(Boolean);',
+      'if(!data.length){body.innerHTML=\'<p class="wr-dl-empty">\'+esc(el.getAttribute("data-wr-empty")||"暂无数据")+\'</p>\';return}',
+      'var cols=show.length?show:Object.keys(data[0]).filter(function(k){return k!=="id"});',
+      'var rows=data.map(function(o){return cols.map(function(c){return t(o[c])})});',
+      'body.innerHTML=layout==="table"?table(rows,cols):layout==="list"?list(rows):cards(rows);',
+      'el.setAttribute("data-wr-ready","1")}',
+
+      'function load(el){',
+      'var ep=el.getAttribute("data-wr-endpoint")||"";',
+      'var key=el.getAttribute("data-wr-key")||"";',
+      'if(!ep||!key)return;',
+      'var u=ep+"?key="+encodeURIComponent(key)',
+      '+"&limit="+encodeURIComponent(el.getAttribute("data-wr-limit")||"6")',
+      '+(el.getAttribute("data-wr-order")?"&order="+encodeURIComponent(el.getAttribute("data-wr-order")):"")',
+      '+(el.getAttribute("data-wr-dir")?"&dir="+encodeURIComponent(el.getAttribute("data-wr-dir")):"");',
+      'fetch(u,{credentials:"omit"}).then(function(r){return r.json()}).then(function(res){',
+      'if(res&&res.ok&&Object.prototype.toString.call(res.data)==="[object Array]")paint(el,res.data)',
+      '}).catch(function(){})}',
+
+      'qa("[data-wr-list]").forEach(load);',
+
+      'document.addEventListener("submit",function(e){',
+      'var f=e.target;',
+      'if(!f||!f.getAttribute||!f.getAttribute("data-wr-form"))return;',
+      'e.preventDefault();',
+      'var ep=f.getAttribute("data-wr-endpoint")||"",key=f.getAttribute("data-wr-key")||"";',
+      'var msg=q(".wr-df-msg",f),btn=q(".wr-df-btn",f);',
+      'var say=function(s,ok){if(!msg)return;msg.textContent=s;msg.className="wr-df-msg "+(ok?"is-ok":"is-err")};',
+      'if(!ep||!key){say("还没配置接口地址或密钥",false);return}',
+      'var body={};',
+      'qa("[data-wr-field]",f).forEach(function(el){var k=el.getAttribute("data-wr-field");',
+      'if(!k)return;var v=el.value;if(v==="")return;body[k]=v});',
+      'if(btn)btn.disabled=true;',
+      'fetch(ep+"?key="+encodeURIComponent(key),{method:"POST",headers:{"Content-Type":"application/json"},',
+      'body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(res){',
+      'if(btn)btn.disabled=false;',
+      'if(res&&res.ok){say(f.getAttribute("data-wr-ok")||"已提交",true);',
+      'qa("[data-wr-field]",f).forEach(function(el){el.value=""});',
+      'qa("[data-wr-list]").forEach(function(el){',
+      'if(el.getAttribute("data-wr-endpoint")===ep)load(el)})}',
+      'else{say((res&&res.msg)||f.getAttribute("data-wr-err")||"提交失败",false)}',
+      '}).catch(function(){if(btn)btn.disabled=false;say(f.getAttribute("data-wr-err")||"提交失败",false)})',
+      '});'
+    );
+    L.push('})();');
+    return L.join('\n');
+  }
+
   function interactiveFlags() {
     var n = { carousel: 0, tabs: 0, countdown: 0, compare: 0, newsletter: 0, share: 0, checkbox: 0, any: 0 };
     (function walk(list) {
@@ -11976,6 +12932,7 @@
       (hasAppearance ? '<script>\n' + appearanceScript() + '\n</script>\n' : '') +
       (filmFlags().any ? '<script>\n' + filmScript() + '\n</script>\n' : '') +
       (interactiveFlags().any ? '<script>\n' + interactiveScript(interactiveFlags()) + '\n</script>\n' : '') +
+      (dataFlags().any ? '<script>\n' + dataScript() + '\n</script>\n' : '') +
       '</body>\n</html>\n';
   }
   function fileName(ext) {
