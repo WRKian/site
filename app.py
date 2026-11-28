@@ -16,8 +16,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text as sa_text
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# 云平台（如 KataBump）通过服务器根目录的 .env 文件注入环境变量，这里主动加载。
-# 本地运行没有 .env 也无妨，load_dotenv() 找不到文件时静默跳过。
+# 云平台可通过环境变量注入配置，这里主动加载 .env（本地双击运行时没有也无妨）。
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -42,8 +41,33 @@ app.config["SECRET_KEY"] = _SECRET or "site-builder-dev-key"
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-_db_path = os.environ.get("SITE_BUILDER_DB") or os.path.join(BASE_DIR, "site_builder.db")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + _db_path.replace("\\", "/")
+# ---------------------------------------------------------------- 数据库配置
+# 云平台（Koyeb/Render 等）的本地磁盘是临时的（重启/休眠后清空），所以线上必须用外部数据库。
+# 这里优先读取 DATABASE_URL（Supabase 免费 PostgreSQL 提供），
+# 没有配置时自动降级为本地 SQLite（方便你在自己电脑上双击运行、调试）。
+_db_url = os.environ.get("DATABASE_URL") or os.environ.get("SITE_BUILDER_DATABASE_URL")
+if _db_url:
+    # 去掉从网页复制时混入的首尾空格/换行，否则库名会变成 "postgres\n" 导致连不上
+    _db_url = _db_url.strip()
+    # SQLAlchemy 2.x 不认 postgres:// 这个老前缀（Heroku/部分平台会给出），统一改成 postgresql://
+    if _db_url.startswith("postgres://"):
+        _db_url = "postgresql://" + _db_url[len("postgres://"):]
+    # Vercel/Render 等平台：SQLAlchemy 2.x 对 postgresql:// 默认加载 psycopg(v3)，
+    # 但本项目依赖装的是 psycopg2-binary（模块名 psycopg2），
+    # 因此显式指定 +psycopg2，避免 ModuleNotFoundError: No module named 'psycopg'。
+    # 已经是 postgresql+psycopg2:// 的不会被重复处理。
+    if _db_url.startswith("postgresql://"):
+        _db_url = "postgresql+psycopg2://" + _db_url[len("postgresql://"):]
+    app.config["SQLALCHEMY_DATABASE_URI"] = _db_url
+    # Supabase 会在连接空闲一段时间后主动断开，开启预检 + 回收避免"连接已失效"报错
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+        "pool_recycle": 240,
+    }
+else:
+    _db_path = os.environ.get("SITE_BUILDER_DB") or os.path.join(BASE_DIR, "site_builder.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + _db_path.replace("\\", "/")
+
 _is_sqlite = app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite")
 # 数据接口一开，一个页面会同时发好几个请求读同一张表，还要顺带把调用次数写回去。
 # SQLite 默认 5 秒锁等待 + 回滚日志，并发一上来就是 "database is locked"（表现是接口偶发 500）。
@@ -96,7 +120,7 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(24), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     pass_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.Integer, default=now_ms)
+    created_at = db.Column(db.BigInteger, default=now_ms)
 
 
 class EmailCode(db.Model):
@@ -120,7 +144,7 @@ class UserProfile(db.Model):
     bio = db.Column(db.String(200), nullable=False, default="")
     avatar = db.Column(db.String(16), nullable=False, default="")   # emoji 头像，空则用首字母
     color = db.Column(db.String(16), nullable=False, default="#2563eb")
-    updated_at = db.Column(db.Integer, default=now_ms)
+    updated_at = db.Column(db.BigInteger, default=now_ms)
 
 
 class Message(db.Model):
@@ -132,10 +156,10 @@ class Message(db.Model):
     avatar = db.Column(db.String(16), nullable=False, default="")
     color = db.Column(db.String(16), nullable=False, default="#2563eb")
     content = db.Column(db.String(500), nullable=False)
-    created_at = db.Column(db.Integer, default=now_ms, index=True)
+    created_at = db.Column(db.BigInteger, default=now_ms, index=True)
     deleted = db.Column(db.Boolean, default=False, nullable=False)
     deleted_by = db.Column(db.String(64), nullable=False, default="")
-    deleted_at = db.Column(db.Integer, default=0)
+    deleted_at = db.Column(db.BigInteger, default=0)
 
 
 class Project(db.Model):
@@ -143,8 +167,8 @@ class Project(db.Model):
     owner_id = db.Column(db.String(64), db.ForeignKey("user.id"), nullable=False, index=True)
     name = db.Column(db.String(80), nullable=False)
     data = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.Integer, default=now_ms)
-    updated_at = db.Column(db.Integer, default=now_ms)
+    created_at = db.Column(db.BigInteger, default=now_ms)
+    updated_at = db.Column(db.BigInteger, default=now_ms)
 
 
 class Template(db.Model):
@@ -157,7 +181,7 @@ class Template(db.Model):
     color = db.Column(db.String(20), nullable=False, default="#64748b")
     emoji = db.Column(db.String(16), nullable=False, default="⭐")
     data = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.Integer, default=now_ms)
+    created_at = db.Column(db.BigInteger, default=now_ms)
 
 
 class Module(db.Model):
@@ -166,7 +190,7 @@ class Module(db.Model):
     name = db.Column(db.String(40), nullable=False)
     ico = db.Column(db.String(16), nullable=False, default="◧")
     data = db.Column(db.Text, nullable=False)
-    updated_at = db.Column(db.Integer, default=now_ms)
+    updated_at = db.Column(db.BigInteger, default=now_ms)
 
 
 with app.app_context():
