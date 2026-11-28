@@ -218,6 +218,7 @@
     .dba-modal{background:#fff;border-radius:16px;box-shadow:0 26px 80px rgba(15,23,42,.3);
       width:min(700px,100%);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
     .dba-modal.narrow{width:min(460px,100%)}
+    .dba-modal.wide{width:min(920px,100%)}
     .dba-mhead{padding:16px 20px;border-bottom:1px solid #eef2f8;display:flex;align-items:center;gap:10px}
     .dba-mhead h2{margin:0;font-size:15px;font-weight:800;color:#0f172a}
     .dba-mhead .sub{font-size:11.5px;color:#9aa8bb;font-family:ui-monospace,Consolas,monospace}
@@ -247,6 +248,39 @@
     .dba-toast.show{opacity:1;transform:translate(-50%,0)}
     .dba-toast.err{background:#b91c1c}
     .dba-toast.ok{background:#047857}
+
+    /* ---------- 可视化建表 ---------- */
+    .wr-col-head,.wr-col-row{display:grid;grid-template-columns:1.15fr 94px 38px 38px 38px 1fr 28px;
+      gap:6px;align-items:center}
+    .wr-col-head{font-size:10.5px;color:#9aa8bb;font-weight:700;padding:0 2px 6px;letter-spacing:.04em;text-align:center}
+    .wr-col-head span:first-child,.wr-col-head span:nth-child(2),.wr-col-head span:nth-child(6){text-align:left}
+    .wr-col-row{margin-bottom:6px}
+    .wr-col-row input[type=text],.wr-col-row select{border:1px solid #e3eaf3;border-radius:7px;padding:5px 8px;
+      font-size:12px;height:30px;box-sizing:border-box;outline:none;background:#fff;min-width:0;
+      font-family:ui-monospace,Consolas,monospace;color:#0f172a;width:100%}
+    .wr-col-row input[type=text]:focus,.wr-col-row select:focus{border-color:#bfd3f8;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    .wr-col-row .ck{display:grid;place-items:center;margin:0}
+    .wr-col-row .ck input{width:15px;height:15px;accent-color:#2563eb;cursor:pointer}
+    .wr-col-row .x{border:0;background:#fff1f2;color:#e11d48;border-radius:7px;height:30px;cursor:pointer;
+      font-size:14px;line-height:1;padding:0}
+    .wr-col-row .x:disabled{opacity:.3;cursor:not-allowed}
+    .wr-ddl{background:#0f172a;color:#c7d2fe;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;
+      line-height:1.75;padding:12px 14px;border-radius:10px;max-height:170px;overflow:auto;
+      white-space:pre-wrap;word-break:break-word;margin:0}
+    .wr-seg{display:inline-flex;border:1px solid #e3eaf3;border-radius:9px;overflow:hidden;background:#fff}
+    .wr-seg button{border:0;background:transparent;font-size:12px;padding:7px 12px;color:#475569;cursor:pointer;
+      font-weight:600}
+    .wr-seg button.on{background:#2563eb;color:#fff}
+    .wr-api-box{border:1px solid #e3eaf3;border-radius:11px;padding:12px 14px;background:#fbfdff;margin-bottom:10px}
+    .wr-api-k{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Consolas,monospace;
+      font-size:12px;color:#0f172a;word-break:break-all}
+    .wr-api-k b{color:#2563eb;font-weight:700}
+    .wr-api-t{font-size:11.5px;color:#6b7a90;margin-top:5px;line-height:1.7}
+    @media(max-width:640px){
+      .wr-col-head{display:none}
+      .wr-col-row{grid-template-columns:1fr 1fr;gap:5px;padding-bottom:8px;border-bottom:1px dashed #eef2f8}
+      .wr-col-row .ck{justify-items:start}
+    }
 
     /* ---------- 锁屏 ---------- */
     .dba-lock{position:fixed;inset:0;z-index:100;background:radial-gradient(1200px 500px at 50% -10%,#e8f0ff,#f4f7fb 60%);
@@ -365,7 +399,8 @@
       <section class="dba-pane on" id="paneOverview">
         <div class="dba-stats" id="statCards"></div>
         <div class="dba-card">
-          <h3>数据表 <span class="h">按行数排序 · 点击进入</span></h3>
+          <h3>数据表 <span class="h">按行数排序 · 点击进入</span>
+            <button class="dba-btn sm primary" id="btnNewTable" style="margin-left:auto">＋ 新建表</button></h3>
           <div id="overviewTables"><div class="dba-loading"><span class="dba-spin"></span>正在读取数据库…</div></div>
         </div>
         <div class="dba-card">
@@ -415,7 +450,11 @@
 
       <section class="dba-pane" id="paneStructure">
         <div class="dba-card" style="margin-top:0">
-          <h3>字段 <span class="h" id="structHint"></span></h3>
+          <h3>字段 <span class="h" id="structHint"></span>
+            <button class="dba-btn sm" id="btnApi" style="margin-left:auto">⚡ 数据接口</button>
+            <button class="dba-btn sm" id="btnAddCol" style="margin-left:6px">＋ 添加字段</button>
+            <button class="dba-btn sm danger" id="btnDropTable" style="margin-left:6px">删除表</button>
+          </h3>
           <div id="structCols"></div>
         </div>
         <div class="dba-card">
@@ -1068,7 +1107,7 @@
     var modalOnClose = null;
     function openModal(html, wide, narrow) {
       var box = $('#modalBox');
-      box.className = 'dba-modal' + (narrow ? ' narrow' : '');
+      box.className = 'dba-modal' + (narrow ? ' narrow' : '') + (wide ? ' wide' : '');
       box.innerHTML = html;
       $('#mask').hidden = false;
       $$('#modalBox [data-close]').forEach(function (b) {
@@ -1092,8 +1131,312 @@
       });
     }
 
+    /* ---------------- 可视化建表 ---------------- */
+    var WR_TYPES = [
+      ['integer', '整数'], ['text', '文本'], ['real', '小数'], ['numeric', '数值'],
+      ['boolean', '布尔'], ['datetime', '日期时间'], ['date', '日期'], ['blob', '二进制']
+    ];
+    var WR_SQL_TYPE = {
+      integer: 'INTEGER', text: 'TEXT', real: 'REAL', numeric: 'NUMERIC',
+      blob: 'BLOB', boolean: 'BOOLEAN', datetime: 'DATETIME', date: 'DATE'
+    };
+
+    function colRowHTML(c) {
+      c = c || {};
+      return '<div class="wr-col-row">' +
+        '<input type="text" data-c="name" placeholder="字段名" value="' + esc(c.name || '') + '" spellcheck="false" autocomplete="off">' +
+        '<select data-c="type">' + WR_TYPES.map(function (t) {
+          return '<option value="' + t[0] + '"' + ((c.type || 'text') === t[0] ? ' selected' : '') + '>' +
+            t[1] + '</option>';
+        }).join('') + '</select>' +
+        '<label class="ck" title="设为主键"><input type="checkbox" data-c="pk"' + (c.pk ? ' checked' : '') + '></label>' +
+        '<label class="ck" title="自动递增（仅整数主键）"><input type="checkbox" data-c="auto"' + (c.auto ? ' checked' : '') + '></label>' +
+        '<label class="ck" title="不允许为空"><input type="checkbox" data-c="notnull"' + (c.notnull ? ' checked' : '') + '></label>' +
+        '<input type="text" data-c="default" placeholder="默认值（留空）" value="' + esc(c.default || '') + '" spellcheck="false" autocomplete="off">' +
+        '<button type="button" class="x" data-delcol title="删除这一行">×</button>' +
+        '</div>';
+    }
+
+    function colsEditorHTML(list) {
+      return '<div class="wr-col-head"><span>字段名</span><span>类型</span><span>主键</span><span>自增</span>' +
+        '<span>非空</span><span>默认值</span><span></span></div>' +
+        '<div id="colRows">' + (list || []).map(colRowHTML).join('') + '</div>';
+    }
+
+    function readCols() {
+      return $$('#colRows .wr-col-row').map(function (row) {
+        function v(k) { var el = $('[data-c="' + k + '"]', row); return el ? el.value.trim() : ''; }
+        function ck(k) { var el = $('[data-c="' + k + '"]', row); return !!(el && el.checked); }
+        return {
+          name: v('name').toLowerCase(), type: v('type'), pk: ck('pk'), auto: ck('auto'),
+          notnull: ck('notnull'), default: v('default')
+        };
+      }).filter(function (c) { return c.name; });
+    }
+
+    function ddlPreview(name, cols) {
+      function dq(s) { return "'" + String(s).replace(/'/g, "''") + "'"; }
+      function defVal(v) {
+        var up = String(v).toUpperCase();
+        if (/^(NULL|CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME)$/.test(up)) return up;
+        return /^-?\d+(\.\d+)?$/.test(v) ? v : dq(v);
+      }
+      var hasPk = cols.some(function (c) { return c.pk; });
+      var parts = [];
+      if (!hasPk) parts.push('"id" INTEGER PRIMARY KEY AUTOINCREMENT');
+      cols.forEach(function (c) {
+        var s = '"' + c.name + '" ' + (WR_SQL_TYPE[c.type] || 'TEXT');
+        if (c.pk) {
+          s += ' PRIMARY KEY';
+          if (c.auto && c.type === 'integer') s += ' AUTOINCREMENT';
+          parts.push(s);
+          return;
+        }
+        if (c.notnull) s += ' NOT NULL';
+        if (c.default) s += ' DEFAULT ' + defVal(c.default);
+        if (c.unique) s += ' UNIQUE';
+        parts.push(s);
+      });
+      return 'CREATE TABLE "' + (name || 'your_table') + '" (\n  ' + parts.join(',\n  ') + '\n)';
+    }
+
+    function refreshDdl() {
+      var pre = $('#ddlPreview');
+      if (!pre) return;
+      var nameEl = $('#newTableName');
+      pre.textContent = ddlPreview(nameEl ? String(nameEl.value).trim().toLowerCase() : '', readCols());
+    }
+
+    function bindColRows() {
+      $$('#colRows .wr-col-row [data-delcol]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if ($$('#colRows .wr-col-row').length <= 1) { toast('至少保留一个字段', 'err'); return; }
+          b.closest('.wr-col-row').remove();
+          refreshDdl();
+        });
+      });
+      $$('#colRows .wr-col-row input, #colRows .wr-col-row select').forEach(function (el) {
+        el.addEventListener('input', refreshDdl);
+        el.addEventListener('change', function () {
+          // 主键只能有一个：勾了就取消其它的
+          if (el.getAttribute('data-c') === 'pk' && el.checked) {
+            $$('#colRows [data-c="pk"]').forEach(function (o) { if (o !== el) o.checked = false; });
+          }
+          refreshDdl();
+        });
+      });
+    }
+
+    function openCreateTable() {
+      if (!S.token) { toast('数据库还没连上，请稍等一秒再点', 'err'); return; }
+      openModal(
+        '<div class="dba-mhead"><h2>新建数据表</h2><div class="sp"></div>' +
+        '<button class="dba-mx" data-close>×</button></div>' +
+        '<div class="dba-mbody">' +
+        '<div class="dba-field" style="grid-template-columns:96px minmax(0,1fr)">' +
+        '<label>表名<span class="ty">小写字母开头</span></label>' +
+        '<div><input type="text" id="newTableName" placeholder="例如 article" spellcheck="false" autocomplete="off">' +
+        '<div class="tip">2-41 位，只能用小写字母、数字、下划线；建好后会出现在左侧列表里</div></div></div>' +
+        '<div style="margin:16px 0 8px;font-size:12px;font-weight:800;color:#334155">字段</div>' +
+        colsEditorHTML([
+          { name: 'title', type: 'text', notnull: true },
+          { name: 'body', type: 'text' },
+          { name: 'created_at', type: 'datetime', default: 'CURRENT_TIMESTAMP' }
+        ]) +
+        '<button class="dba-btn sm" id="btnAddRow" type="button" style="margin-top:9px">＋ 再加一个字段</button>' +
+        '<div style="margin:16px 0 8px;font-size:12px;font-weight:800;color:#334155">建表语句预览</div>' +
+        '<pre class="wr-ddl" id="ddlPreview"></pre>' +
+        '<div class="tip" style="font-size:11px;color:#9aa8bb;margin-top:8px;line-height:1.7">' +
+        '没设主键时会自动加一个 id 整数主键，方便在数据页里编辑和删除单行。</div>' +
+        '</div>' +
+        '<div class="dba-mfoot"><div class="sp"></div><button class="dba-btn" data-close>取消</button>' +
+        '<button class="dba-btn primary" id="btnDoCreate">创建数据表</button></div>', true);
+
+      bindColRows();
+      refreshDdl();
+      $('#newTableName').addEventListener('input', refreshDdl);
+      $('#btnAddRow').addEventListener('click', function () {
+        $('#colRows').insertAdjacentHTML('beforeend', colRowHTML({ name: '', type: 'text' }));
+        bindColRows();
+        refreshDdl();
+      });
+      $('#btnDoCreate').addEventListener('click', function () {
+        var btn = this;
+        var name = String($('#newTableName').value || '').trim().toLowerCase();
+        var cols = readCols();
+        if (!/^[a-z][a-z0-9_]{1,40}$/.test(name)) { toast('表名要小写字母开头，2-41 位', 'err'); return; }
+        if (!cols.length) { toast('至少填一个字段名', 'err'); return; }
+        btn.disabled = true;
+        api('/api/admin/db/create-table', { method: 'POST', body: { table: name, columns: cols } })
+          .then(function (d) {
+            btn.disabled = false;
+            if (!d.ok) { toast(d.msg || '创建失败', 'err'); return; }
+            closeModal();
+            toast('✓ 数据表 ' + name + ' 已创建', 'ok');
+            loadOverview().then(function () { openTable(name, 'structure'); });
+          });
+      });
+    }
+
+    function openAddColumn() {
+      if (!S.table) { toast('先选一张数据表', 'err'); return; }
+      openModal(
+        '<div class="dba-mhead"><h2>给 ' + esc(S.table) + ' 加字段</h2><div class="sp"></div>' +
+        '<button class="dba-mx" data-close>×</button></div>' +
+        '<div class="dba-mbody">' +
+        colsEditorHTML([{ name: '', type: 'text' }]) +
+        '<button class="dba-btn sm" id="btnAddRow" type="button" style="margin-top:9px">＋ 再加一个字段</button>' +
+        '<div class="tip" style="font-size:11px;color:#9aa8bb;margin-top:14px;line-height:1.7">' +
+        '已有数据的表加「非空」字段会自动补一个空字符串默认值，否则 SQLite 不允许添加。</div>' +
+        '</div>' +
+        '<div class="dba-mfoot"><div class="sp"></div><button class="dba-btn" data-close>取消</button>' +
+        '<button class="dba-btn primary" id="btnDoAlter">添加</button></div>', true);
+      bindColRows();
+      $('#btnAddRow').addEventListener('click', function () {
+        $('#colRows').insertAdjacentHTML('beforeend', colRowHTML({ name: '', type: 'text' }));
+        bindColRows();
+      });
+      $('#btnDoAlter').addEventListener('click', function () {
+        var btn = this;
+        var cols = readCols();
+        if (!cols.length) { toast('至少填一个字段名', 'err'); return; }
+        btn.disabled = true;
+        api('/api/admin/db/alter-table', { method: 'POST', body: { table: S.table, columns: cols } })
+          .then(function (d) {
+            btn.disabled = false;
+            if (!d.ok) { toast(d.msg || '添加失败', 'err'); return; }
+            closeModal();
+            toast('✓ 已添加 ' + d.added.join('、'), 'ok');
+            loadOverview();
+            loadStructure();
+          });
+      });
+    }
+
+    /* ---------------- 数据接口（快速建后端） ---------------- */
+    function openApiPanel() {
+      if (!S.table) { toast('先选一张数据表', 'err'); return; }
+      api('/api/admin/db/api/' + enc(S.table)).then(function (d) {
+        if (!d.ok) { toast(d.msg || '读取失败', 'err'); return; }
+        renderApiPanel(d);
+      });
+    }
+
+    function renderApiPanel(d) {
+      var has = !!d.token;
+      var methods = String(d.methods || '').split(',');
+      var ep = d.endpoint || (location.origin + '/api/data/' + d.table);
+      var getCode = "fetch('" + ep + "?key=" + (has ? '你的密钥' : 'KEY') + "&limit=10')\n" +
+        "  .then(function (r) { return r.json(); })\n" +
+        "  .then(function (res) { console.log(res.data); });";
+      var postCode = "fetch('" + ep + "?key=" + (has ? '你的密钥' : 'KEY') + "', {\n" +
+        "  method: 'POST',\n" +
+        "  headers: { 'Content-Type': 'application/json' },\n" +
+        "  body: JSON.stringify({ title: '标题', body: '内容' })\n" +
+        "}).then(function (r) { return r.json(); }).then(console.log);";
+
+      openModal(
+        '<div class="dba-mhead"><h2>数据接口 · ' + esc(d.table) + '</h2><div class="sp"></div>' +
+        '<button class="dba-mx" data-close>×</button></div>' +
+        '<div class="dba-mbody">' +
+        '<div class="wr-api-box"><div class="wr-api-k">接口地址 <b>' + esc(ep) + '</b></div>' +
+        '<div class="wr-api-t">页面里用 fetch 调它就能提交和读取数据，不需要登录；密钥相当于这张表的密码，只发给自己的页面。</div></div>' +
+        '<div class="wr-api-box"><div class="wr-api-k" style="gap:10px">密钥 ' +
+        (has
+          ? '<code id="apiKey" style="font-size:11.5px;background:#eef4ff;padding:3px 7px;border-radius:6px;' +
+            'word-break:break-all">' + esc(d.token) + '</code>' +
+            '<button class="dba-btn sm" id="btnToggleKey" style="margin-left:auto">显示 / 隐藏</button>' +
+            '<button class="dba-btn sm" id="btnCopyKey">⧉ 复制</button>' +
+            '<button class="dba-btn sm danger" id="btnResetKey">重置</button>'
+          : '<span style="color:#94a3b8">还没生成</span>' +
+            '<button class="dba-btn sm primary" id="btnToggleKey" style="margin-left:auto">生成密钥</button>') +
+        '</div>' +
+        '<div class="wr-api-t">重置后旧密钥立刻失效，已经发布的页面要跟着换。</div></div>' +
+        '<div class="wr-api-box"><div class="wr-api-k" style="margin-bottom:6px">开放的操作</div>' +
+        '<div class="wr-seg" id="apiMethods">' +
+        '<button type="button" data-m="GET" class="' + (methods.indexOf('GET') >= 0 ? 'on' : '') + '">读取 GET</button>' +
+        '<button type="button" data-m="POST" class="' + (methods.indexOf('POST') >= 0 ? 'on' : '') + '">写入 POST</button>' +
+        '</div><div class="wr-api-t">关掉写入就只能读；两个都关掉接口会整体停用。</div></div>' +
+        '<div style="margin:16px 0 8px;font-size:12px;font-weight:800;color:#334155">页面里怎么用</div>' +
+        '<div class="wr-api-t" style="margin-bottom:6px">提交一条数据：</div>' +
+        '<pre class="wr-ddl" style="max-height:200px">' + esc(postCode) + '</pre>' +
+        '<div class="wr-api-t" style="margin:12px 0 6px">读取最新 10 条：</div>' +
+        '<pre class="wr-ddl" style="max-height:160px">' + esc(getCode) + '</pre>' +
+        '<div class="wr-api-t" style="margin-top:10px">已调用 ' + fmtNum(d.hits || 0) + ' 次。' +
+        'GET 支持 limit / offset / order / dir，还能用字段名当筛选条件，例如 &amp;title=标题。</div>' +
+        '</div>' +
+        '<div class="dba-mfoot"><div class="sp"></div>' +
+        '<button class="dba-btn" data-close>关闭</button></div>', true);
+
+      var shown = true;
+      $('#btnToggleKey').addEventListener('click', function () {
+        var k = $('#apiKey');
+        if (!k) { saveApiKey(true); return; }
+        shown = !shown;
+        k.textContent = shown ? d.token : d.token.replace(/./g, '•');
+      });
+      if (has) {
+        $('#apiKey').textContent = d.token;
+      }
+      var copyBtn = $('#btnCopyKey');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function () {
+          if (!d.token) { toast('先点「生成密钥」', 'err'); return; }
+          copyText(d.token, '✓ 密钥已复制');
+        });
+      }
+      var resetBtn = $('#btnResetKey');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function () { askResetKey(); });
+      }
+      $$('#apiMethods button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          b.classList.toggle('on');
+          saveApiKey(false);
+        });
+      });
+
+      function askResetKey() {
+        askConfirm(has ? '重置密钥' : '生成密钥',
+          has ? '旧密钥会立刻失效，已经用它的页面需要改成新密钥。' : '生成后复制到你的页面里就能提交数据。',
+          has ? '确认重置' : '生成', function () { saveApiKey(true); });
+      }
+
+      function saveApiKey(reset) {
+        var picked = $$('#apiMethods button.on').map(function (b) { return b.getAttribute('data-m'); });
+        api('/api/admin/db/api/' + enc(d.table), {
+          method: 'POST',
+          body: { methods: picked.join(','), reset: !!reset }
+        }).then(function (r) {
+          if (!r.ok) { toast(r.msg || '操作失败', 'err'); return; }
+          toast(reset ? '✓ 已生成新密钥'
+            : (picked.length ? '✓ 接口设置已保存' : '✓ 接口已暂停'), 'ok');
+          renderApiPanel(r);
+        });
+      }
+    }
+
+    function dropCurrentTable() {
+      if (!S.table) { toast('先选一张数据表', 'err'); return; }
+      var name = S.table;
+      askConfirm('删除数据表 ' + name,
+        '这张表以及里面的全部数据都会被永久删除，无法撤销。确定要删吗？', '确认删除', function () {
+          api('/api/admin/db/drop-table', { method: 'POST', body: { table: name, confirm: name } })
+            .then(function (d) {
+              if (!d.ok) { toast(d.msg || '删除失败', 'err'); return; }
+              toast('✓ 已删除 ' + name, 'ok');
+              S.table = '';
+              loadOverview().then(function () { setTab('overview'); });
+            });
+        });
+    }
+
     /* ---------------- 事件绑定 ---------------- */
     function bind() {
+      $('#btnNewTable').addEventListener('click', openCreateTable);
+      $('#btnAddCol').addEventListener('click', openAddColumn);
+      $('#btnApi').addEventListener('click', openApiPanel);
+      $('#btnDropTable').addEventListener('click', dropCurrentTable);
       $$('#tabs button[data-tab]').forEach(function (b) {
         b.addEventListener('click', function () {
           if (b.disabled) return;

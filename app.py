@@ -134,7 +134,6 @@ class Message(db.Model):
     deleted_at = db.Column(db.BigInteger, default=0)
 
 
-
 class Project(db.Model):
     id = db.Column(db.String(64), primary_key=True, default=lambda: new_id("p_"))
     owner_id = db.Column(db.String(64), db.ForeignKey("user.id"), nullable=False, index=True)
@@ -1093,7 +1092,10 @@ def _table_names():
                 names.append(view)
     except Exception:
         pass
-    return sorted([n for n in names if not n.startswith("sqlite_")], key=lambda s: s.lower())
+    # 内部表（快速接口的密钥表等）统一用 _wr_ 前缀，不在数据表列表里出现
+    return sorted([n for n in names
+                   if not n.startswith("sqlite_") and not n.startswith("_wr_")],
+                  key=lambda s: s.lower())
 
 
 def _core_table(name):
@@ -1565,6 +1567,377 @@ def db_admin_backup():
     return send_file(path, as_attachment=True,
                      download_name="site_builder_%s.db" % time.strftime("%Y%m%d_%H%M%S"))
 
+# ---------------------------------------------------------------- 可视化建表 + 快速后端
+# 表名 / 字段名只接受「小写字母开头 + 字母数字下划线」，类型走白名单，
+# 默认值只允许数字、带引号的字符串和几个时间函数 —— 任何一步不合规就拒绝执行。
+WR_TABLE_RE = re.compile(r"^[a-z][a-z0-9_]{1,40}$")
+WR_COL_RE = re.compile(r"^[a-z][a-z0-9_]{0,40}$")
+WR_RESERVED = {"user", "project", "template", "module", "sqlite_sequence", "sqlite_master"}
+WR_TYPES = {
+    "integer": "INTEGER", "text": "TEXT", "real": "REAL", "numeric": "NUMERIC",
+    "blob": "BLOB", "boolean": "BOOLEAN", "datetime": "DATETIME", "date": "DATE",
+}
+WR_API_TABLE = "_wr_api"
+_WR_RATE = {}
+
+
+def _wr_default_sql(raw):
+    s = str(raw if raw is not None else "").strip()
+    if not s:
+        return ""
+    if len(s) > 120 or re.search(r"[;\x00]|--|/\*", s):
+        raise ValueError("默认值里有非法字符（分号 / 注释符）")
+    up = s.upper()
+    if up in ("NULL", "CURRENT_TIMESTAMP", "CURRENT_DATE", "CURRENT_TIME"):
+        return " DEFAULT " + up
+    if re.match(r"^-?\d+(\.\d+)?$", s):
+        return " DEFAULT " + s
+    core = s
+    if len(core) >= 2 and core[0] == "'" and core[-1] == "'":
+        core = core[1:-1]
+    return " DEFAULT '" + core.replace("'", "''") + "'"
+
+
+def _wr_col_spec(spec):
+    """一条字段定义 -> (字段名, 建表用的 SQL 片段)。"""
+    if not isinstance(spec, dict):
+        raise ValueError("字段定义格式不正确")
+    name = str(spec.get("name") or "").strip().lower()
+    if not WR_COL_RE.match(name):
+        raise ValueError("字段名「%s」不合法：小写字母开头，只能用字母、数字、下划线" % (name or "空"))
+    ctype = str(spec.get("type") or "text").strip().lower()
+    if ctype not in WR_TYPES:
+        raise ValueError("字段「%s」的类型不支持" % name)
+    is_pk = bool(spec.get("pk"))
+    auto = bool(spec.get("auto"))
+    sql = _q(name) + " " + WR_TYPES[ctype]
+    if is_pk:
+        sql += " PRIMARY KEY"
+        if auto and WR_TYPES[ctype] == "INTEGER":
+            sql += " AUTOINCREMENT"
+        return name, sql
+    if spec.get("notnull"):
+        sql += " NOT NULL"
+    sql += _wr_default_sql(spec.get("default"))
+    if spec.get("unique"):
+        sql += " UNIQUE"
+    return name, sql
+
+
+def _wr_api_ensure():
+    try:
+        with db.engine.begin() as conn:
+            conn.execute(_sa_text(
+                "CREATE TABLE IF NOT EXISTS " + _q(WR_API_TABLE) + " ("
+                "table_name VARCHAR(64) PRIMARY KEY, token VARCHAR(64) NOT NULL, "
+                "methods VARCHAR(32) NOT NULL DEFAULT 'GET,POST', note VARCHAR(200), "
+                "created_at BIGINT, hits INTEGER DEFAULT 0, last_at BIGINT)"))
+    except Exception:
+        pass
+
+
+def _wr_api_get(name):
+    _wr_api_ensure()
+    try:
+        with db.engine.connect() as conn:
+            row = conn.execute(_sa_text(
+                "SELECT * FROM " + _q(WR_API_TABLE) + " WHERE table_name = :t"), {"t": name}).fetchone()
+    except Exception:
+        return None
+    return dict(row._mapping) if row else None
+
+
+def _wr_api_set(name, token, methods, note=""):
+    _wr_api_ensure()
+    now = now_ms()
+    old = _wr_api_get(name)
+    with db.engine.begin() as conn:
+        if old:
+            conn.execute(_sa_text(
+                "UPDATE " + _q(WR_API_TABLE) + " SET token = :k, methods = :m, note = :n"
+                " WHERE table_name = :t"), {"k": token, "m": methods, "n": note, "t": name})
+        else:
+            conn.execute(_sa_text(
+                "INSERT INTO " + _q(WR_API_TABLE) +
+                " (table_name, token, methods, note, created_at, hits) VALUES (:t, :k, :m, :n, :c, 0)"),
+                {"t": name, "k": token, "m": methods, "n": note, "c": now})
+    return _wr_api_get(name)
+
+
+def _wr_rate_ok(ip, limit=90, window=60):
+    now = time.time()
+    if len(_WR_RATE) > 4000:
+        for k in [k for k, v in list(_WR_RATE.items()) if not v or now - v[-1] > window * 2]:
+            _WR_RATE.pop(k, None)
+    bucket = _WR_RATE.setdefault(ip, [])
+    bucket[:] = [t for t in bucket if now - t < window]
+    if len(bucket) >= limit:
+        return False
+    bucket.append(now)
+    return True
+
+
+@app.route("/api/admin/db/create-table", methods=["POST"])
+def db_create_table():
+    guard = _admin_guard()
+    if guard:
+        return guard
+    tg = _token_guard()
+    if tg:
+        return tg
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("table") or "").strip().lower()
+    if not WR_TABLE_RE.match(name):
+        return fail("表名要小写字母开头，2-41 位，只能用字母、数字、下划线", 400)
+    if name in WR_RESERVED or name.startswith("_wr_") or name.startswith("sqlite_"):
+        return fail("「%s」是系统保留名，换一个" % name, 400)
+    if name in _table_names():
+        return fail("已经有同名的数据表了", 409)
+    cols = data.get("columns")
+    if not isinstance(cols, list) or not cols:
+        return fail("至少需要一个字段", 400)
+    if len(cols) > 40:
+        return fail("字段最多 40 个", 400)
+    parts, seen, pk_count = [], set(), 0
+    try:
+        for spec in cols:
+            col_name, col_sql = _wr_col_spec(spec)
+            if col_name in seen:
+                return fail("字段「%s」重复了" % col_name, 400)
+            seen.add(col_name)
+            if isinstance(spec, dict) and spec.get("pk"):
+                pk_count += 1
+            parts.append(col_sql)
+    except ValueError as err:
+        return fail(str(err), 400)
+    if pk_count > 1:
+        return fail("只能有一个主键字段", 400)
+    auto_pk = False
+    if not pk_count:
+        parts.insert(0, _q("id") + " INTEGER PRIMARY KEY AUTOINCREMENT")
+        auto_pk = True
+    sql = "CREATE TABLE " + _q(name) + " (\n  " + ",\n  ".join(parts) + "\n)"
+    try:
+        with db.engine.begin() as conn:
+            conn.execute(_sa_text(sql))
+    except Exception as err:
+        return fail("建表失败：" + _short_db_error(err), 500)
+    return ok(table=name, sql=sql, autoPk=auto_pk, columns=len(parts))
+
+
+@app.route("/api/admin/db/alter-table", methods=["POST"])
+def db_alter_table():
+    guard = _admin_guard()
+    if guard:
+        return guard
+    tg = _token_guard()
+    if tg:
+        return tg
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("table") or "").strip().lower()
+    if name not in _table_names():
+        return fail("数据表不存在", 404)
+    if name in WR_RESERVED:
+        return fail("系统表不允许改结构", 403)
+    specs = data.get("columns")
+    if not isinstance(specs, list) or not specs:
+        return fail("没有要添加的字段", 400)
+    try:
+        info = _table_info(name)
+    except KeyError:
+        return fail("数据表不存在", 404)
+    existing = {c["name"] for c in info["columns"]}
+    done = []
+    for spec in specs:
+        if not isinstance(spec, dict):
+            return fail("字段定义格式不正确", 400)
+        if spec.get("pk"):
+            return fail("已存在的表不能再加主键字段，请新建一张表", 400)
+        try:
+            col_name, col_sql = _wr_col_spec(spec)
+        except ValueError as err:
+            return fail(str(err), 400)
+        if col_name in existing:
+            return fail("字段「%s」已经存在" % col_name, 400)
+        # SQLite 的 ADD COLUMN 要求 NOT NULL 必须带默认值
+        if spec.get("notnull") and not str(spec.get("default") or "").strip():
+            col_sql += " DEFAULT ''"
+        try:
+            with db.engine.begin() as conn:
+                conn.execute(_sa_text("ALTER TABLE " + _q(name) + " ADD COLUMN " + col_sql))
+        except Exception as err:
+            return fail("添加字段「%s」失败：%s" % (col_name, _short_db_error(err)), 500)
+        existing.add(col_name)
+        done.append(col_name)
+    return ok(table=name, added=done)
+
+
+@app.route("/api/admin/db/drop-table", methods=["POST"])
+def db_drop_table():
+    guard = _admin_guard()
+    if guard:
+        return guard
+    tg = _token_guard()
+    if tg:
+        return tg
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("table") or "").strip().lower()
+    if str(data.get("confirm") or "") != name:
+        return fail("请输入完整表名确认删除", 400)
+    if name not in _table_names():
+        return fail("数据表不存在", 404)
+    if name in WR_RESERVED:
+        return fail("系统表不允许删除", 403)
+    try:
+        with db.engine.begin() as conn:
+            conn.execute(_sa_text("DROP TABLE " + _q(name)))
+    except Exception as err:
+        return fail("删除失败：" + _short_db_error(err), 500)
+    try:
+        with db.engine.begin() as conn:
+            conn.execute(_sa_text("DELETE FROM " + _q(WR_API_TABLE) + " WHERE table_name = :t"), {"t": name})
+    except Exception:
+        pass
+    return ok(table=name, dropped=True)
+
+
+@app.route("/api/admin/db/api/<name>", methods=["GET", "POST"])
+def db_api_config(name):
+    guard = _admin_guard()
+    if guard:
+        return guard
+    # 读配置是只读操作，不带 CSRF token；写操作才校验
+    if request.method == "POST":
+        tg = _token_guard()
+        if tg:
+            return tg
+    name = str(name or "").strip().lower()
+    if name not in _table_names():
+        return fail("数据表不存在", 404)
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        picked = [m.strip().upper() for m in str(data.get("methods") or "").split(",")]
+        methods = [m for m in picked if m in ("GET", "POST")]
+        # 两个都关掉 = 暂停这张表的接口：密钥保留，页面改回来就能继续用
+        old = _wr_api_get(name) or {}
+        # 只有点「重置」或第一次开通才换密钥，改开关不会让已发布的页面失效
+        if data.get("reset") or not old.get("token"):
+            token = secrets.token_urlsafe(24)
+        else:
+            token = old["token"]
+        _wr_api_set(name, token, ",".join(methods), str(data.get("note") or "")[:200])
+    cfg = _wr_api_get(name) or {}
+    base = request.host_url.rstrip("/")
+    return ok(table=name, token=cfg.get("token") or "",
+              # 还没配置过的表按「读写都开」展示，否则面板一打开是两个关闭的开关，看着像坏了
+              methods=cfg.get("methods") if cfg else "GET,POST",
+              created=cfg.get("created_at"), hits=cfg.get("hits") or 0,
+              endpoint=base + "/api/data/" + name,
+              open_=bool(cfg.get("token")))
+
+
+@app.route("/api/data/<name>", methods=["GET", "POST", "OPTIONS"])
+def data_api(name):
+    if request.method == "OPTIONS":
+        return ("", 204)
+    name = str(name or "").strip().lower()
+    if not WR_TABLE_RE.match(name) or name not in _table_names():
+        return fail("接口不存在", 404)
+    cfg = _wr_api_get(name)
+    if not cfg or not cfg.get("token"):
+        return fail("这张表还没开通接口，请先在数据库管理里生成密钥", 403)
+    key = request.args.get("key") or request.headers.get("X-Api-Key") or ""
+    if not key or not secrets.compare_digest(str(cfg["token"]), str(key)):
+        return fail("密钥不正确", 401)
+    ip = (request.headers.get("X-Forwarded-For") or request.remote_addr or "").split(",")[0].strip()
+    if not _wr_rate_ok(ip or "?"):
+        return fail("请求太频繁，请稍后再试", 429)
+    allowed = [m.strip().upper() for m in str(cfg.get("methods") or "").split(",") if m.strip()]
+    if not allowed:
+        return fail("这张表的接口已暂停", 403)
+    if request.method not in allowed:
+        return fail("这张表没有开放 %s" % request.method, 405)
+    try:
+        info = _table_info(name)
+    except KeyError:
+        return fail("数据表不存在", 404)
+    cols = [c["name"] for c in info["columns"]]
+    try:
+        with db.engine.begin() as conn:
+            conn.execute(_sa_text(
+                "UPDATE " + _q(WR_API_TABLE) + " SET hits = COALESCE(hits,0) + 1, last_at = :n"
+                " WHERE table_name = :t"), {"n": now_ms(), "t": name})
+    except Exception:
+        pass
+
+    if request.method == "GET":
+        try:
+            limit = min(200, max(1, int(request.args.get("limit", "20"))))
+            offset = max(0, int(request.args.get("offset", "0")))
+        except (TypeError, ValueError):
+            limit, offset = 20, 0
+        order = request.args.get("order") or (info["pk"][0] if info["pk"] else cols[0])
+        if order not in cols:
+            order = cols[0]
+        direction = "DESC" if (request.args.get("dir") or "").lower() == "desc" else "ASC"
+        where, params = [], {}
+        for k, v in request.args.items():
+            if k in ("key", "limit", "offset", "order", "dir") or k not in cols:
+                continue
+            where.append(_q(k) + " = :f_" + k)
+            params["f_" + k] = v
+        base = " FROM " + _q(name) + (" WHERE " + " AND ".join(where) if where else "")
+        try:
+            with db.engine.connect() as conn:
+                total = int(conn.execute(_sa_text("SELECT COUNT(*)" + base), params).scalar() or 0)
+                res = conn.execute(_sa_text(
+                    "SELECT *" + base + " ORDER BY " + _q(order) + " " + direction +
+                    " LIMIT :_l OFFSET :_o"), dict(params, _l=limit, _o=offset))
+                keys = list(res.keys())
+                rows = [dict(zip(keys, [_cell(v) for v in r])) for r in res.fetchall()]
+        except Exception as err:
+            return fail("读取失败：" + _short_db_error(err), 500)
+        return ok(data=rows, total=total, limit=limit, offset=offset)
+
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        return fail("请提交 JSON 对象", 400)
+    if len(body) > 60:
+        return fail("字段过多", 400)
+    vals = {}
+    for k, v in body.items():
+        if k not in cols:
+            continue
+        if isinstance(v, (dict, list)):
+            vals[k] = json.dumps(v, ensure_ascii=False)
+        elif isinstance(v, bool):
+            vals[k] = 1 if v else 0
+        elif v is None or isinstance(v, (int, float, str)):
+            vals[k] = v
+        else:
+            vals[k] = str(v)
+    if not vals:
+        return fail("没有可写入的字段（字段名要和表里的一致）", 400)
+    keys = list(vals.keys())
+    try:
+        with db.engine.begin() as conn:
+            res = conn.execute(_sa_text(
+                "INSERT INTO " + _q(name) + " (" + ", ".join(_q(k) for k in keys) + ") VALUES (" +
+                ", ".join(":" + k for k in keys) + ")"), vals)
+            new_id = getattr(res, "lastrowid", None)
+    except Exception as err:
+        return fail("写入失败：" + _short_db_error(err), 500)
+    return ok(data={"id": new_id}, inserted=1)
+
+
+@app.after_request
+def _wr_data_cors(resp):
+    if request.path.startswith("/api/data/"):
+        resp.headers["Access-Control-Allow-Origin"] = "*"
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Api-Key"
+        resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return resp
+
 # ---------------------------------------------------------------- 静态资源
 @app.route("/<path:filename>")
 def static_file(filename):
@@ -1604,6 +1977,31 @@ if __name__ == "__main__":
     except Exception:
         pass
 
+    import threading
+    import webbrowser
+
+    _port = int(os.environ.get("PORT", "5000"))
+
+    # 自动打开浏览器放在 Python 端做：起一个守护线程，轮询端口直到服务真的就绪，
+    # 再打开默认浏览器。绝不用固定 sleep——冷启动首次 import 依赖常需 2 秒以上，
+    # 固定等待会让浏览器抢跑、扑个空显示"拒绝连接"。设 SITE_BUILDER_NO_BROWSER=1 可关闭。
+    def _open_browser():
+        import socket
+        for _ in range(300):  # 最多等约 30 秒，每 0.1 秒探测一次
+            try:
+                s = socket.create_connection(("127.0.0.1", _port), timeout=0.2)
+                s.close()
+                break  # 端口已就绪
+            except OSError:
+                time.sleep(0.1)
+        try:
+            webbrowser.open("http://127.0.0.1:%d" % _port)
+        except Exception:
+            pass
+
+    if os.environ.get("SITE_BUILDER_NO_BROWSER") != "1":
+        threading.Thread(target=_open_browser, daemon=True).start()
+
     # 监听 0.0.0.0 而非 127.0.0.1：云平台（如 KataBump）的反向代理需要从外部转发流量进来，
     # 只监听本机将导致域名访问 502。本地双击访问 127.0.0.1:5000 仍然正常。
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))
+    app.run(host="0.0.0.0", port=_port)

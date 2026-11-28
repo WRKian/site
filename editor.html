@@ -95,7 +95,7 @@
         </section>
 
         <section class="panel-sec">
-          <h2 class="sec-title">素材库 <span class="sec-hint" id="assetCount">37 个组件</span></h2>
+          <h2 class="sec-title">素材库 <span class="sec-hint" id="assetCount">113 个组件</span></h2>
           <input class="asset-search" id="assetSearch" type="search" placeholder="搜索组件，如「导航」" aria-label="搜索组件" autocomplete="off" spellcheck="false">
           <div class="asset-groups" id="assetGrid"></div>
         </section>
@@ -300,6 +300,13 @@
       <li>还有三个一键按钮：为所有模块加进场动画、卡片统一加悬停上浮、清除全部动效（Ctrl+Z 可撤销）</li>
       <li>以上效果在「◉ 预览」和导出的 HTML 里生效；系统开启「减少动态效果」或浏览器不支持时，页面直接呈现最终状态，内容不会消失</li>
     </ul>
+    <h3>滚动条外观</h3>
+    <ul class="key-list">
+      <li>选中空白处打开页面设置，往下找到 <b>滚动条</b>：<b>默认</b>（浏览器原样）/ <b>细线</b> / <b>胶囊</b> / <b>极简</b> / <b>发光</b> / <b>隐藏</b> / <b>自定义</b></li>
+      <li>可调粗细（3–24px）、圆角、留白（滑块与轨道之间的空隙），以及滑块颜色、悬停色、轨道颜色；颜色留空就用皮肤自带的那套</li>
+      <li><b>自动隐藏</b>打开后只在滚动时浮出滑块，停约 0.9 秒淡出，和 macOS 一样；深色模式下自动换成浅色滑块，不会糊成一片</li>
+      <li>同时写了 <code>scrollbar-width</code> / <code>scrollbar-color</code>，Firefox 也生效；页面内容和画布滚动条用的是同一套设置</li>
+    </ul>
     <h3>渐变颜色</h3>
     <ul class="key-list">
       <li>所有颜色字段右侧有个 <b>渐变</b> 按钮，点开就是渐变编辑器：线性 / 径向 / 锥形三种类型，可选角度或直接点预设色板</li>
@@ -346,6 +353,20 @@
       <li><b>下拉栏</b>：一行一个可折叠面板，用浏览器原生折叠元素实现，点标题展开内容，可填文字或链接</li>
       <li><b>多选框</b>：一行一个勾选项，可设默认值；点按钮后显示已选项，导出页面里无需后端即可用</li>
     </ul>
+    <h3>TDesign 组件</h3>
+    <ul class="key-list">
+      <li>照腾讯 TDesign 的设计语言做的一组 10 个：<b>输入框组</b>、<b>开关组</b>、<b>分页</b>、<b>对话框</b>、<b>抽屉</b>、<b>全局提示</b>、<b>骨架屏</b>、<b>上传框</b>、<b>头像组</b>、<b>结果页</b></li>
+      <li>颜色统一跟「主题色」走（默认 #0052d9），字号有「小 / 中 / 大」三档；每块也能在「通用设置 → 卡片外观」里单独改底色、圆角、内边距</li>
+      <li>这些都是<b>画出来的状态</b>（分页的当前页、开关的开启位、提示的成功 / 警告色），用来做界面示意和说明，不做真实交互</li>
+      <li>分页会按 TDesign 的折叠规则显示：超过 7 页时首尾固定、中间用省略号</li>
+    </ul>
+    <h3>博客组件</h3>
+    <ul class="key-list">
+      <li>参考 cnkirito.moe、Hexo NexT 这类技术博客的做法，共 4 个：<b>文章目录</b>（可吸顶）、<b>博客侧边栏</b>、<b>归档列表</b>、<b>上一篇 / 下一篇</b></li>
+      <li>侧边栏是一整块卡片：头像 + 名字 + 简介 + 文章 / 标签 / 年份统计 + 最新文章 + 分类（带篇数）+ 标签胶囊</li>
+      <li>目录支持二级缩进（行首写「- 」就是子项），吸顶时距顶部 88px，不会被导航栏压住</li>
+      <li>手机上目录和侧边栏自动铺满整行，「上一篇 / 下一篇」从左右并排改成上下排列</li>
+    </ul>
     <h3>组件库</h3>
     <ul class="key-list">
       <li>左侧素材库标题右侧会实时显示当前组件总数，按分组归类；新组件分布在内容展示、转化与互动、视觉实验等分组</li>
@@ -354,6 +375,15 @@
       <li>吸顶的导航栏建议放在页面最外层（第一块）。若放在容器里，只能在容器范围内吸附，属性面板会提示并给出「移到页面最外层」按钮</li>
       <li>手机宽度下导航栏会自动变成可点击展开的菜单</li>
       <li>菜单、链接、价格、时间线等多行内容都改成一行一个小卡片：每格单独填，可以加行、删行、上下移动，不用再记竖线</li>
+    </ul>
+    <h3>数据库与数据接口</h3>
+    <ul class="key-list">
+      <li>顶部头像菜单里的 <b>⚙ 数据库管理</b>（网址 <code>/admin/db</code>）可以可视化建表：填表名、字段名、类型、非空、默认值、主键，右边实时预览建表语句，点一下就建好</li>
+      <li>结构页还能 <b>＋ 添加字段</b>（已有数据不受影响）和 <b>删除表</b>（要手打表名确认，防误删）；系统自带的表被保护，不能删也不能改名</li>
+      <li>每张表都能开一个 <b>数据接口</b>：<code>/api/data/表名?key=密钥</code>。给导出的静态页面提交表单、读取列表用，访问者不用登录</li>
+      <li>「读取 GET」「写入 POST」可以单独开关；两个都关掉就是暂停接口，密钥仍然保留，改回来已发布的页面不用换密钥</li>
+      <li>读取支持 <code>limit</code> / <code>offset</code> / <code>order</code> / <code>dir</code>，还能把字段名当筛选条件（例如 <code>&amp;title=标题</code>）；写入只接受表里真实存在的字段，多余字段直接忽略</li>
+      <li>面板里直接给好了复制就能用的 <code>fetch</code> 示例；密钥只发给自己的页面，泄露了点「重置」立刻作废旧密钥</li>
     </ul>
   </div>
 </div>
@@ -399,7 +429,7 @@
 
 <script src="media.js"></script>
 <script src="templates.js"></script>
-<script src="app.js?v=20261126b"></script>
+<script src="app.js?v=20261126c"></script>
 <script src="portal.js?v=20261123"></script>
 <script>
 (function () {
